@@ -1,8 +1,18 @@
 package com.nightmare.Mobs;
 
+import com.nightmare.ConfigEvaluator;
+import com.nightmare.Constants;
+import com.nightmare.Main;
 import com.nightmare.RandomnessManagement;
 import net.md_5.bungee.api.ChatColor;
+
+import java.util.Objects;
+
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -16,6 +26,13 @@ import org.bukkit.potion.PotionEffectType;
 public class NightmareZombie {
 
     NightmareZombie(Entity entity, YamlConfiguration config) {
+
+        try {
+            ConfigEvaluator.evaluate("MobSpawning", config); 
+        } catch (Exception e) {
+            Main.getInstance().getServer().getPluginManager().disablePlugin(Main.getInstance());
+            e.printStackTrace();
+        }  
 
         final RandomnessManagement random = new RandomnessManagement();
 
@@ -33,7 +50,7 @@ public class NightmareZombie {
     private void createCtierNightmareZombie(Entity entity, YamlConfiguration config) {
         Zombie mob = (Zombie) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.c").replace("%mob%", Zombie.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", Zombie.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(true);
@@ -75,7 +92,7 @@ public class NightmareZombie {
 
         Zombie mob = (Zombie) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.b").replace("%mob%", Zombie.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_b.getValue()).replace("%mob%", Zombie.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(true);
@@ -101,7 +118,7 @@ public class NightmareZombie {
 
         Zombie mob = (Zombie) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.a").replace("%mob%", Zombie.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_a.getValue()).replace("%mob%", Zombie.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(true);
@@ -110,5 +127,18 @@ public class NightmareZombie {
         mob.setCanPickupItems(false);
 
         mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
+    }
+
+    public static void setCtierConstantEffects(Entity entity, World world) {
+
+        YamlConfiguration settings = Main.getSettings();
+
+        final Zombie zombie = (Zombie) entity;
+        final String name = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(settings.getString(Constants.Mobs.config_mobs_name_c.getValue())).replace("%mob%", Zombie.class.getSimpleName()));
+
+        if (zombie.getCustomName() != null && zombie.getCustomName().equalsIgnoreCase(name) && !zombie.isDead()) {
+            world.spawnParticle(Particle.EXPLOSION, zombie.getLocation(), 60);
+            world.playSound(zombie.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.HOSTILE, 1, 1);
+        }
     }
 }

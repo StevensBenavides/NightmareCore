@@ -1,4 +1,4 @@
-package com.nightmare.Scoreboard;
+package com.nightmare;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,13 +12,12 @@ import java.util.regex.Pattern;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
-import com.nightmare.Main;
 import com.nightmare.FastBoard.*;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
 
-public final class Score {
+public final class NighmareScoreboard {
 
     private final Plugin plugin = Main.getInstance();
     public static final Map<UUID, FastBoard> boards = new HashMap<UUID, FastBoard>();

@@ -27,7 +27,7 @@ public final class Commands implements CommandExecutor, TabCompleter{
     public @Nullable List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
 
         if (args.length == 1) {
-            return List.of("reload", "creators");
+            return List.of("reload", "creator");
         }
 
         if (args.length > 1 && args[0].equalsIgnoreCase("reload")) {
@@ -71,7 +71,7 @@ public final class Commands implements CommandExecutor, TabCompleter{
         } else if (sender instanceof Player && args.length > 1 && args[0].equalsIgnoreCase("reload")) {
 
             if (!(sender.hasPermission("nightmare.reload")) || !sender.isOp()) {
-                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + IO.HashMapOfMessages.get("perm")));
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + IO.HashMapOfMessages.get("permission")));
                 return true;
             }
 
@@ -99,7 +99,7 @@ public final class Commands implements CommandExecutor, TabCompleter{
 
             }
 
-        } else if (!(sender instanceof Player) && args.length == 1 && args[0].equalsIgnoreCase("creators")) {
+        } else if (!(sender instanceof Player) && args.length == 1 && args[0].equalsIgnoreCase("creator")) {
 
             Bukkit.getConsoleSender().sendMessage("");
             Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', String.format("%s", plugin.getConfig().getString("prefix"))));
@@ -117,7 +117,7 @@ public final class Commands implements CommandExecutor, TabCompleter{
             github.setText("Github 🔱  ");
             github.setBold(true);
             github.setColor(ChatColor.BLACK);
-            github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/StevensBenavides/NightmareCore-Dev"));
+            github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/StevensBenavides/NightmareCore"));
             github.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.translateAlternateColorCodes('&', "&fOpen a browser window with the creator github."))));
 
             TextComponent discord = new TextComponent();

@@ -74,17 +74,33 @@ public final class Constants {
 
     }
 
+    public enum Mobs {
+        config_mobs_name_c("config.mobs.c_tier"),
+        config_mobs_name_b("config.mobs.b_tier"),
+        config_mobs_name_a("config.mobs.a_tier");
+
+        private final String value;
+
+        Mobs(String value) {
+            this.value = value;
+        }
+
+        public final String getValue() {
+            return value;
+        }
+    }
+
     public enum onSpawnEvent {
         
         config("config"),
         config_mobs("config.mobs"),
-        config_mobs_name_c("config.mobs.c"),
-        config_mobs_name_b("config.mobs.b"),
-        config_mobs_name_a("config.mobs.a");
+        config_mobs_name_c("config.mobs.c_tier"),
+        config_mobs_name_b("config.mobs.b_tier"),
+        config_mobs_name_a("config.mobs.a_tier");
     
         private final String value;
 
-         onSpawnEvent(String value) {
+        onSpawnEvent(String value) {
             this.value = value;
         }
 

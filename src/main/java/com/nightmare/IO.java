@@ -68,15 +68,13 @@ public final class IO {
         Path messagesPath = Paths.get(messages.getAbsolutePath());
 
         String dataMessages= """
-
         # messages.yml
 
         #This is the Nightmare core messaging configuration file.
         #If you want to configure something you must do it with its corresponding values.
 
-        perm: "&cYou not have permission to do that."
+        permission: "&cYou not have permission to do that."
         reload:
-
             messages: "&aMessages.yml has been reloaded."
             settings: "&aSettings.yml has been reloaded."
 
@@ -101,7 +99,6 @@ public final class IO {
         Path settingsPath = Paths.get(settings.getAbsolutePath());
 
         String dataSettings= """                                        
-        
         # settings.yml
 
         # This is the main configuration file for the nightmare core.
@@ -114,23 +111,18 @@ public final class IO {
         prefix: "&x&f&b&0&2&0&2&lN&x&f&b&0&b&0&b&li&x&f&b&1&3&1&3&lg&x&f&b&1&c&1&c&lh&x&f&c&2&4&2&4&lt&x&f&c&2&d&2&d&lm&x&f&c&3&5&3&5&la&x&f&c&3&e&3&e&lr&x&f&c&4&6&4&6&le &x&f&c&4&f&4&f&lC&x&f&d&5&7&5&7&lo&x&f&d&6&0&6&0&lr&x&f&d&6&8&6&8&le &x&f&d&7&1&7&1&l☠ &r"
 
         # Scoreboard
-
         # Placeholders of the scoreboard:
 
             # %player% -> player name 
             # %online% -> online players
             # %location% -> player location
-
             # You can use any PlaceHolderAPI expansion.
 
         scoreboard:
 
             enable: true
-
             name: " &4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠ "
-
             lines:
-
                 - ""
                 - " &c&l⛏ &cPlayer: &f%player%"
                 - " &c&l⚡ &cOnline: &f%online%"
@@ -138,13 +130,10 @@ public final class IO {
                 - ""
 
         # Join / Leave Messages
-
-            #You can use any PlaceHolderAPI expansion.
+        # You can use any PlaceHolderAPI expansion.
 
         join_and_leave:
-        
             enable: true
-
             join: "Welcome &c%player_name% &fto the &4Nightmare World&r."
             leave: "&c%player_name% &fleft the &4Nightmare World&r."    
 
@@ -153,7 +142,6 @@ public final class IO {
         tablist:
 
             enable: true
-
             header: "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠&r"
             footer: "Welcome &c%player_name% &fto the &4Nightmare World ☠&r."
 
@@ -162,9 +150,7 @@ public final class IO {
         motd:
 
             enable: true
-
             lines: 
-
                 - "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠&r"
                 - "&c&lWelcome to the eternal &4&lnightmare ☠&r."
 
@@ -173,9 +159,7 @@ public final class IO {
         message_join:
 
             enable: true
-
             title: "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠"
-
             lines:
 
                 - ""
@@ -186,21 +170,18 @@ public final class IO {
         config:
         
             player:
-
                 display_health: true
-
             mobs:
 
-                #c -> Name of the tier c mob.
-                #b -> Name of the tier b mob.
-                #a -> Name of the tier a mob.
+                #c = Name of the tier C mob.
+                #b =  Name of the tier B mob.
+                #a =  Name of the tier A mob.
 
                 # %mob% -> Name of the mob (Obligatory).
 
-                c: "&c&lNightmare %mob% &4☠&4 Tier C"
-                b: "&c&lNightmare %mob% &4☠&e Tier B"
-                a: "&c&lNightmare %mob% &4☠&a Tier A"
-
+                c_tier: "&c&lNightmare %mob% &4☠&4 Tier C"
+                b_tier: "&c&lNightmare %mob% &4☠&e Tier B"
+                a_tier: "&c&lNightmare %mob% &4☠&a Tier A"
         """;
 
         Files.writeString(settingsPath, dataSettings);
@@ -216,10 +197,10 @@ public final class IO {
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(messages);    
 
-        if (config.getString("perm") == null)
+        if (config.getString("permission") == null)
             throw new IOException("perm not found in messages.yml.");
 
-        HashMapOfMessages.put("perm", config.getString("perm").toString());    
+        HashMapOfMessages.put("permission", config.getString("permission").toString());    
 
         if (config.getString("reload.messages") == null)
             throw new IOException("reload.messages not found in messages.yml.");
@@ -280,10 +261,10 @@ public final class IO {
         
         HashMapOfMessages.clear();
 
-        if (config.getString("perm") == null)
+        if (config.getString("permission") == null)
             throw new IOException("perm not found in messages.yml.");
 
-        HashMapOfMessages.put("perm", config.getString("perm").toString());   
+        HashMapOfMessages.put("permission", config.getString("permission").toString());   
 
         if (config.getString("reload.messages") == null)
             throw new IOException("reload.messages not found in messages.yml.");

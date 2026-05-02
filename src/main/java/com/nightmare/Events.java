@@ -28,7 +28,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
 import com.nightmare.Mobs.Mobs;
-import com.nightmare.Scoreboard.Score;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
@@ -44,7 +43,7 @@ public final class Events implements Listener {
 
         try {
 
-            ConfigEvaluator.eval("onJoin", config);
+            ConfigEvaluator.evaluate("onJoin", config);
 
             if (config.getBoolean("scoreboard.enable")) {
 
@@ -52,7 +51,7 @@ public final class Events implements Listener {
 
                 board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name")));
 
-                Score.boards.put(event.getPlayer().getUniqueId(), board);
+                NighmareScoreboard.boards.put(event.getPlayer().getUniqueId(), board);
 
             }
 
@@ -127,10 +126,10 @@ public final class Events implements Listener {
 
             final YamlConfiguration config = Main.getSettings();
 
-            ConfigEvaluator.eval("onLeave", config);
+            ConfigEvaluator.evaluate("onLeave", config);
 
             if (config.getBoolean("scoreboard.enable")) {
-                Score.boards.remove(event.getPlayer().getUniqueId());
+                NighmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
             }
             
             if (config.getBoolean("join_and_leave.enable")) {
@@ -163,16 +162,14 @@ public final class Events implements Listener {
 
             final YamlConfiguration config = Main.getSettings();
 
-            ConfigEvaluator.eval("onServerPing", config);
+            ConfigEvaluator.evaluate("onServerPing", config);
 
             if (config.getBoolean("motd.enable")) {
 
                 StringBuilder strMotd = new StringBuilder();
 
                 for (String line : config.getStringList("motd.lines")) {
-
                     strMotd.append(ChatColor.translateAlternateColorCodes('&', line) + "\n");
-
                 }
 
                 event.setMotd(strMotd.toString());
@@ -197,43 +194,29 @@ public final class Events implements Listener {
         
             if (event.getEntityType() == EntityType.ZOMBIE) {
 
-                ConfigEvaluator.eval("onSpawnEvent", config);
-
-                Mobs mobs = new Mobs();
-
-                mobs.setNightmareZombie(event.getEntity(), config);
+                ConfigEvaluator.evaluate("onSpawnEvent", config);
+                Mobs.spawnNightmareZombie(event.getEntity(), config);
 
             } else if (event.getEntityType() == EntityType.CREEPER) {
 
-                ConfigEvaluator.eval("onSpawnEvent", config);
-
-                Mobs mobs = new Mobs();
-
-                mobs.setNightmareCreeper(event.getEntity(), config);
+                ConfigEvaluator.evaluate("onSpawnEvent", config);
+                Mobs.spawnNightmareCreeper(event.getEntity(), config);
 
             } else if (event.getEntityType() == EntityType.SPIDER) {
 
-                ConfigEvaluator.eval("onSpawnEvent", config);
-
-                Mobs mobs = new Mobs();
-
-                mobs.setNightmareSpider(event.getEntity(), config);
+                ConfigEvaluator.evaluate("onSpawnEvent", config);
+                Mobs.spawnNightmareSpider(event.getEntity(), config);
 
             } else if (event.getEntityType() == EntityType.SKELETON) {
 
-                ConfigEvaluator.eval("onSpawnEvent", config);
-
-                Mobs mobs = new Mobs();
-
-                mobs.setNightmareSkeleton(event.getEntity(), config);
+                ConfigEvaluator.evaluate("onSpawnEvent", config);
+                Mobs.spawnNightmareSkeleton(event.getEntity(), config);
 
             } else if (event.getEntityType() == EntityType.ENDERMAN) {
 
-                ConfigEvaluator.eval("onSpawnEvent", config);
+                ConfigEvaluator.evaluate("onSpawnEvent", config);
 
-                Mobs mobs = new Mobs();
-
-                mobs.setNightmareEnderman(event.getEntity(), config);
+                Mobs.spawnNightmareEnderman(event.getEntity(), config);
 
             } 
         
@@ -272,10 +255,10 @@ public final class Events implements Listener {
 
             final YamlConfiguration config = Main.getSettings();
 
-            ConfigEvaluator.eval("onSpawnEvent", config);
+            ConfigEvaluator.evaluate("onSpawnEvent", config);
 
-            final String c = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.c").replace("%mob%", event.getEntity().getClass().getSimpleName()));
-            final String b = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.b").replace("%mob%", event.getEntity().getClass().getSimpleName()));
+            final String c = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", event.getEntity().getClass().getSimpleName()));
+            final String b = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_b.getValue()).replace("%mob%", event.getEntity().getClass().getSimpleName()));
 
             if (event.getEntityType() == EntityType.ZOMBIE && event.getEntity().getCustomName() != null && event.getEntity().getCustomName().equalsIgnoreCase(c))
 

@@ -1,6 +1,5 @@
-package com.nightmare.Tablist;
+package com.nightmare;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,12 +8,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import com.nightmare.Main;
-
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
 
-public final class Tab {
+public final class Tablist {
 
     private final Plugin plugin = Main.getInstance();
 
@@ -24,15 +21,7 @@ public final class Tab {
 
             for (Player player : plugin.getServer().getOnlinePlayers()) {
 
-                File settings = new File(plugin.getDataFolder(), "settings.yml");
-
-                if (!settings.exists())
-                    try {
-                        throw new IOException("settings.yml does not exist.");
-                    } catch (IOException e) {
-                        plugin.getServer().getPluginManager().disablePlugin(plugin);
-                        e.printStackTrace();
-                    }
+                if (player == null) return;
 
                 final YamlConfiguration config = Main.getSettings();    
 

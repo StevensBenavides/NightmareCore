@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import com.nightmare.Constants.Mobs;
 import com.nightmare.Constants.onJoin;
 import com.nightmare.Constants.onLeave;
 import com.nightmare.Constants.onServerPing;
@@ -14,7 +15,7 @@ public final class ConfigEvaluator {
 
     private static final Plugin plugin = Main.getInstance();
 
-    public static void eval(String event, YamlConfiguration config) throws IOException {
+    public static void evaluate(String event, YamlConfiguration config) throws IOException {
         
         if (event.equalsIgnoreCase("onJoin")) {
 
@@ -60,6 +61,15 @@ public final class ConfigEvaluator {
                 e.printStackTrace();
             }
 
+        } else if (event.equalsIgnoreCase("MobSpawning")) {
+            try {
+                for (Mobs value : Constants.Mobs.values()) {
+                    if (config.get(value.getValue()) == null) throw new Exception(value.getValue() + " not found in settings.yml.");
+                }
+            } catch (Exception e) {
+                plugin.getServer().getPluginManager().disablePlugin(plugin);
+                e.printStackTrace();
+            }
         }
 
     }

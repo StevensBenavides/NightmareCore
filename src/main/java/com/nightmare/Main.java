@@ -11,9 +11,7 @@ import org.bukkit.entity.SpawnCategory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.nightmare.Mobs.Tasks;
-import com.nightmare.Scoreboard.Score;
-import com.nightmare.Tablist.Tab;
+import com.nightmare.Mobs.MobTasks;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -61,7 +59,7 @@ public final class Main extends JavaPlugin {
       }
 
     } else if (config.getBoolean("scoreboard.enable")) {
-      Score scoreboard = new Score();
+      NighmareScoreboard scoreboard = new NighmareScoreboard();
       scoreboard.initScorebaord();
     }
 
@@ -76,7 +74,7 @@ public final class Main extends JavaPlugin {
 
     } else if (config.getBoolean("tablist.enable")) {
 
-      Tab tab = new Tab();
+      Tablist tab = new Tablist();
 
       try {
         tab.initTablist();
@@ -90,14 +88,11 @@ public final class Main extends JavaPlugin {
     {
         for (World world : this.getServer().getWorlds()) {
             world.setDifficulty(Difficulty.HARD);
-            world.setSpawnLimit(SpawnCategory.MONSTER, 1000);
+            world.setSpawnLimit(SpawnCategory.MONSTER, 200);
         }
     }
 
-    Tasks tasksMobs = new Tasks();
-
-    tasksMobs.setEffectsMobs();
-
+    MobTasks.startCTierMobEffects(instance);
   }
 
   public void onDisable() {
