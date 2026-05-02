@@ -1,8 +1,8 @@
-package com.nightmare.Utils;
+package com.nightmare;
 
 public final class Constants {
 
-    public static enum onJoin {
+    public enum onJoin {
 
         prefix("prefix"),
         scoreboard("scoreboard"),
@@ -21,10 +21,8 @@ public final class Constants {
 
         private final String value;
 
-        private onJoin(String value) {
-
+        onJoin(String value) {
             this.value = value;
-
         }
 
         public final String getValue() {
@@ -35,7 +33,7 @@ public final class Constants {
 
     }
 
-    public static enum onLeave {
+    public enum onLeave {
         
         prefix("prefix"),
         scoreboard("scoreboard"),
@@ -48,21 +46,17 @@ public final class Constants {
 
         private final String value;
 
-        private onLeave(String value) {
-            
+        onLeave(String value) {
             this.value = value;
-
         }
 
         public final String getValue() {
-            
             return value;
-
         }
 
     }
 
-    public static enum onServerPing {
+    public enum onServerPing {
         
         motd("motd"),
         motd_enable("motd.enable"),
@@ -70,21 +64,17 @@ public final class Constants {
 
         private final String value;
 
-        private onServerPing(String value) {
-            
+        onServerPing(String value) {
             this.value = value;
-
         }
 
         public final String getValue() {
-            
             return value;
-
         }
 
     }
 
-    public static enum onSpawnEvent {
+    public enum onSpawnEvent {
         
         config("config"),
         config_mobs("config.mobs"),
@@ -94,16 +84,12 @@ public final class Constants {
     
         private final String value;
 
-        private onSpawnEvent(String value) {
-            
+         onSpawnEvent(String value) {
             this.value = value;
-
         }
 
         public final String getValue() {
-            
             return value;
-
         }
         
     }

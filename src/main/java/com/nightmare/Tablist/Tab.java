@@ -18,7 +18,7 @@ public final class Tab {
 
     private final Plugin plugin = Main.getInstance();
 
-    public final void initTablist() throws IOException {
+    public void initTablist() throws IOException {
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
 

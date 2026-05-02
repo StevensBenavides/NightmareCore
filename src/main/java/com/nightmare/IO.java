@@ -15,6 +15,37 @@ public final class IO {
     public static final HashMap<String, String> HashMapOfMessages = new HashMap<String, String>();
     public static final HashMap<String, String> HashMapOfSettings = new HashMap<String, String>();
 
+    public static void InitConfigFiles(Plugin plugin) {
+
+        try {
+            IO.GenerateDataFolder(plugin);
+
+            File settings = new File(plugin.getDataFolder(), "settings.yml");
+            File messages = new File(plugin.getDataFolder(), "messages.yml");
+
+            if (!settings.exists()) {
+                IO.GenerateSettings(plugin);
+            }
+
+            if (!messages.exists()) {
+                IO.GenerateMessages(plugin);
+            }
+
+            IO.SubmitSettings(plugin);
+            IO.SubmitMessages(plugin);
+
+        } catch (IOException e) {
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void LoadConfigFiles(Plugin plugin) {
+        Main.settings = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "settings.yml"));
+        Main.messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "messages.yml"));
+    }
+
     public static void GenerateDataFolder(Plugin plugin) throws IOException {
         
         if (!plugin.getDataFolder().exists())
@@ -73,10 +104,9 @@ public final class IO {
         
         # settings.yml
 
-        #This is the main configuration file for the nightmare core.
-        #If you want to configure something, you must do so with its corresponding values.
-
-        #If you want to use gradients you can find them at https://www.birdflop.com/resources/rgb/
+        # This is the main configuration file for the nightmare core.
+        # If you want to configure something, you must do so with its corresponding values.
+        # If you want to use gradients you can find them at https://www.birdflop.com/resources/rgb/
 
         #Hex Color 1: #FB0202
         #Hex Color 2: #FDBA0F
@@ -85,13 +115,13 @@ public final class IO {
 
         # Scoreboard
 
-        #Placeholders of the scoreboard:
+        # Placeholders of the scoreboard:
 
             # %player% -> player name 
             # %online% -> online players
             # %location% -> player location
 
-            #You can use any PlaceHolderAPI expansion.
+            # You can use any PlaceHolderAPI expansion.
 
         scoreboard:
 
@@ -199,7 +229,7 @@ public final class IO {
         if (config.getString("reload.settings") == null)
             throw new IOException("reload.settings not found in messages.yml.");
 
-        HashMapOfMessages.put("reload-settings", config.getString("reload.settings").toString());     
+        HashMapOfMessages.put("reload-settings", config.getString("reload.settings"));
 
     }
 
@@ -215,7 +245,7 @@ public final class IO {
         if (config.getString("prefix") == null)
             throw new IOException("prefix not found in settings.yml.");
 
-        HashMapOfSettings.put("prefix", config.getString("prefix").toString());    
+        HashMapOfSettings.put("prefix", config.getString("prefix"));
 
     }
 

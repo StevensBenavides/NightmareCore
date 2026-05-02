@@ -3,8 +3,6 @@ package com.nightmare;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -13,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -118,7 +117,7 @@ public final class Commands implements CommandExecutor, TabCompleter{
             github.setText("Github 🔱  ");
             github.setBold(true);
             github.setColor(ChatColor.BLACK);
-            github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/DevCheckOG/NightmareCore-Dev"));
+            github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/StevensBenavides/NightmareCore-Dev"));
             github.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.translateAlternateColorCodes('&', "&fOpen a browser window with the creator github."))));
 
             TextComponent discord = new TextComponent();

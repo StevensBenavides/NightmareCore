@@ -13,7 +13,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import com.nightmare.Main;
-import com.nightmare.APIS.FastBoard;
+import com.nightmare.FastBoard.*;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
@@ -21,10 +21,9 @@ import net.md_5.bungee.api.ChatColor;
 public final class Score {
 
     private final Plugin plugin = Main.getInstance();
-
     public static final Map<UUID, FastBoard> boards = new HashMap<UUID, FastBoard>();
     
-    public final void initScorebaord() {
+    public void initScorebaord() {
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
 
@@ -37,7 +36,7 @@ public final class Score {
 
     }
 
-    private final void updateScoreboard(FastBoard board) {
+    private void updateScoreboard(FastBoard board) {
 
         File settings = new File(plugin.getDataFolder(), "settings.yml");   
 

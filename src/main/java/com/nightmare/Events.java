@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.nightmare.FastBoard.FastBoard;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -26,10 +27,8 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-import com.nightmare.APIS.FastBoard;
 import com.nightmare.Mobs.Mobs;
 import com.nightmare.Scoreboard.Score;
-import com.nightmare.Utils.Eval;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
@@ -45,13 +44,13 @@ public final class Events implements Listener {
 
         try {
 
-            Eval.eval("onJoin", config);
+            ConfigEvaluator.eval("onJoin", config);
 
             if (config.getBoolean("scoreboard.enable")) {
 
                 FastBoard board = new FastBoard(event.getPlayer());
 
-                board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name").toString()));
+                board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name")));
 
                 Score.boards.put(event.getPlayer().getUniqueId(), board);
 
@@ -59,7 +58,7 @@ public final class Events implements Listener {
 
             if (config.getBoolean("join_and_leave.enable")) {
 
-                String message = config.getString("prefix").toString() + config.getString("join_and_leave.join").toString();
+                String message = config.getString("prefix") + config.getString("join_and_leave.join");
 
                 Pattern pattern = Pattern.compile("%.+?%");
                 Matcher matcher = pattern.matcher(message);
@@ -128,21 +127,15 @@ public final class Events implements Listener {
 
             final YamlConfiguration config = Main.getSettings();
 
-            Eval.eval("onLeave", config);
+            ConfigEvaluator.eval("onLeave", config);
 
-            if (config.getBoolean("scoreboard.enable")) { 
-
-                FastBoard board = Score.boards.remove(event.getPlayer().getUniqueId());
-
-                if (board != null) {
-                    board.delete();
-                }
-
+            if (config.getBoolean("scoreboard.enable")) {
+                Score.boards.remove(event.getPlayer().getUniqueId());
             }
             
             if (config.getBoolean("join_and_leave.enable")) {
 
-                String message = config.getString("prefix").toString() + config.getString("join_and_leave.leave").toString();
+                String message = config.getString("prefix") + config.getString("join_and_leave.leave");
 
                 Pattern pattern = Pattern.compile("%.+?%");
                 Matcher matcher = pattern.matcher(message);
@@ -170,7 +163,7 @@ public final class Events implements Listener {
 
             final YamlConfiguration config = Main.getSettings();
 
-            Eval.eval("onServerPing", config);
+            ConfigEvaluator.eval("onServerPing", config);
 
             if (config.getBoolean("motd.enable")) {
 
@@ -204,7 +197,7 @@ public final class Events implements Listener {
         
             if (event.getEntityType() == EntityType.ZOMBIE) {
 
-                Eval.eval("onSpawnEvent", config);
+                ConfigEvaluator.eval("onSpawnEvent", config);
 
                 Mobs mobs = new Mobs();
 
@@ -212,7 +205,7 @@ public final class Events implements Listener {
 
             } else if (event.getEntityType() == EntityType.CREEPER) {
 
-                Eval.eval("onSpawnEvent", config);
+                ConfigEvaluator.eval("onSpawnEvent", config);
 
                 Mobs mobs = new Mobs();
 
@@ -220,7 +213,7 @@ public final class Events implements Listener {
 
             } else if (event.getEntityType() == EntityType.SPIDER) {
 
-                Eval.eval("onSpawnEvent", config);
+                ConfigEvaluator.eval("onSpawnEvent", config);
 
                 Mobs mobs = new Mobs();
 
@@ -228,7 +221,7 @@ public final class Events implements Listener {
 
             } else if (event.getEntityType() == EntityType.SKELETON) {
 
-                Eval.eval("onSpawnEvent", config);
+                ConfigEvaluator.eval("onSpawnEvent", config);
 
                 Mobs mobs = new Mobs();
 
@@ -236,7 +229,7 @@ public final class Events implements Listener {
 
             } else if (event.getEntityType() == EntityType.ENDERMAN) {
 
-                Eval.eval("onSpawnEvent", config);
+                ConfigEvaluator.eval("onSpawnEvent", config);
 
                 Mobs mobs = new Mobs();
 
@@ -279,7 +272,7 @@ public final class Events implements Listener {
 
             final YamlConfiguration config = Main.getSettings();
 
-            Eval.eval("onSpawnEvent", config);
+            ConfigEvaluator.eval("onSpawnEvent", config);
 
             final String c = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.c").replace("%mob%", event.getEntity().getClass().getSimpleName()));
             final String b = ChatColor.translateAlternateColorCodes('&', config.getString("config.mobs.b").replace("%mob%", event.getEntity().getClass().getSimpleName()));

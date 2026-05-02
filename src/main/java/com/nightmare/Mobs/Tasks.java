@@ -29,7 +29,7 @@ public final class Tasks {
     private final YamlConfiguration config = Main.getSettings();
     private final Plugin plugin = Main.getInstance();
 
-    public final void setEffectsMobs() {
+    public void setEffectsMobs() {
 
         File settings = new File(plugin.getDataFolder(), "settings.yml");   
 
@@ -54,14 +54,11 @@ public final class Tasks {
                     if (mob instanceof Zombie) {
 
                         final Zombie zombie = (Zombie) mob;
-
                         final String c = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(config.getString("config.mobs.c")).replace("%mob%", Zombie.class.getSimpleName()));
 
                         if (zombie.getCustomName() != null && zombie.getCustomName().equalsIgnoreCase(c) && !zombie.isDead()) {
-
-                            world.spawnParticle(Particle.EXPLOSION_HUGE, zombie.getLocation(), 60);
+                            world.spawnParticle(Particle.EXPLOSION, zombie.getLocation(), 60);
                             world.playSound(zombie.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.HOSTILE, 1, 1);
-
                         }
 
                     } else if (mob instanceof Creeper) {
@@ -73,23 +70,19 @@ public final class Tasks {
                         if (creeper.getCustomName() != null && creeper.getCustomName().equalsIgnoreCase(c) && !creeper.isDead() && creeper.getTarget() == null) {
 
                             for (Entity entity : creeper.getNearbyEntities(15.0, 15.0, 15.0).stream().filter(filterPlayer).toList()) {
-
                                 Player player = (Player) entity;
 
                                 if (player.getGameMode() == GameMode.SURVIVAL)
                                     creeper.setTarget(player);
-
                             }
 
                         } else if (creeper.getCustomName() != null && creeper.getCustomName().equalsIgnoreCase(c) && !creeper.isDead() && creeper.getTarget() == null) {
 
                             for (Entity entity : creeper.getNearbyEntities(15.0, 15.0, 15.0).stream().filter(filterPlayer).toList()) {
-
                                 Player player = (Player) entity;
 
                                 if (player.getGameMode() == GameMode.SURVIVAL)
                                     creeper.setTarget(player);
-
                             }
 
                         }
@@ -97,21 +90,16 @@ public final class Tasks {
                     } else if (mob instanceof Spider) {
 
                         final Spider spider = (Spider) mob;
-
                         final String c = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(config.getString("config.mobs.c")).replace("%mob%", Spider.class.getSimpleName()));
 
                         if (spider.getCustomName() != null && spider.getCustomName().equalsIgnoreCase(c) && !spider.isDead() && spider.getTarget() != null) {
-
                             if (spider.getTarget() instanceof Player) {
 
                                 Player player = (Player) spider.getTarget();
 
                                 for (int i = 0; i < 3; i++) {
-
-                                    spider.getWorld().spawnEntity(player.getLocation(), EntityType.LIGHTNING);
-
+                                    spider.getWorld().spawnEntity(player.getLocation(), EntityType.LIGHTNING_BOLT);
                                 }
-
                             }
 
                         }

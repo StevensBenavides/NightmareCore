@@ -1,5 +1,3 @@
-package com.nightmare.APIS;
-
 /*
  * This file is part of FastBoard, licensed under the MIT License.
  *
@@ -23,6 +21,7 @@ package com.nightmare.APIS;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.nightmare.FastBoard;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -123,8 +122,8 @@ public class FastBoard extends FastBoardBase<String> {
 
         if (prefix.length() > maxLength || suffix.length() > maxLength) {
             // Something went wrong, just cut to prevent client crash/kick
-            prefix = prefix.substring(0, maxLength);
-            suffix = suffix.substring(0, maxLength);
+            prefix = prefix.substring(0, Math.min(maxLength, prefix.length()));
+            suffix = suffix.substring(0, Math.min(maxLength, suffix.length()));
         }
 
         sendTeamPacket(score, TeamMode.UPDATE, prefix, suffix);
