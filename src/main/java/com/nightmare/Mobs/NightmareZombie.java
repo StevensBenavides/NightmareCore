@@ -184,7 +184,6 @@ public class NightmareZombie {
                 ItemStack sword = new ItemStack(Material.NETHERITE_AXE, 1);  
                 
                 sword.addEnchantment(Enchantment.VANISHING_CURSE, 1);
-                sword.addEnchantment(Enchantment.FIRE_ASPECT, 2);
                 sword.addEnchantment(Enchantment.PUNCH, 3);
                 sword.addEnchantment(Enchantment.SHARPNESS, level);
 
@@ -322,7 +321,6 @@ public class NightmareZombie {
 
             mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, speedLevel));
             mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
-           
 
             if (random.is50percent()) {
                 mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 1));
