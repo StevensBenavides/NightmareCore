@@ -1,7 +1,11 @@
 package com.nightmare.Mobs;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -15,6 +19,8 @@ import com.nightmare.ConfigEvaluator;
 import com.nightmare.Constants;
 import com.nightmare.Main;
 import com.nightmare.RandomnessManagement;
+import com.nightmare.TimeManagement;
+import com.nightmare.WorldTime;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -31,14 +37,28 @@ public class NightmareSpider {
 
         final RandomnessManagement randomness = new RandomnessManagement();
 
-        if (randomness.is50percent())
-            createAtierNightmareSpider(entity, config, randomness);
+        final TimeManagement timeManagement = Main.getTimeManagement();
+        final String currentWorldName = entity.getWorld().getName();
+        final Optional<WorldTime> worldTime = timeManagement.getSpecificWorldTime(currentWorldName);
 
-        if (randomness.is25percent())
+        if (worldTime.isPresent() && randomness.is5percent()) {
+            final WorldTime currentWorldTime = worldTime.get();
+
+            if (currentWorldTime.isDayAbove50()) {
+                createCtierNightmareSpider(entity, config, randomness);
+            }
+
+        }
+
+        if (randomness.is15percent()) {
             createBtierNightmareSpider(entity, config, randomness);
+            return;
+        }
 
-        if (randomness.is5percent())
-            createCtierNightmareSpider(entity, config, randomness);
+        if (randomness.is70percent()) {
+            createAtierNightmareSpider(entity, config, randomness);
+            return;
+        }
 
     }
 
@@ -50,10 +70,24 @@ public class NightmareSpider {
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(true);
+        
+        {
+            RandomnessManagement random = new RandomnessManagement();
 
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 2));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, 2));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, 2));
+            if (random.is5percent()) {
+                mob.setPersistent(true);
+            }
+        }
+
+        {
+            RandomnessManagement random = new RandomnessManagement();
+            
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 2)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 2)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, random.random(1, 2)));
+        }
+
+      
     }
     
 
@@ -64,13 +98,29 @@ public class NightmareSpider {
         final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_b.getValue()).replace("%mob%", Spider.class.getSimpleName()));
 
         mob.setCustomName(name);
+        mob.setGliding(true);
         mob.setCustomNameVisible(true);
+            
 
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 3));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, 5));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 2));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, PotionEffect.INFINITE_DURATION, 3));
+        {
+            RandomnessManagement random = new RandomnessManagement();
+
+            if (random.is5percent()) {
+                mob.setPersistent(true);
+            }
+        }
+
+        {
+
+            RandomnessManagement random = new RandomnessManagement();
+
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
+
+        }
 
     }
 
@@ -81,34 +131,89 @@ public class NightmareSpider {
         final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", Spider.class.getSimpleName()));
 
         mob.setCustomName(name);
-        mob.setCustomNameVisible(true);
+        mob.setGliding(true);
+        mob.setCustomNameVisible(false);
+        mob.setRiptiding(true);
 
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 5));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, 3));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, 7));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 1));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 2));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, PotionEffect.INFINITE_DURATION, 5));
+        {
+            RandomnessManagement random = new RandomnessManagement();
+
+            if (random.is5percent()) {
+                mob.setCustomNameVisible(true);
+            }
+        }
+
+        {
+
+            RandomnessManagement random = new RandomnessManagement();
+            
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 10)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 10)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, random.random(1, 5)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, random.random(1, 2)));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, PotionEffect.INFINITE_DURATION, random.random(1, 10)));
+        }
+
+
+        {
+            RandomnessManagement random = new RandomnessManagement();
+
+            if (random.is50percent()) {
+                mob.setPersistent(true);
+            }
+        }
     }
 
     public static void setCtierConstantEffects(Entity entity, World world) {
 
+        if (!(entity instanceof Spider spider)) return;
+
         YamlConfiguration settings = Main.getSettings();
-   
-        final Spider spider = (Spider) entity;
-        final String name = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(settings.getString(Constants.Mobs.config_mobs_name_c.getValue())).replace("%mob%", Spider.class.getSimpleName()));
 
-        if (spider.getCustomName() != null && spider.getCustomName().equalsIgnoreCase(name) && !spider.isDead() && spider.getTarget() != null) {
-            if (spider.getTarget() instanceof Player) {
+        final String name = ChatColor.translateAlternateColorCodes('&', 
+            Objects.requireNonNull(settings.getString(Constants.Mobs.config_mobs_name_c.getValue()))
+                .replace("%mob%", "Spider"));
 
-                Player player = (Player) spider.getTarget();
+        if (spider.getCustomName() == null || 
+            !spider.getCustomName().equalsIgnoreCase(name) || 
+            spider.isDead() || 
+            spider.getTarget() == null) {
+                return;
+        }
 
-                for (int i = 0; i < 3; i++) 
-                    spider.getWorld().spawnEntity(player.getLocation(), EntityType.LIGHTNING_BOLT);
-                
+        if (!(spider.getTarget() instanceof Player player)) return;
+
+        {
+            if (Math.random() < 0.4) { 
+                for (int i = 0; i < 2; i++) {
+                    Location loc = player.getLocation().clone().add(
+                        Math.random() * 6 - 3, 
+                        0, 
+                        Math.random() * 6 - 3
+                    );
+                    world.spawnEntity(loc, EntityType.LIGHTNING_BOLT);
+                }
             }
+        }
 
+        {
+            spider.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 20 * 60 * 2, 2, true, false));
+
+            if (Math.random() < 0.3) {
+                spider.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 20 * 60 * 2, 0, true, false));
+            }
+        }
+
+        {
+            if (Math.random() < 0.6) {
+                player.getWorld().spawnParticle(Particle.SMOKE, 
+                    player.getLocation().add(0, 1.8, 0), 25, 0.4, 0.4, 0.4, 0.02);
+                
+                player.getWorld().spawnParticle(Particle.END_ROD, 
+                    player.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5, 1.0, 
+                    new Particle.DustOptions(Color.fromRGB(100, 0, 200), 1.5f));
+            }
         }
     }
 

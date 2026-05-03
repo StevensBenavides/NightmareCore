@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,15 +23,12 @@ public final class NighmareScoreboard {
     private final Plugin plugin = Main.getInstance();
     public static final Map<UUID, FastBoard> boards = new HashMap<UUID, FastBoard>();
     
-    public void initScorebaord() {
+    public void startScoreboard() {
 
-        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             for (FastBoard board : boards.values()) {
-
                 updateScoreboard(board);
             }
-
         }, 0, 20L);
 
     }
@@ -54,20 +52,25 @@ public final class NighmareScoreboard {
         for (String line : lines) {
             
             if (line.contains("%player%")) {
-
                 newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%player%", PlaceholderAPI.setPlaceholders(board.getPlayer(), "%player_name%"))));
                 continue;
+            } else if (line.contains("%day%")) {
+                Optional<WorldTime> currentWorldDay = Main.getTimeManagement().getSpecificWorldTime(board.getPlayer().getWorld().getName());
 
+                if (currentWorldDay.isPresent()) {
+                    WorldTime worldTime = currentWorldDay.get();
+                    newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%day%", String.valueOf(worldTime.getDay()))));
+                    continue; 
+                } else {
+                    newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%day%", String.valueOf(board.getPlayer().getWorld().getFullTime() / 24000L))));
+                    continue; 
+                }
             } else if (line.contains("%online%")) { 
-
                 newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%online%", String.valueOf(plugin.getServer().getOnlinePlayers().size()) + " / " + plugin.getServer().getMaxPlayers())));
                 continue;
-
             } else if (line.contains("%location%")) {
-
                 newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%location%", String.format("%d %d %d", Math.round(board.getPlayer().getLocation().getX()), Math.round(board.getPlayer().getLocation().getY()), Math.round(board.getPlayer().getLocation().getZ())))));
                 continue;
-
             } 
 
             Pattern pattern = Pattern.compile("%.+?%");

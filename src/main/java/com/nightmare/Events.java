@@ -1,10 +1,16 @@
 package com.nightmare;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.nightmare.FastBoard.FastBoard;
+
+import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -17,10 +23,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -36,7 +50,7 @@ public final class Events implements Listener {
 
     private final Plugin plugin = Main.getInstance();
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onJoin(PlayerJoinEvent event) {
 
         final YamlConfiguration config = Main.getSettings();
@@ -110,6 +124,14 @@ public final class Events implements Listener {
 
             } 
 
+            {
+                Player player = event.getPlayer();
+                UUID playerUUID = player.getUniqueId();
+    
+                Main.getTimeManagement().addPlayerTime(playerUUID);
+            }
+
+
         } catch (Exception e) {
             
             e.printStackTrace();
@@ -119,7 +141,7 @@ public final class Events implements Listener {
 
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onLeave(PlayerQuitEvent event) {
 
         try {
@@ -146,6 +168,13 @@ public final class Events implements Listener {
 
             }
 
+            {
+                Player player = event.getPlayer();
+                UUID playerUUID = player.getUniqueId();
+    
+                Main.getTimeManagement().removePlayerTime(playerUUID);
+            }
+
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -154,6 +183,82 @@ public final class Events implements Listener {
         }    
 
     }
+
+    
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerDeathEvent(PlayerDeathEvent event) {
+
+        Player player = event.getEntity();
+
+        player.setMetadata("thristy", new FixedMetadataValue(plugin, false));
+
+        {
+            UUID uuid = player.getUniqueId();
+            Optional<PlayerTime> currentPlayerTime = Main.getTimeManagement().getSpecificPlayerTime(uuid);
+
+            if (currentPlayerTime.isPresent()) {
+                PlayerTime playerTime = currentPlayerTime.get();
+                playerTime.resetThirstyMinutes();
+            }
+        }
+        
+    }
+
+    
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onItemConsumeEvent(PlayerItemConsumeEvent event) {
+
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+
+        {
+            if (player.getGameMode() == GameMode.SURVIVAL) {
+
+                if (item.getType() == Material.POTION || item.getType() == Material.GLASS_BOTTLE) {
+
+                    PotionMeta meta = (PotionMeta) item.getItemMeta();
+        
+                    if (meta.getBasePotionType() == PotionType.WATER) {
+    
+                        if (player.hasMetadata("thristy")) {
+    
+                            boolean isThristy = false;
+    
+                            List<MetadataValue> metadataValueList = player.getMetadata("thristy");
+                            Optional<MetadataValue> metadataValueOptionalWrapped = Optional.of(metadataValueList.get(0));
+                    
+                            if (metadataValueOptionalWrapped.isPresent()) {
+                                MetadataValue metadataValue = metadataValueOptionalWrapped.get();
+                                isThristy = metadataValue.asBoolean();
+                            }
+            
+                            if (isThristy) {
+                                UUID uuid = player.getUniqueId();
+            
+                                Optional<PlayerTime> currentPlayerTime = Main.getTimeManagement().getSpecificPlayerTime(uuid);
+            
+                                if (currentPlayerTime.isPresent()) {
+                                    PlayerTime playerTime = currentPlayerTime.get();
+                                    playerTime.resetThirstyMinutes();
+                               
+                                    player.removePotionEffect(PotionEffectType.BLINDNESS);
+                                    player.removePotionEffect(PotionEffectType.SLOWNESS);
+
+                                    player.setMetadata("thristy", new FixedMetadataValue(plugin, false));   
+                                }
+                                
+                            }
+                        }
+            
+                    }
+                    
+                }
+
+            }
+        }
+
+    }
+
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onServerPing(ServerListPingEvent event) {
@@ -239,9 +344,7 @@ public final class Events implements Listener {
             Skeleton mob = (Skeleton) event.getEntity();
 
             if (mob.getTarget() != null && mob.getTarget() instanceof Player) {
-
                 mob.getWorld().createExplosion(event.getProjectile().getLocation(), 1.5F);
-
             }
 
         }

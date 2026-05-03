@@ -15,7 +15,7 @@ public final class Tablist {
 
     private final Plugin plugin = Main.getInstance();
 
-    public void initTablist() throws IOException {
+    public void startTablist() throws IOException {
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
 
@@ -46,20 +46,14 @@ public final class Tablist {
                 Matcher matcherFooter = patternFooter.matcher(footer);
 
                 if (matcherHeader.find() && matcherFooter.find()) {
-
                     player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header.replace(matcherHeader.group(), PlaceholderAPI.setPlaceholders(player, matcherHeader.group()))), ChatColor.translateAlternateColorCodes('&', footer.replace(matcherFooter.group(), PlaceholderAPI.setPlaceholders(player, matcherFooter.group()))));
                     continue;
-                    
                 } else if (matcherHeader.find()) {
-
                     player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header.replace(matcherHeader.group(), PlaceholderAPI.setPlaceholders(player, matcherHeader.group()))), ChatColor.translateAlternateColorCodes('&', footer));
                     continue;
-
                 } else if (matcherFooter.find()) {
-
                     player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header), ChatColor.translateAlternateColorCodes('&', footer.replace(matcherFooter.group(), PlaceholderAPI.setPlaceholders(player, matcherFooter.group()))));
                     continue;
-
                 }
 
                 player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header), ChatColor.translateAlternateColorCodes('&', footer));

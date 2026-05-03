@@ -125,6 +125,7 @@ public final class IO {
             lines:
                 - ""
                 - " &c&l⛏ &cPlayer: &f%player%"
+                - " &c☠ &cDay: &f%day%"
                 - " &c&l⚡ &cOnline: &f%online%"
                 - " &c&l⭐ &cLocation: &f%location%"
                 - ""

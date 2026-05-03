@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Difficulty;
-import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.SpawnCategory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,6 +17,8 @@ public final class Main extends JavaPlugin {
 
   public static YamlConfiguration settings;
   public static YamlConfiguration messages;
+
+  public static TimeManagement timeManagement;
 
   public void onEnable() {
 
@@ -35,6 +34,10 @@ public final class Main extends JavaPlugin {
       getCommand("nightmare").setExecutor(new Commands());
     }
 
+    {
+      timeManagement = TimeManagement.startTimeManagement(instance);
+    }
+    
     File settings = new File(getDataFolder(), "settings.yml");
 
     if (!settings.exists()) {
@@ -60,7 +63,7 @@ public final class Main extends JavaPlugin {
 
     } else if (config.getBoolean("scoreboard.enable")) {
       NighmareScoreboard scoreboard = new NighmareScoreboard();
-      scoreboard.initScorebaord();
+      scoreboard.startScoreboard();
     }
 
     if (config.get("tablist.enable") == null) {
@@ -74,10 +77,10 @@ public final class Main extends JavaPlugin {
 
     } else if (config.getBoolean("tablist.enable")) {
 
-      Tablist tab = new Tablist();
+      Tablist tablist = new Tablist();
 
       try {
-        tab.initTablist();
+        tablist.startTablist();
       } catch (IOException e) {
         getServer().getPluginManager().disablePlugin(instance);
         e.printStackTrace();
@@ -86,13 +89,11 @@ public final class Main extends JavaPlugin {
     }
 
     {
-        for (World world : this.getServer().getWorlds()) {
-            world.setDifficulty(Difficulty.HARD);
-            world.setSpawnLimit(SpawnCategory.MONSTER, 200);
-        }
+      PlayerEffects.startPlayersEffects(instance);
+      WorldDifficulty.startWorldDifficulty(instance);
+      MobTasks.startCTierMobEffects(instance);
     }
 
-    MobTasks.startCTierMobEffects(instance);
   }
 
   public void onDisable() {
@@ -110,6 +111,10 @@ public final class Main extends JavaPlugin {
 
   public static YamlConfiguration getMessages() {
     return messages;
+  }
+
+  public static TimeManagement getTimeManagement() {
+    return timeManagement;
   }
 
   public static void setSettings() throws IOException {
