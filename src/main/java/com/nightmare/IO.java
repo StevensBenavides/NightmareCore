@@ -113,13 +113,17 @@ public final class IO {
         # Scoreboard
         # Placeholders of the scoreboard:
 
-            # %player% -> player name 
-            # %online% -> online players
-            # %location% -> player location
+            # Special Placeholder 
+
+            # Nightmare's placeholders:
+
+            # %player% = player name 
+            # %online% = online players
+            # %location% = player location
+
             # You can use any PlaceHolderAPI expansion.
 
         scoreboard:
-
             enable: true
             name: " &4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠ "
             lines:
@@ -141,7 +145,6 @@ public final class IO {
         # Tablist
 
         tablist:
-
             enable: true
             header: "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠&r"
             footer: "Welcome &c%player_name% &fto the &4Nightmare World ☠&r."
@@ -149,36 +152,36 @@ public final class IO {
         # Motd
         
         motd:
-
             enable: true
             lines: 
                 - "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠&r"
                 - "&c&lWelcome to the eternal &4&lnightmare ☠&r."
 
-        # Join Message
+        # Messages
 
         message_join:
-
             enable: true
             title: "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠"
             lines:
-
                 - ""
                 - "&fHey, &c%player_name% &fwelcome to the &4Nightmare World&r."
                 - "&fVisit our development &cDiscord: &4https://discord.com/invite/DWfuQRsxwb&r."
                 - ""
 
+        message_death:
+            enable: true
+            message: "&c☠ %player_killed% was sent back to hell! &c☠"
+
         config:
-        
             player:
                 display_health: true
             mobs:
 
-                #c = Name of the tier C mob.
-                #b =  Name of the tier B mob.
-                #a =  Name of the tier A mob.
+                # c_tier = Name of a tier C mob.
+                # b_tier =  Name of a tier B mob.
+                # a_tier =  Name of a tier A mob.
 
-                # %mob% -> Name of the mob (Obligatory).
+                # %mob% -> Name a the mob (Mandatory).
 
                 c_tier: "&c&lNightmare %mob% &4☠&4 Tier C"
                 b_tier: "&c&lNightmare %mob% &4☠&e Tier B"

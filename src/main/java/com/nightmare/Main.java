@@ -92,6 +92,7 @@ public final class Main extends JavaPlugin {
       PlayerEffects.startPlayersEffects(instance);
       WorldDifficulty.startWorldDifficulty(instance);
       MobTasks.startCTierMobEffects(instance);
+      MobTasks.startIdleTasks(instance);
     }
 
   }

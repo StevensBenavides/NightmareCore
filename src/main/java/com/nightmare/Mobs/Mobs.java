@@ -24,5 +24,9 @@ public final class Mobs {
     public static void spawnNightmareEnderman(Entity entity, YamlConfiguration config) {
         new NightmareEnderman(entity, config);
     }
+
+    public static void spawnNightmareVillager(Entity entity, YamlConfiguration config) {
+        new NightmareVillager(entity, config);
+    }
     
 }

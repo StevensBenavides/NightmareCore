@@ -3,6 +3,7 @@ package com.nightmare.Mobs;
 import java.util.Optional;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -10,10 +11,12 @@ import org.bukkit.entity.Skeleton;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.nightmare.ConfigEvaluator;
 import com.nightmare.Constants;
 import com.nightmare.Main;
 import com.nightmare.RandomnessManagement;
@@ -25,40 +28,59 @@ import net.md_5.bungee.api.ChatColor;
 public class NightmareSkeleton {
 
     NightmareSkeleton(Entity entity, YamlConfiguration config) {
-
-        try {
-            ConfigEvaluator.evaluate("MobSpawning", config); 
-        } catch (Exception e) {
-            Main.getInstance().getServer().getPluginManager().disablePlugin(Main.getInstance());
-            e.printStackTrace();
-        }  
-
         final RandomnessManagement randomness = new RandomnessManagement();
-
         final TimeManagement timeManagement = Main.getTimeManagement();
         final String currentWorldName = entity.getWorld().getName();
-        final Optional<WorldTime> worldTime = timeManagement.getSpecificWorldTime(currentWorldName);
-
-        if (worldTime.isPresent() && randomness.is5percent()) {
-            final WorldTime currentWorldTime = worldTime.get();
-
-            if (currentWorldTime.isDayAbove50()) 
-                createCtierNightmareSkeleton(entity, config, randomness);
-
+        final Optional<WorldTime> currentWorldTime = timeManagement.getSpecificWorldTime(currentWorldName);
+    
+        if (currentWorldTime.isPresent()) {
+            final WorldTime worldTime = currentWorldTime.get();
+    
+            if (worldTime.isDayBelow(20)) {
+                if (randomness.is1percent()) {
+                    createCtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+                if (randomness.is10percent()) {
+                    createBtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+                if (randomness.is80percent()) {
+                    createAtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+            } 
+            else if (worldTime.isDayBelow(50)) {
+                if (randomness.is10percent()) {
+                    createCtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+                if (randomness.is25percent()) {
+                    createBtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+                if (randomness.is60percent()) {
+                    createAtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+            }  else if (worldTime.isDayAbove(50)) {
+                if (randomness.is35percent()) {
+                    createCtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+                if (randomness.is40percent()) {
+                    createBtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+                if (randomness.is25percent()) {
+                    createAtierNightmareSkeleton(entity, config, randomness);
+                    return;
+                }
+            }
         }
-
-        if (randomness.is10percent()) {
-            createBtierNightmareSkeleton(entity, config, randomness);
-            return;
-        }
-
-        if (randomness.is70percent()) {
-            createAtierNightmareSkeleton(entity, config, randomness);
-            return;
-        }
-
-
     }
+
+
     private void createAtierNightmareSkeleton(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
 
         Skeleton mob = (Skeleton) entity;
@@ -178,6 +200,9 @@ public class NightmareSkeleton {
             RandomnessManagement random = new RandomnessManagement();
             mob.setArrowCooldown(random.random(20, 60));
         }
+    
+        
+        mob.setMetadata("NightmareATierMob", new FixedMetadataValue(Main.getInstance(), true));
     }
 
     private void createBtierNightmareSkeleton(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
@@ -305,6 +330,7 @@ public class NightmareSkeleton {
             mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 2))); 
         }
     
+        mob.setMetadata("NightmareBTierMob", new FixedMetadataValue(Main.getInstance(), true));
     }
 
     private void createCtierNightmareSkeleton(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
@@ -418,18 +444,26 @@ public class NightmareSkeleton {
         
         ItemStack bow = equipment.getItemInMainHand();
 
-        if (bow.getType() == Material.BOW) {
+        {
 
+            
             RandomnessManagement random = new RandomnessManagement();
 
-            bow.addUnsafeEnchantment(Enchantment.POWER, random.random(1, 10));
-            bow.addEnchantment(Enchantment.FLAME, random.random(1, 5));
-            
-            ItemMeta meta = bow.getItemMeta();
+            if (random.is15percent()) {
 
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lNightmare Skeleton - Bow &4☠"));
+                bow.addUnsafeEnchantment(Enchantment.POWER, random.random(1, 10));
+                bow.addEnchantment(Enchantment.FLAME, 1);
+                
+                ItemMeta meta = bow.getItemMeta();
+    
+                PersistentDataContainer pdc = meta.getPersistentDataContainer();
+                NamespacedKey key = new NamespacedKey(Main.getInstance(), "NightmareSkeletonCTierBow");
+                pdc.set(key, PersistentDataType.BOOLEAN, true);
+    
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lNightmare Skeleton - Bow &4☠"));
+                bow.setItemMeta(meta);
+            }
 
-            bow.setItemMeta(meta);
         }
 
         {
@@ -441,6 +475,8 @@ public class NightmareSkeleton {
         }
 
         mob.getEquipment().setItemInMainHand(bow);
+
+        mob.setMetadata("NightmareCTierMob", new FixedMetadataValue(Main.getInstance(), true));
 
     }
     

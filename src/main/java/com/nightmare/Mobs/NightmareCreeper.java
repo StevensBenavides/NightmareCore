@@ -1,6 +1,5 @@
 package com.nightmare.Mobs;
 
-import com.nightmare.ConfigEvaluator;
 import com.nightmare.Constants;
 import com.nightmare.Main;
 import com.nightmare.RandomnessManagement;
@@ -9,7 +8,6 @@ import com.nightmare.WorldTime;
 
 import net.md_5.bungee.api.ChatColor;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import org.bukkit.GameMode;
@@ -19,6 +17,7 @@ import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -26,36 +25,98 @@ public class NightmareCreeper {
 
     NightmareCreeper(Entity entity, YamlConfiguration config) {
 
-        try {
-            ConfigEvaluator.evaluate("MobSpawning", config); 
-        } catch (Exception e) {
-            Main.getInstance().getServer().getPluginManager().disablePlugin(Main.getInstance());
-            e.printStackTrace();
-        }  
-
         final RandomnessManagement randomness = new RandomnessManagement();
 
         final TimeManagement timeManagement = Main.getTimeManagement();
         final String currentWorldName = entity.getWorld().getName();
-        final Optional<WorldTime> worldTime = timeManagement.getSpecificWorldTime(currentWorldName);
+        final Optional<WorldTime> currentWorldTime = timeManagement.getSpecificWorldTime(currentWorldName);
 
-        if (worldTime.isPresent() && randomness.is5percent()) {
-            final WorldTime currentWorldTime = worldTime.get();
+        if (currentWorldTime.isPresent()) {
+            
+            final WorldTime worldTime = currentWorldTime.get();
 
-            if (currentWorldTime.isDayAbove50())  {
-                createCtierNightmareCreeper(entity, config, randomness);
+            if (worldTime.isDayBelow(10)) {
+                if (randomness.is1percent()) {
+                    createCtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+    
+                if (randomness.is15percent()) {
+                    createBtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+                  
+                if (randomness.is80percent())  {
+                    createAtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }    
+            } else if (worldTime.isDayBelow(20)) {
+                if (randomness.is5percent()) {
+                    createCtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+    
+                if (randomness.is20percent()) {
+                    createBtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+                  
+                if (randomness.is70percent())  {
+                    createAtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }    
+            } else if (worldTime.isDayBelow(30)) {
+                if (randomness.is10percent()) {
+                    createCtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+    
+                if (randomness.is25percent()) {
+                    createBtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+                  
+                if (randomness.is50percent())  {
+                    createAtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }    
+            } else if (worldTime.isDayBelow(50)) {
+                if (randomness.is20percent()) {
+                    createCtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+    
+                if (randomness.is25percent()) {
+                    createBtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+                  
+                if (randomness.is50percent())  {
+                    createAtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }    
             }
+
+            if (worldTime.isDayAbove50()) {
+                if (randomness.is40percent()) {
+                    createCtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+    
+                if (randomness.is40percent()) {
+                    createBtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }
+                  
+                if (randomness.is20percent())  {
+                    createAtierNightmareCreeper(entity, config, randomness);
+                    return;
+                }    
+            }
+    
         }
 
-        if (randomness.is15percent()) {
-            createBtierNightmareCreeper(entity, config, randomness);
-            return;
-        }
-          
-        if (randomness.is70percent())  {
-            createAtierNightmareCreeper(entity, config, randomness);
-            return;
-        }
+       
    
     }
 
@@ -80,7 +141,8 @@ public class NightmareCreeper {
             }
     
         }
-        
+
+        mob.setMetadata("NightmareATierMob", new FixedMetadataValue(Main.getInstance(), true));
         mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 1));
 
     }
@@ -123,6 +185,7 @@ public class NightmareCreeper {
         mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, randomness.random(1,2)));
         mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, randomness.random(1,2)));
 
+        mob.setMetadata("NightmareBTierMob", new FixedMetadataValue(Main.getInstance(), true));
 
     }
 
@@ -153,17 +216,16 @@ public class NightmareCreeper {
 
         if (mob.getLocation().getY() >= mob.getWorld().getHighestBlockAt((int) mob.getLocation().getX(), (int) mob.getLocation().getZ()).getLocation().getY())
             mob.getWorld().spawnEntity(mob.getLocation(), EntityType.LIGHTNING_BOLT);
+        
+        mob.setMetadata("NightmareCTierMob", new FixedMetadataValue(Main.getInstance(), true));
     }
 
 
     public static void setCtierConstantEffects(Entity entity, World world) {
 
-        YamlConfiguration settings = Main.getSettings();
-
         final Creeper creeper = (Creeper) entity;
-        final String name = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(settings.getString(Constants.Mobs.config_mobs_name_c.getValue())).replace("%mob%", Creeper.class.getSimpleName()));
-
-        if (creeper.getCustomName() != null && creeper.getCustomName().equalsIgnoreCase(name) && !creeper.isDead() && creeper.getTarget() == null) {
+      
+        if (creeper.hasMetadata("NightmareCTierMob") && !creeper.isDead() && creeper.getTarget() == null) {
 
             for (Entity entity_2 : creeper.getNearbyEntities(15.0, 15.0, 15.0).stream().filter(entity_ -> entity_ instanceof Player).toList()) {
                 Player player = (Player) entity_2;

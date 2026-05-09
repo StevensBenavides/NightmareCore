@@ -109,5 +109,23 @@ public final class Constants {
         }
         
     }
+
+    public enum onPlayerDeath {
+
+        message_death("message_death"),
+        message_death_enable("message_death.enable"),
+        message_death_message("message_death.message");
+
+        private final String value;
+
+        onPlayerDeath(String value) {
+            this.value = value;
+        }
+
+        public final String getValue() {
+            return value;
+        }
+
+    }
     
 }

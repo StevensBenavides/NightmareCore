@@ -26,12 +26,20 @@ public class RandomnessManagement {
         return threadLocalRandom.nextFloat() <= 0.05f;
     }
 
+    public boolean is8percent() {
+        return threadLocalRandom.nextFloat() <= 0.08f;
+    }
+
     public boolean is10percent() {
         return threadLocalRandom.nextFloat() <= 0.10f;
     }
 
     public boolean is15percent() {
         return threadLocalRandom.nextFloat() <= 0.15f;
+    }
+
+    public boolean is20percent() {
+        return threadLocalRandom.nextFloat() <= 0.20f;
     }
 
     public boolean is25percent() {
@@ -42,12 +50,20 @@ public class RandomnessManagement {
         return threadLocalRandom.nextFloat() <= 0.30f;
     }
 
+    public boolean is35percent() {
+        return threadLocalRandom.nextFloat() <= 0.35f;
+    }
+
     public boolean is40percent() {
         return threadLocalRandom.nextFloat() <= 0.40f;
     }
 
     public boolean is50percent() {
         return threadLocalRandom.nextFloat() <= 0.50f;
+    }
+
+    public boolean is60percent() {
+        return threadLocalRandom.nextFloat() <= 0.60f;
     }
 
     public boolean is70percent() {
