@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -27,11 +28,15 @@ public final class Commands implements CommandExecutor, TabCompleter{
     public @Nullable List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
 
         if (args.length == 1) {
-            return List.of("reload", "creator");
+            return List.of("time", "reload", "creator");
         }
 
         if (args.length > 1 && args[0].equalsIgnoreCase("reload")) {
-            return List.of("messages.yml", "settings.yml");
+            return List.of("time", "messages.yml", "settings.yml");
+        }
+
+        if (args.length > 1 && args[0].equalsIgnoreCase("time")) {
+            return List.of("add", "remove");
         }
 
         return null;
@@ -64,6 +69,11 @@ public final class Commands implements CommandExecutor, TabCompleter{
                     e.printStackTrace();
                 }
 
+            } else if (args[1].equalsIgnoreCase("time")) {
+                TimeManagement.updatePlayerTimes();
+                TimeManagement.updateWorldsTimes();
+
+                Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&fWorld and Player time reloaded."));
             }
 
             return true;
@@ -97,6 +107,11 @@ public final class Commands implements CommandExecutor, TabCompleter{
                     e.printStackTrace();
                 }
 
+            } else if (args[1].equalsIgnoreCase("time")) {
+                TimeManagement.updatePlayerTimes();
+                TimeManagement.updateWorldsTimes();
+
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&fWorld and Player time reloaded."));
             }
 
         } else if (!(sender instanceof Player) && args.length == 1 && args[0].equalsIgnoreCase("creator")) {
@@ -136,6 +151,60 @@ public final class Commands implements CommandExecutor, TabCompleter{
             p.sendMessage("");
 
             p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 10, 10);
+
+        } else if (sender instanceof Player && args.length > 2 && args[0].equalsIgnoreCase("time")) {
+
+           Player p = (Player) sender;
+
+           if (args[1].equalsIgnoreCase("add")) {
+                try {
+                    int days = Integer.parseInt(args[2]);
+                    long ticksToAdd = days * 24000L;
+
+                    for (World world : p.getServer().getWorlds()) {
+                        world.setFullTime(world.getFullTime() + ticksToAdd);
+                    }
+
+                    TimeManagement.updateWorldsTimes();
+ 
+                    p.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&c" + days + " &fdays have been added to the server."));
+                } catch (NumberFormatException e) {
+                    p.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&cNumber of days invalid."));
+                }
+            }
+
+
+            if (args[1].equalsIgnoreCase("remove")) {
+                try {
+                    int days = Integer.parseInt(args[2]);
+                    long ticksToRemove = days * 24000L;
+
+                    boolean cannotRemoveDays = false;
+
+                    for (World world : p.getServer().getWorlds()) {
+
+                        if ((world.getFullTime() - ticksToRemove) < 24000L ) {
+                            p.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&cYou cannot set days to less than 1."));
+                            cannotRemoveDays = true;
+                            break;
+                        }
+
+                    }
+
+                    if (!cannotRemoveDays) {
+                        for (World world : p.getServer().getWorlds()) {
+                            world.setFullTime(world.getFullTime() - ticksToRemove);
+                        }
+                        
+                        TimeManagement.updateWorldsTimes();
+     
+                        p.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&c" + days + " &fdays have been removed to the server."));
+                    }
+
+                } catch (NumberFormatException e) {
+                    p.sendMessage(ChatColor.translateAlternateColorCodes('&', IO.HashMapOfSettings.get("prefix") + "&cNumber of days invalid."));
+                }
+            }
 
         }
 

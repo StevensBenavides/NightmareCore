@@ -18,11 +18,13 @@ public final class Main extends JavaPlugin {
   public static YamlConfiguration settings;
   public static YamlConfiguration messages;
 
-  public static TimeManagement timeManagement;
-
   public void onEnable() {
 
     instance = this;
+
+    {
+      Recipes.registerRecipes();
+    }
 
     DisplayStartMessage();
 
@@ -34,10 +36,8 @@ public final class Main extends JavaPlugin {
       getCommand("nightmare").setExecutor(new Commands());
     }
 
-    {
-      timeManagement = TimeManagement.startTimeManagement(instance);
-    }
-    
+    TimeManagement.init(instance);
+        
     File settings = new File(getDataFolder(), "settings.yml");
 
     if (!settings.exists()) {
@@ -112,10 +112,6 @@ public final class Main extends JavaPlugin {
 
   public static YamlConfiguration getMessages() {
     return messages;
-  }
-
-  public static TimeManagement getTimeManagement() {
-    return timeManagement;
   }
 
   public static void setSettings() throws IOException {

@@ -2,7 +2,7 @@ package com.nightmare.Mobs;
 
 import com.nightmare.Constants;
 import com.nightmare.Main;
-import com.nightmare.RandomnessManagement;
+import com.nightmare.Randomness;
 import com.nightmare.TimeManagement;
 import com.nightmare.WorldTime;
 
@@ -12,6 +12,8 @@ import java.util.Optional;
 
 import org.bukkit.GameMode;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
@@ -25,11 +27,10 @@ public class NightmareCreeper {
 
     NightmareCreeper(Entity entity, YamlConfiguration config) {
 
-        final RandomnessManagement randomness = new RandomnessManagement();
+        final Randomness randomness = new Randomness();
 
-        final TimeManagement timeManagement = Main.getTimeManagement();
         final String currentWorldName = entity.getWorld().getName();
-        final Optional<WorldTime> currentWorldTime = timeManagement.getSpecificWorldTime(currentWorldName);
+        final Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(currentWorldName);
 
         if (currentWorldTime.isPresent()) {
             
@@ -120,44 +121,47 @@ public class NightmareCreeper {
    
     }
 
-    private void createAtierNightmareCreeper(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createAtierNightmareCreeper(Entity entity, YamlConfiguration config, Randomness randomness) {
         
         Creeper mob = (Creeper) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_a.getValue()).replace("%mob%", Creeper.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobATierConfigPath).replace("%mob%", Creeper.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(false);
         
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
             
             if (random.is1percent()) {
                 mob.setGliding(true);
                 mob.setPowered(true);
                 mob.setArrowsInBody(15);
                 mob.setSilent(true);
+                
+                mob.setExplosionRadius(randomness.random(50, 100));
             }
     
         }
 
+        mob.setExplosionRadius(randomness.random(5, 10));
+
         mob.setMetadata("NightmareATierMob", new FixedMetadataValue(Main.getInstance(), true));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 1));
 
     }
 
-    private void createBtierNightmareCreeper(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createBtierNightmareCreeper(Entity entity, YamlConfiguration config, Randomness randomness) {
 
         Creeper mob = (Creeper) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_b.getValue()).replace("%mob%", Creeper.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobBTierConfigPath).replace("%mob%", Creeper.class.getSimpleName()));
 
         mob.setCustomName(name);
 
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is25percent()) {
                 mob.setCustomNameVisible(true);
@@ -171,7 +175,7 @@ public class NightmareCreeper {
         
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is1percent()) {
                 mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 1));
@@ -181,17 +185,17 @@ public class NightmareCreeper {
 
         }
 
+        AttributeInstance speedAttribute = mob.getAttribute(Attribute.MOVEMENT_SPEED);
 
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, randomness.random(1,2)));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, randomness.random(1,2)));
+        speedAttribute.setBaseValue(speedAttribute.getDefaultValue() + randomness.random(0.1F, 0.4F));
 
         mob.setMetadata("NightmareBTierMob", new FixedMetadataValue(Main.getInstance(), true));
 
     }
 
-    private void createCtierNightmareCreeper(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createCtierNightmareCreeper(Entity entity, YamlConfiguration config, Randomness randomness) {
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", Creeper.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobCTierConfigPath).replace("%mob%", Creeper.class.getSimpleName()));
 
         Creeper mob = (Creeper) entity;
 
@@ -202,22 +206,14 @@ public class NightmareCreeper {
         mob.setPowered(true);
         mob.setRiptiding(true);
 
-        mob.setExplosionRadius(randomness.random(15, 50));
+        mob.setExplosionRadius(randomness.random(15, 70));
 
-        {
-            RandomnessManagement random = new RandomnessManagement();
-            
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
-        }
+        AttributeInstance speedAttribute = mob.getAttribute(Attribute.MOVEMENT_SPEED);
 
+        speedAttribute.setBaseValue(speedAttribute.getDefaultValue() + randomness.random(0.3F,0.5F));
 
-        if (mob.getLocation().getY() >= mob.getWorld().getHighestBlockAt((int) mob.getLocation().getX(), (int) mob.getLocation().getZ()).getLocation().getY())
-            mob.getWorld().spawnEntity(mob.getLocation(), EntityType.LIGHTNING_BOLT);
-        
         mob.setMetadata("NightmareCTierMob", new FixedMetadataValue(Main.getInstance(), true));
+        
     }
 
 
@@ -234,11 +230,9 @@ public class NightmareCreeper {
                     creeper.setTarget(player);
 
                     if (creeper.getLocation().getY() >= creeper.getWorld().getHighestBlockAt((int) creeper.getLocation().getX(), (int) creeper.getLocation().getZ()).getLocation().getY())
-                        creeper.getWorld().spawnEntity(creeper.getLocation(), EntityType.LIGHTNING_BOLT);
-
                     {
-                        RandomnessManagement random = new RandomnessManagement();
-                        Optional<WorldTime> currentWorldTime = Main.getTimeManagement().getSpecificWorldTime(world.getName());
+                        Randomness random = new Randomness();
+                        Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(world.getName());
 
                         if (random.is5percent()) {
 
@@ -248,7 +242,7 @@ public class NightmareCreeper {
                             }
 
                             if (currentWorldTime.isPresent()) {
-                                RandomnessManagement random_2 = new RandomnessManagement();
+                                Randomness random_2 = new Randomness();
                                 WorldTime worldTime = currentWorldTime.get();
 
                                 if (random_2.is5percent()) {

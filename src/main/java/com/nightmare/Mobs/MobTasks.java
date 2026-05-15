@@ -21,8 +21,8 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.nightmare.Main;
-import com.nightmare.RandomnessManagement;
+import com.nightmare.Randomness;
+import com.nightmare.TimeManagement;
 import com.nightmare.WorldTime;
 
 public final class MobTasks {
@@ -70,19 +70,19 @@ public final class MobTasks {
 
                                 final List<Entity> nearbyEntities = villager.getNearbyEntities(25, 25, 25);
                                 final boolean hasPlayer = nearbyEntities.stream().anyMatch(entity -> entity instanceof Player);
-                                final Optional<WorldTime> currentWorldTime = Main.getTimeManagement().getSpecificWorldTime(villager.getWorld().getName());
+                                final Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(villager.getWorld().getName());
 
                                 if (hasPlayer && currentWorldTime.isPresent()) {
-                                    final RandomnessManagement random = new RandomnessManagement();
+                                    final Randomness random = new Randomness();
     
                                     final Consumer<Entity> processNearbyEntities = entity -> {
                                         if (!(entity instanceof Player)) return;
                                     
-                                        Main.getTimeManagement().getSpecificWorldTime(villager.getWorld().getName()).ifPresent(worldTime -> {
+                                        TimeManagement.getSpecificWorldTime(villager.getWorld().getName()).ifPresent(worldTime -> {
                                             Player player = (Player) entity;
                                             villager.setTarget(player);
                                             
-                                            RandomnessManagement random_2 = new RandomnessManagement();
+                                            Randomness random_2 = new Randomness();
                                     
                                             int amountToSpawn = 0;
                                             int speedAmplifier = 1;
@@ -100,7 +100,7 @@ public final class MobTasks {
                                             }  else if (worldTime.isDayAbove50()) {
                                                 if (random_2.is40percent()) {
                                                     amountToSpawn = 5;
-                                                    speedAmplifier = new RandomnessManagement().random(1, 4);
+                                                    speedAmplifier = new Randomness().random(1, 4);
                                                     isNightmare = true;
                                                 }
                                             }
@@ -161,7 +161,7 @@ public final class MobTasks {
                             
                             if (mob.hasMetadata("VillagerNightmareGuardianIronGolem")) {
 
-                                RandomnessManagement random = new RandomnessManagement();
+                                Randomness random = new Randomness();
     
                                 IronGolem golem = (IronGolem) mob;
                                 Location center = golem.getLocation();
@@ -175,7 +175,7 @@ public final class MobTasks {
 
                                     {
                                         
-                                        RandomnessManagement random_2 = new RandomnessManagement();
+                                        Randomness random_2 = new Randomness();
 
                                         if (random_2.is5percent() || random_2.is30percent()) {
                                             lightningLoc.setY(world.getHighestBlockYAt(lightningLoc) + 1);
@@ -193,13 +193,6 @@ public final class MobTasks {
                 }
             }
         }, 0, 50L);
-
-        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            for (World world : plugin.getServer().getWorlds()) {
-
-
-            } 
-        }, 0 , 100L);
 
     }
     

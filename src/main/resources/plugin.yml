@@ -14,4 +14,4 @@ commands:
 permissions:
   nightmare.reload:
     description: "Permite a un jugador recargar el plugin Nightmare Core."
-    default: false
+    default: op

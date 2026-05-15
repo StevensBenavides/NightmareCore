@@ -17,7 +17,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.nightmare.Constants;
 import com.nightmare.Main;
-import com.nightmare.RandomnessManagement;
+import com.nightmare.Randomness;
 import com.nightmare.TimeManagement;
 import com.nightmare.WorldTime;
 
@@ -26,10 +26,9 @@ import net.md_5.bungee.api.ChatColor;
 public class NightmareSpider {
 
     NightmareSpider(Entity entity, YamlConfiguration config) {
-        final RandomnessManagement randomness = new RandomnessManagement();
-        final TimeManagement timeManagement = Main.getTimeManagement();
+        final Randomness randomness = new Randomness();
         final String currentWorldName = entity.getWorld().getName();
-        final Optional<WorldTime> currentWorldTime = timeManagement.getSpecificWorldTime(currentWorldName);
+        final Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(currentWorldName);
     
         if (currentWorldTime.isPresent()) {
             final WorldTime worldTime = currentWorldTime.get();
@@ -80,17 +79,17 @@ public class NightmareSpider {
     }
 
 
-    private void createAtierNightmareSpider(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createAtierNightmareSpider(Entity entity, YamlConfiguration config, Randomness randomness) {
         
         Spider mob = (Spider) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_a.getValue()).replace("%mob%", Spider.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobATierConfigPath).replace("%mob%", Spider.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(true);
         
         {
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is5percent()) {
                 mob.setPersistent(true);
@@ -98,7 +97,7 @@ public class NightmareSpider {
         }
 
         {
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
             
             mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 2)));
             mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 2)));
@@ -110,11 +109,11 @@ public class NightmareSpider {
     }
     
 
-    private void createBtierNightmareSpider(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createBtierNightmareSpider(Entity entity, YamlConfiguration config, Randomness randomness) {
 
         Spider mob = (Spider) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_b.getValue()).replace("%mob%", Spider.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobBTierConfigPath).replace("%mob%", Spider.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setGliding(true);
@@ -122,7 +121,7 @@ public class NightmareSpider {
             
 
         {
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is5percent()) {
                 mob.setPersistent(true);
@@ -131,7 +130,7 @@ public class NightmareSpider {
 
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
             mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 3)));
@@ -145,11 +144,11 @@ public class NightmareSpider {
 
     }
 
-    private void createCtierNightmareSpider(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createCtierNightmareSpider(Entity entity, YamlConfiguration config, Randomness randomness) {
 
         Spider mob = (Spider) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", Spider.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobCTierConfigPath).replace("%mob%", Spider.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setGliding(true);
@@ -157,7 +156,7 @@ public class NightmareSpider {
         mob.setRiptiding(true);
 
         {
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is5percent()) {
                 mob.setCustomNameVisible(true);
@@ -166,7 +165,7 @@ public class NightmareSpider {
 
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
             
             mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, random.random(1, 10)));
             mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, random.random(1, 10)));
@@ -178,7 +177,7 @@ public class NightmareSpider {
 
 
         {
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is50percent()) {
                 mob.setPersistent(true);

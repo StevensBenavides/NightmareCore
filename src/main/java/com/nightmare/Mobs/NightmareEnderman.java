@@ -13,7 +13,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.nightmare.Constants;
 import com.nightmare.Main;
-import com.nightmare.RandomnessManagement;
+import com.nightmare.Randomness;
 import com.nightmare.TimeManagement;
 import com.nightmare.WorldTime;
 
@@ -21,10 +21,9 @@ import net.md_5.bungee.api.ChatColor;
 
 public class NightmareEnderman {
     NightmareEnderman(Entity entity, YamlConfiguration config) {
-        final RandomnessManagement randomness = new RandomnessManagement();
-        final TimeManagement timeManagement = Main.getTimeManagement();
+        final Randomness randomness = new Randomness();
         final String currentWorldName = entity.getWorld().getName();
-        final Optional<WorldTime> currentWorldTime = timeManagement.getSpecificWorldTime(currentWorldName);
+        final Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(currentWorldName);
     
         if (currentWorldTime.isPresent()) {
             final WorldTime worldTime = currentWorldTime.get();
@@ -81,17 +80,17 @@ public class NightmareEnderman {
     }
 
 
-    private void createAtierNightmareEnderman(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createAtierNightmareEnderman(Entity entity, YamlConfiguration config, Randomness randomness) {
 
         Enderman mob = (Enderman) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_a.getValue()).replace("%mob%", Enderman.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobATierConfigPath).replace("%mob%", Enderman.class.getSimpleName()));
         
         mob.setCustomName(name);
         
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is10percent()) {
                 mob.setCustomNameVisible(true);
@@ -111,17 +110,17 @@ public class NightmareEnderman {
 
     }
 
-    private void createBtierNightmareEnderman(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createBtierNightmareEnderman(Entity entity, YamlConfiguration config, Randomness randomness) {
 
         Enderman mob = (Enderman) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_b.getValue()).replace("%mob%", Enderman.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobBTierConfigPath).replace("%mob%", Enderman.class.getSimpleName()));
 
         mob.setCustomName(name);
 
         {
 
-            RandomnessManagement random = new RandomnessManagement();
+            Randomness random = new Randomness();
 
             if (random.is25percent()) {
                 mob.setCustomNameVisible(true);
@@ -140,11 +139,11 @@ public class NightmareEnderman {
         mob.setMetadata("NightmareBTierMob", new FixedMetadataValue(Main.getInstance(), true));
     }
 
-    private void createCtierNightmareEnderman(Entity entity, YamlConfiguration config, RandomnessManagement randomness) {
+    private void createCtierNightmareEnderman(Entity entity, YamlConfiguration config, Randomness randomness) {
 
         Enderman mob = (Enderman) entity;
 
-        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", Enderman.class.getSimpleName()));
+        final String name = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.MobCTierConfigPath).replace("%mob%", Enderman.class.getSimpleName()));
 
         mob.setCustomName(name);
         mob.setCustomNameVisible(true);

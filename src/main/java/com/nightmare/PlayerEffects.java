@@ -30,11 +30,16 @@ public class PlayerEffects {
 
                         if (player.getGameMode() == GameMode.SURVIVAL) {
 
-                            Optional<PlayerTime> currentPlayerTime = Main.getTimeManagement().getSpecificPlayerTime(player.getUniqueId());
+                            Optional<PlayerTime> currentPlayerTime = TimeManagement.getSpecificPlayerTime(player.getUniqueId());
+                            Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(player.getWorld().getName());
 
-                            if (currentPlayerTime.isPresent()) {
-    
+                            Randomness random = new Randomness();
+
+                            if (currentPlayerTime.isPresent() && currentWorldTime.isPresent()) {
+                                
                                 PlayerTime playerTime = currentPlayerTime.get();
+                                WorldTime worldTime = currentWorldTime.get();
+
                                 Long thristyMinutes = playerTime.getThirstyMinutes();
     
                                 if (!player.hasMetadata("thristy")) {
@@ -52,8 +57,16 @@ public class PlayerEffects {
                                     isPreviousThristy = metadataValueThristy.asBoolean();
     
                                 }
-    
-                                if (thristyMinutes >= 15 && !isPreviousThristy) {
+
+                                int thristyLimit = 15;
+
+                                if (worldTime.isDayAbove50()) {
+                                    thristyLimit = random.random(5, 15);
+                                }  else  {
+                                    thristyLimit = random.random(9, 15);
+                                }
+                                
+                                if (thristyMinutes >= thristyLimit && !isPreviousThristy) {
                                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1));
                                     player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1));
                                     player.setMetadata("thristy", new FixedMetadataValue(plugin, true));
@@ -85,16 +98,14 @@ public class PlayerEffects {
                                 Optional<MetadataValue> metadataValueOptionalWrapped = Optional.of(metadataValueList.get(0));
     
                                 if (metadataValueOptionalWrapped.isPresent()) {
-    
                                     MetadataValue metadataValueThristy = metadataValueOptionalWrapped.get();
                                     isThristy = metadataValueThristy.asBoolean();
-    
                                 }
     
                                 if (isThristy) {
                                     double currentHealth = player.getHealth();
                                     
-                                    Optional<WorldTime> currentWorldTime = Main.getTimeManagement().getSpecificWorldTime(world.getName());
+                                    Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(world.getName());
                                     
                                     if (currentWorldTime.isPresent()) {
                                         WorldTime worldTime = currentWorldTime.get();
@@ -132,11 +143,11 @@ public class PlayerEffects {
                     for (Player player : world.getPlayers()) {
                         if (player.getGameMode() != GameMode.SURVIVAL) continue;
         
-                        Main.getTimeManagement().getSpecificPlayerTime(player.getUniqueId()).ifPresent(playerTime -> {
-                            Main.getTimeManagement().getSpecificWorldTime(world.getName()).ifPresent(worldTime -> {
+                        TimeManagement.getSpecificPlayerTime(player.getUniqueId()).ifPresent(playerTime -> {
+                            TimeManagement.getSpecificWorldTime(world.getName()).ifPresent(worldTime -> {
                                 
                                 long minutes = playerTime.getMinutes();
-                                RandomnessManagement random = new RandomnessManagement();
+                                Randomness random = new Randomness();
         
                                 if (minutes >= 60) {
                                     if (random.is5percent()) {

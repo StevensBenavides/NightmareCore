@@ -21,11 +21,12 @@ public class WorldDifficulty {
         for (World world : plugin.getServer().getWorlds()) {
             world.setDifficulty(Difficulty.HARD);
 
-            Optional<WorldTime> currentWorldTime = Main.getTimeManagement().getSpecificWorldTime(world.getName());
+            Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(world.getName());
 
             if (currentWorldTime.isPresent()) {
                 
                 WorldTime worldTime = currentWorldTime.get();
+                
                 if (worldTime.isDayAbove(80)) {
                     world.setSpawnLimit(SpawnCategory.MONSTER, 1000);
                     world.setSpawnLimit(SpawnCategory.ANIMAL, 20);
@@ -45,6 +46,8 @@ public class WorldDifficulty {
                         }
                     }.runTaskTimer(plugin, 0L, 300L);
 
+                    world.setPVP(true);
+
                 } else if (worldTime.isDayAbove50()) {
                     world.setSpawnLimit(SpawnCategory.MONSTER, 1000);
                     world.setSpawnLimit(SpawnCategory.ANIMAL, 20);
@@ -52,9 +55,11 @@ public class WorldDifficulty {
                     world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 20);
                     world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 20);
                     world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 20);
+                    world.setPVP(true);
                 } 
                 else if (worldTime.isDayBelow(10)) {
                     world.setSpawnLimit(SpawnCategory.MONSTER, 50);
+                    world.setPVP(false);
                 }
                 else if (worldTime.isDayBelow(20)) {
                     world.setSpawnLimit(SpawnCategory.MONSTER, 100);
@@ -63,6 +68,7 @@ public class WorldDifficulty {
                     world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 100);
                     world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 100);
                     world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 100);
+                    world.setPVP(true);
                 }
                 else if (worldTime.isDayBelow(40)) {
                     world.setSpawnLimit(SpawnCategory.MONSTER, 200);
@@ -71,6 +77,7 @@ public class WorldDifficulty {
                     world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 40);
                     world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 40);
                     world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 40);
+                    world.setPVP(true);
                 }
                
             }

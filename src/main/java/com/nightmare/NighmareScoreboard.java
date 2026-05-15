@@ -55,16 +55,13 @@ public final class NighmareScoreboard {
                 newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%player%", PlaceholderAPI.setPlaceholders(board.getPlayer(), "%player_name%"))));
                 continue;
             } else if (line.contains("%day%")) {
-                Optional<WorldTime> currentWorldDay = Main.getTimeManagement().getSpecificWorldTime(board.getPlayer().getWorld().getName());
+                Optional<WorldTime> currentWorldDay = TimeManagement.getSpecificWorldTime(board.getPlayer().getWorld().getName());
 
                 if (currentWorldDay.isPresent()) {
                     WorldTime worldTime = currentWorldDay.get();
                     newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%day%", String.valueOf(worldTime.getDay()))));
                     continue; 
-                } else {
-                    newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%day%", String.valueOf(board.getPlayer().getWorld().getFullTime() / 24000L))));
-                    continue; 
-                }
+                } 
             } else if (line.contains("%online%")) { 
                 newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%online%", String.valueOf(plugin.getServer().getOnlinePlayers().size()) + " / " + plugin.getServer().getMaxPlayers())));
                 continue;

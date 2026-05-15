@@ -9,17 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class TimeManagement {
+public final class TimeManagement {
 
-    public WorldTime worldTime;
-    public HashMap<String, WorldTime> worldTimes = new HashMap<String, WorldTime>();
-    public HashMap<UUID, PlayerTime> playerTimes = new HashMap<UUID, PlayerTime>();
+    private static HashMap<String, WorldTime> worldTimes = new HashMap<String, WorldTime>();
+    private static HashMap<UUID, PlayerTime> playerTimes = new HashMap<UUID, PlayerTime>();
 
-    public static TimeManagement startTimeManagement(Plugin plugin) {
-        return new TimeManagement(plugin);
-    }
-
-    TimeManagement(Plugin plugin) {
+    public static void init(Plugin plugin) {
 
         for (World world : plugin.getServer().getWorlds()) {
 
@@ -37,17 +32,19 @@ public class TimeManagement {
                     Optional<WorldTime> worldTime = Optional.of(worldTimes.get(worldName));
 
                     if (worldTime.isPresent()) {
-                        WorldTime previousWorldTime = worldTime.get();     
-                        long currentWorldDay = world.getFullTime() / 24000L;
+                        WorldTime previousWorldTime = worldTime.get();
 
-                        if (currentWorldDay > previousWorldTime.getDay()) {
-                            previousWorldTime.update(world.getFullTime());
-                        }
+                        previousWorldTime.update(world.getFullTime());
+                    } else {
+                        WorldTime worldTime_2 = new WorldTime(world);
+                        String worldName_2 = world.getName();
+
+                        worldTimes.put(worldName_2, worldTime_2);
                     }
                 }
 
             }
-        }.runTaskTimerAsynchronously(plugin, 0, 200L);
+        }.runTaskTimer(plugin, 0, 500L);
 
         new BukkitRunnable() {
             public void run() {
@@ -71,26 +68,64 @@ public class TimeManagement {
                 }
 
             }
-        }.runTaskTimerAsynchronously(plugin, 0, 500L);
+        }.runTaskTimer(plugin, 0, 500L);
     }
 
-    public void addPlayerTime(UUID uuid) {
-        this.playerTimes.put(uuid, new PlayerTime());
+    public static void updatePlayerTimes() {
+        for (World world : Main.getInstance().getServer().getWorlds()) {
+            for (Player player : world.getPlayers()) {
+                UUID playerUUID = player.getUniqueId();
+                Optional<PlayerTime> currentPlayerTime = Optional.of(playerTimes.get(playerUUID));
+                
+                if (currentPlayerTime.isPresent()) {
+                    PlayerTime playerTime = currentPlayerTime.get();
+
+                    playerTime.update();
+
+                    playerTimes.remove(playerUUID);
+                    playerTimes.put(playerUUID, playerTime);
+
+                }
+            
+            }
+        }
     }
 
-    public void removePlayerTime(UUID uuid) {
-        this.playerTimes.remove(uuid);
+
+    public static void updateWorldsTimes() {
+        for (World world : Main.getInstance().getServer().getWorlds()) {
+            String worldName = world.getName();
+            Optional<WorldTime> worldTime = Optional.of(worldTimes.get(worldName));
+
+            if (worldTime.isPresent()) {
+                WorldTime previousWorldTime = worldTime.get();
+                previousWorldTime.update(world.getFullTime());
+            } else {
+                WorldTime worldTime_2 = new WorldTime(world);
+                String worldName_2 = world.getName();
+
+                worldTimes.put(worldName_2, worldTime_2);
+            }
+        }
     }
 
-    public Optional<PlayerTime> getSpecificPlayerTime(UUID uuid) {
-        return Optional.of(this.playerTimes.get(uuid));
+    public static void addPlayerTime(UUID uuid) {
+        playerTimes.put(uuid, new PlayerTime());
     }
 
-    public Optional<WorldTime> getSpecificWorldTime(String name) {
-        return Optional.of(worldTimes.get(name));
+    public static void removePlayerTime(UUID uuid) {
+        playerTimes.remove(uuid);
     }
 
-    public HashMap<String, WorldTime> getWorldTimes() {
-        return this.worldTimes;
+    public static Optional<PlayerTime> getSpecificPlayerTime(UUID uuid) {
+        return Optional.ofNullable(playerTimes.get(uuid));
+    }
+
+    public static Optional<WorldTime> getSpecificWorldTime(String name) {
+        return Optional.ofNullable(worldTimes.get(name));
+    }
+
+    public static HashMap<String, WorldTime> getWorldTimes() {
+        return worldTimes;
     }
 }

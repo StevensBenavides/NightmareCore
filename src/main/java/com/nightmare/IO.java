@@ -75,8 +75,8 @@ public final class IO {
 
         permission: "&cYou not have permission to do that."
         reload:
-            messages: "&aMessages.yml has been reloaded."
-            settings: "&aSettings.yml has been reloaded."
+            messages: "&amessages.yml has been reloaded."
+            settings: "&asettings.yml has been reloaded."
 
         """;
 
@@ -170,7 +170,8 @@ public final class IO {
 
         message_death:
             enable: true
-            message: "&c☠ %player_killed% was sent back to hell! &c☠"
+            title: "&c☠ &7%player_killed% died &c☠"
+            subtitle: "&c&lwas sent back to hell!"
 
         config:
             player:

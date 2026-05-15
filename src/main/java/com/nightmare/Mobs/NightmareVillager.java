@@ -8,15 +8,16 @@ import org.bukkit.entity.Villager;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import com.nightmare.Main;
-import com.nightmare.RandomnessManagement;
+import com.nightmare.Randomness;
+import com.nightmare.TimeManagement;
 import com.nightmare.WorldTime;
 
 public class NightmareVillager {
     NightmareVillager(Entity entity, YamlConfiguration config) {
-        final RandomnessManagement randomness = new RandomnessManagement();
+        final Randomness randomness = new Randomness();
         final Villager villager = (Villager) entity;
     
-        final Optional<WorldTime> currentWorldTime = Main.getTimeManagement().getSpecificWorldTime(villager.getWorld().getName());
+        final Optional<WorldTime> currentWorldTime = TimeManagement.getSpecificWorldTime(villager.getWorld().getName());
     
         if (currentWorldTime.isPresent()) {
             final WorldTime worldTime = currentWorldTime.get();

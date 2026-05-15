@@ -3,12 +3,12 @@ package com.nightmare;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class RandomnessManagement {
+public class Randomness {
 
     private final Random random = new Random();
     private final ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
 
-    public RandomnessManagement() {}
+    public Randomness() {}
 
     public int random(int origin, int bound) {
         return threadLocalRandom.nextInt(origin, bound);

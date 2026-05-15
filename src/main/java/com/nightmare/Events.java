@@ -16,6 +16,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Skeleton;
@@ -45,6 +46,7 @@ import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
@@ -120,9 +122,17 @@ public final class Events implements Listener {
                 ScoreboardManager manager = event.getPlayer().getServer().getScoreboardManager();
                 Scoreboard score = manager.getNewScoreboard();
 
-                Objective obj = score.registerNewObjective("player_health", Criteria.HEALTH, ChatColor.translateAlternateColorCodes('&', "&c♥"));
+                Objective obj_health_below = score.registerNewObjective("player_health", Criteria.HEALTH, ChatColor.translateAlternateColorCodes('&', "&c♥"));
 
-                obj.setDisplaySlot(DisplaySlot.BELOW_NAME);
+                obj_health_below.setDisplaySlot(DisplaySlot.BELOW_NAME);
+
+                event.getPlayer().setScoreboard(score);
+                event.getPlayer().damage(0.001F);
+
+                Objective obj_health_tab = score.registerNewObjective("player_health_tab", Criteria.HEALTH, ChatColor.translateAlternateColorCodes('&', "&c♥"));
+
+                obj_health_tab.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+                obj_health_tab.setRenderType(RenderType.HEARTS);
 
                 event.getPlayer().setScoreboard(score);
                 event.getPlayer().damage(0.001F);
@@ -133,7 +143,7 @@ public final class Events implements Listener {
                 Player player = event.getPlayer();
                 UUID playerUUID = player.getUniqueId();
     
-                Main.getTimeManagement().addPlayerTime(playerUUID);
+                TimeManagement.addPlayerTime(playerUUID);
             }
 
 
@@ -175,7 +185,7 @@ public final class Events implements Listener {
                 Player player = event.getPlayer();
                 UUID playerUUID = player.getUniqueId();
     
-                Main.getTimeManagement().removePlayerTime(playerUUID);
+                TimeManagement.removePlayerTime(playerUUID);
             }
 
         } catch (Exception e) {
@@ -221,7 +231,7 @@ public final class Events implements Listener {
                             if (isThristy) {
                                 UUID uuid = player.getUniqueId();
             
-                                Optional<PlayerTime> currentPlayerTime = Main.getTimeManagement().getSpecificPlayerTime(uuid);
+                                Optional<PlayerTime> currentPlayerTime = TimeManagement.getSpecificPlayerTime(uuid);
             
                                 if (currentPlayerTime.isPresent()) {
                                     PlayerTime playerTime = currentPlayerTime.get();
@@ -244,12 +254,11 @@ public final class Events implements Listener {
 
             if (player.getGameMode() == GameMode.SURVIVAL) {
 
-                final TimeManagement timeManagement = Main.getTimeManagement();
-                final Optional<WorldTime> optionalWorldTime = timeManagement.getSpecificWorldTime(player.getWorld().getName());
+                final Optional<WorldTime> optionalWorldTime = TimeManagement.getSpecificWorldTime(player.getWorld().getName());
 
                 if (optionalWorldTime.isPresent()) {
                     final WorldTime worldTime = optionalWorldTime.get();
-                    final RandomnessManagement random = new RandomnessManagement();
+                    final Randomness random = new Randomness();
 
                     if (worldTime.isDayBelow(20)) {
                         if (random.is5percent()) {
@@ -370,28 +379,40 @@ public final class Events implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntityDeath(EntityDeathEvent event) {
 
-        try {
+        if (event.getEntity() != null) {
 
-            final YamlConfiguration config = Main.getSettings();
+            if (event.getEntity().hasMetadata("NightmareATierMob")) {
+                event.getEntity().getActivePotionEffects().forEach(potionEffect -> {
+                    event.getEntity().removePotionEffect(potionEffect.getType());
+                });
 
-            final String c_tier = ChatColor.translateAlternateColorCodes('&', config.getString(Constants.Mobs.config_mobs_name_c.getValue()).replace("%mob%", event.getEntity().getClass().getSimpleName()));
-
-            if (event.getEntity() != null) {
-                if (event.getEntityType() == EntityType.ZOMBIE && event.getEntity().getCustomName() != null && event.getEntity().getCustomName().equalsIgnoreCase(c_tier))
+                if (event.getEntity() instanceof Creeper) {
                     event.getDrops().clear();
-    
-                else if (event.getEntityType() == EntityType.SKELETON && event.getEntity().getCustomName() != null && event.getEntity().getCustomName().equalsIgnoreCase(c_tier))
-                    event.getDrops().clear();
+                }
             }
+
+            if (event.getEntity().hasMetadata("NightmareBTierMob")) {
+                event.getEntity().getActivePotionEffects().forEach(potionEffect -> {
+                    event.getEntity().removePotionEffect(potionEffect.getType());
+                });
+
+                if (event.getEntity() instanceof Creeper) {
+                    event.getDrops().clear();
+                }
+            }
+            
+            if (event.getEntity().hasMetadata("NightmareCTierMob")) {
+                event.getEntity().getActivePotionEffects().forEach(potionEffect -> {
+                    event.getEntity().removePotionEffect(potionEffect.getType());
+                });
+
+                if (event.getEntity() instanceof Creeper) {
+                    event.getDrops().clear();
+                }
+            }
+
+        }
          
-
-        } catch (Exception e) {
-        
-            e.printStackTrace();
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
-        
-        }    
-
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -403,7 +424,7 @@ public final class Events implements Listener {
 
         {
             UUID uuid = player.getUniqueId();
-            Optional<PlayerTime> currentPlayerTime = Main.getTimeManagement().getSpecificPlayerTime(uuid);
+            Optional<PlayerTime> currentPlayerTime = TimeManagement.getSpecificPlayerTime(uuid);
 
             if (currentPlayerTime.isPresent()) {
                 PlayerTime playerTime = currentPlayerTime.get();
@@ -420,23 +441,38 @@ public final class Events implements Listener {
                     final boolean isDeathMessageEnabled = config.getBoolean("message_death.enable");
     
                     if (isDeathMessageEnabled) {
-                        String originalMessage = config.getString("message_death.message");
-    
-                        originalMessage = originalMessage.replace("%player_killed%", player.getName());
-    
+                        String titleMessage = config.getString("message_death.title");
+                        String subtitleMessage = config.getString("message_death.subtitle");
+                        
+                        titleMessage = titleMessage.replace("%player_killed%", player.getName());
+                        subtitleMessage = subtitleMessage.replace("%player_killed%", player.getName());
+                        
                         for (Player outSidePlayer : player.getServer().getOnlinePlayers()) {
                             if (outSidePlayer == null) {
                                 continue;
                             }
-    
-                            Pattern pattern = Pattern.compile("%.+?%");
-                            Matcher matcher = pattern.matcher(originalMessage);
-    
-                            if (matcher.find()) {
-                                originalMessage = ChatColor.translateAlternateColorCodes('&', originalMessage.replace(matcher.group(), PlaceholderAPI.setPlaceholders(outSidePlayer, matcher.group())));
+
+                            {
+                                Pattern pattern = Pattern.compile("%.+?%");
+                                Matcher matcher = pattern.matcher(titleMessage);
+        
+                                if (matcher.find()) {
+                                    titleMessage = ChatColor.translateAlternateColorCodes('&', titleMessage.replace(matcher.group(), PlaceholderAPI.setPlaceholders(outSidePlayer, matcher.group())));
+                                }
+                    
+                            }
+
+                            {
+                                Pattern pattern = Pattern.compile("%.+?%");
+                                Matcher matcher = pattern.matcher(subtitleMessage);
+        
+                                if (matcher.find()) {
+                                    subtitleMessage = ChatColor.translateAlternateColorCodes('&', subtitleMessage.replace(matcher.group(), PlaceholderAPI.setPlaceholders(outSidePlayer, matcher.group())));
+                                }
+                    
                             }
     
-                            outSidePlayer.sendTitle(originalMessage, null, 10, 40, 10);
+                            outSidePlayer.sendTitle(ChatColor.translateAlternateColorCodes('&', titleMessage), ChatColor.translateAlternateColorCodes('&', subtitleMessage), 10, 40, 10);
     
                             outSidePlayer.playSound(
                                 outSidePlayer.getLocation(), 
@@ -456,21 +492,20 @@ public final class Events implements Listener {
     
                     }
 
-                    final TimeManagement timeManagement = Main.getTimeManagement();
                     final String worldName = player.getWorld().getName();
-                    final Optional<WorldTime> worldTimeOpt = timeManagement.getSpecificWorldTime(worldName);
+                    final Optional<WorldTime> worldTimeOpt = TimeManagement.getSpecificWorldTime(worldName);
 
                     if (worldTimeOpt.isPresent()) {
                         WorldTime worldTime = worldTimeOpt.get();
                         Date expirationDate = null; 
-
+                    
                         if (worldTime.isDayBelow(50)) {
-                            long hoursToBan = 24; 
-                            expirationDate = new Date(System.currentTimeMillis() + (hoursToBan * 3600000));
+                            long minutesToBan = 15; 
+                            expirationDate = new Date(System.currentTimeMillis() + (minutesToBan * 60 * 1000));
                         } 
-                    
+                        
+                        player.getInventory().clear();
                         player.ban("You fall into the nightmare.", expirationDate, "NightmareCore", true);
-                    
                     }
                                     }
 
@@ -494,8 +529,8 @@ public final class Events implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR) return;
 
-        Main.getTimeManagement().getSpecificWorldTime(player.getWorld().getName()).ifPresent(worldTime -> {
-            RandomnessManagement random = new RandomnessManagement();
+        TimeManagement.getSpecificWorldTime(player.getWorld().getName()).ifPresent(worldTime -> {
+            Randomness random = new Randomness();
 
             if (worldTime.isDayAbove(50) && worldTime.isDayBelow(101)) {
                 if (random.is1percent()) { 
@@ -516,11 +551,11 @@ public final class Events implements Listener {
         Player player = event.getPlayer();
         if (!player.isSprinting()) return; 
 
-        Main.getTimeManagement().getSpecificWorldTime(player.getWorld().getName()).ifPresent(worldTime -> {
-            RandomnessManagement random = new RandomnessManagement();
+        TimeManagement.getSpecificWorldTime(player.getWorld().getName()).ifPresent(worldTime -> {
+            Randomness random = new Randomness();
 
             if (worldTime.isDayAbove(50)) {
-                if (random.is1percent()) { 
+                if (random.is1percent() || random.is5percent()) { 
                     ItemStack boots = player.getInventory().getBoots();
 
                     if (boots != null && boots.getItemMeta() instanceof Damageable meta) {
