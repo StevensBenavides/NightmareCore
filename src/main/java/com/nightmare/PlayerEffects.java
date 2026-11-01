@@ -1,7 +1,12 @@
 package com.nightmare;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
@@ -15,6 +20,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class PlayerEffects {
+
+    public static final Map<UUID, Long> RANDOM_EFFECT_COOLDOWN = new HashMap<>();
 
     public static void startPlayersEffects(Plugin plugin) {
         new PlayerEffects(plugin);
@@ -139,66 +146,145 @@ public class PlayerEffects {
         new BukkitRunnable() {
             @Override
             public void run() {
+                long now = System.currentTimeMillis();
+                long globalCooldown = Main.balance.getLong("player-effects.global-cooldown-ms", 600000L);
+
                 for (World world : plugin.getServer().getWorlds()) {
                     for (Player player : world.getPlayers()) {
-                        if (player.getGameMode() != GameMode.SURVIVAL) continue;
-        
-                        TimeManagement.getSpecificPlayerTime(player.getUniqueId()).ifPresent(playerTime -> {
-                            TimeManagement.getSpecificWorldTime(world.getName()).ifPresent(worldTime -> {
-                                
-                                long minutes = playerTime.getMinutes();
-                                Randomness random = new Randomness();
-        
-                                if (minutes >= 60) {
-                                    if (random.is5percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20 * 60 * 2, random.random(1, 3)));
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 20 * 60 * 2, random.random(1, 2)));
-                                    }
-                                }
-        
-                                if (minutes >= 120) { 
-                                    if (random.is10percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 20 * 60 * 5, 1));
-                                    }
-                                }
-        
-                                if (worldTime.isDayAbove(20) && !worldTime.isDayAbove(50)) {
-                                    if (random.is5percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 20 * 15, 0));
-                                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_STARE, 0.5f, 0.5f);
-                                    }
-                                }
-        
-                                if (worldTime.isDayAbove(50)) {
-                                    if (random.is5percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.BAD_OMEN, 20 * 60 * 10, random.random(1, 5)));
-                                    }
-        
-                                    if (random.is10percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 20 * 30, 2));
-                                    }
-        
-                                    if (random.is1percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 20 * 5, 1));
-                                        player.playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.2f, 0.2f);
-                                    }
-                                }
-        
-                                if (worldTime.isDayAbove(100)) {
-                                    if (random.is5percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 10, 0));
-                                    }
-                                    
-                                    if (random.is5percent()) {
-                                        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 20 * 60, 3));
-                                    }
-                                }
-                            });
-                        });
+                        if (player.getGameMode() != GameMode.SURVIVAL) {
+                            continue;
+                        }
+
+                        UUID uuid = player.getUniqueId();
+
+                        if (RANDOM_EFFECT_COOLDOWN.getOrDefault(uuid, 0L) > now) {
+                            continue;
+                        }
+
+                        Optional<PlayerTime> playerTimeOptional = TimeManagement.getSpecificPlayerTime(uuid);
+                        Optional<WorldTime> worldTimeOptional = TimeManagement.getSpecificWorldTime(world.getName());
+
+                        if (playerTimeOptional.isEmpty() || worldTimeOptional.isEmpty()) {
+                            continue;
+                        }
+
+                        PlayerTime playerTime = playerTimeOptional.get();
+                        WorldTime worldTime = worldTimeOptional.get();
+
+                        long minutes = playerTime.getMinutes();
+                        long day = worldTime.getDay();
+
+                        List<String> pool = new ArrayList<>();
+
+                        if (minutes >= 60) {
+                            for (int index = 0; index < 20; index++) {
+                                pool.add("SLOWNESS");
+                            }
+
+                            for (int index = 0; index < 20; index++) {
+                                pool.add("MINING_FATIGUE");
+                            }
+                        }
+
+                        if (minutes >= 120) {
+                            for (int index = 0; index < 10; index++) {
+                                pool.add("WEAKNESS_SHORT");
+                            }
+                        }
+
+                        if (day > 20 && day <= 50) {
+                            for (int index = 0; index < 15; index++) {
+                                pool.add("DARKNESS");
+                            }
+                        }
+
+                        if (day > 50) {
+                            for (int index = 0; index < 10; index++) {
+                                pool.add("BAD_OMEN");
+                            }
+
+                            for (int index = 0; index < 15; index++) {
+                                pool.add("HUNGER");
+                            }
+
+                            for (int index = 0; index < 2; index++) {
+                                pool.add("WITHER");
+                            }
+                        }
+
+                        if (day > 100) {
+                            for (int index = 0; index < 10; index++) {
+                                pool.add("BLINDNESS");
+                            }
+
+                            for (int index = 0; index < 10; index++) {
+                                pool.add("WEAKNESS_END");
+                            }
+                        }
+
+                        if (pool.isEmpty()) {
+                            continue;
+                        }
+
+                        double chance;
+
+                        if (day <= 50) {
+                            chance = Main.balance.getDouble("player-effects.chance-early", 0.20);
+                        } else if (day <= 100) {
+                            chance = Main.balance.getDouble("player-effects.chance-mid", 0.25);
+                        } else {
+                            chance = Main.balance.getDouble("player-effects.chance-late", 0.30);
+                        }
+
+                        if (ThreadLocalRandom.current().nextDouble() > chance) {
+                            continue;
+                        }
+
+                        String effect = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+
+                        switch (effect) {
+                            case "SLOWNESS" -> player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,
+                                    Main.balance.getInt("player-effects.slowness-duration-ticks", 1200), 0,
+                                    true, true, true));
+                            case "MINING_FATIGUE" -> player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE,
+                                    Main.balance.getInt("player-effects.mining-fatigue-duration-ticks", 1200), 0,
+                                    true, true, true));
+                            case "WEAKNESS_SHORT" -> player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,
+                                    Main.balance.getInt("player-effects.weakness-short-duration-ticks", 2400), 0,
+                                    true, true, true));
+                            case "DARKNESS" -> {
+                                player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS,
+                                        Main.balance.getInt("player-effects.darkness-duration-ticks", 100), 0,
+                                        true, true, true));
+                                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_STARE, 0.5f, 0.5f);
+                            }
+                            case "BAD_OMEN" -> player.addPotionEffect(new PotionEffect(PotionEffectType.BAD_OMEN,
+                                    Main.balance.getInt("player-effects.bad-omen-duration-ticks", 6000), 0,
+                                    true, true, true));
+                            case "HUNGER" -> player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER,
+                                    Main.balance.getInt("player-effects.hunger-duration-ticks", 300), 0,
+                                    true, true, true));
+                            case "WITHER" -> {
+                                player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,
+                                        Main.balance.getInt("player-effects.wither-duration-ticks", 60), 0,
+                                        true, true, true));
+                                player.playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.2f, 0.2f);
+                            }
+                            case "BLINDNESS" -> player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,
+                                    Main.balance.getInt("player-effects.blindness-duration-ticks", 100), 0,
+                                    true, true, true));
+                            case "WEAKNESS_END" -> player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,
+                                    Main.balance.getInt("player-effects.weakness-end-duration-ticks", 600), 0,
+                                    true, true, true));
+                            default -> {
+                            }
+                        }
+
+                        RANDOM_EFFECT_COOLDOWN.put(uuid, now + globalCooldown);
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0, 6000L);
+        }.runTaskTimer(plugin, 0, Main.balance.getLong("player-effects.interval-ticks", 12000L));
 
     }
     

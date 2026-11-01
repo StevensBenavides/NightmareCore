@@ -1,0 +1,145 @@
+tiers:
+  A: { health: 1.00, damage: 1.00, armor: 0, speed: 1.00, enchant-level: 0, weight: 100 }
+  B: { health: 1.15, damage: 1.05, armor: 2, speed: 1.00, enchant-level: 0, weight: 80 }
+  C: { health: 1.30, damage: 1.10, armor: 4, speed: 1.00, enchant-level: 0, weight: 65 }
+  D: { health: 1.50, damage: 1.15, armor: 6, speed: 1.02, enchant-level: 1, weight: 50 }
+  E: { health: 1.70, damage: 1.20, armor: 8, speed: 1.04, enchant-level: 1, weight: 40 }
+  F: { health: 1.90, damage: 1.25, armor: 10, speed: 1.06, enchant-level: 1, weight: 32 }
+  G: { health: 2.20, damage: 1.30, armor: 12, speed: 1.08, enchant-level: 2, weight: 25 }
+  H: { health: 2.50, damage: 1.35, armor: 14, speed: 1.10, enchant-level: 2, weight: 20 }
+  I: { health: 2.80, damage: 1.40, armor: 16, speed: 1.12, enchant-level: 3, weight: 16 }
+  J: { health: 3.20, damage: 1.50, armor: 18, speed: 1.14, enchant-level: 4, weight: 12 }
+  K: { health: 5.00, damage: 1.70, armor: 20, speed: 1.18, enchant-level: 5, weight: 6 }
+
+caps:
+  max-k-per-world: 5
+  max-k-per-species: 1
+  max-monsters: 300
+  max-summons-per-k: 4
+  summon-lifetime-ticks: 300
+  summon-cooldown-ticks: 400
+
+death-ban:
+  days-0-26: 5
+  days-27-53: 10
+  days-54-80: 15
+  days-81-100: 20
+
+nametags:
+  combat-visible-ms: 5000
+  always-visible-tier: K
+
+player-effects:
+  interval-ticks: 12000
+  global-cooldown-ms: 600000
+  chance-early: 0.20
+  chance-mid: 0.25
+  chance-late: 0.30
+  slowness-duration-ticks: 1200
+  mining-fatigue-duration-ticks: 1200
+  weakness-short-duration-ticks: 2400
+  darkness-duration-ticks: 100
+  bad-omen-duration-ticks: 6000
+  hunger-duration-ticks: 300
+  wither-duration-ticks: 60
+  blindness-duration-ticks: 100
+  weakness-end-duration-ticks: 600
+
+mob-effects:
+  aura-cooldown-ms: 5000
+  aura-duration-ticks: 60
+  aura-amplifier: 0
+  debuff-cooldown-ms: 8000
+  debuff-duration-ticks: 60
+  debuff-amplifier: 0
+
+soul-heart:
+  burst-range: 25
+  burst-speed: 2.0
+  burst-radius: 5.0
+  burst-damage: 100.0
+  burst-cooldown-ms: 45000
+  burst-max-blocks: 2048
+  divine-length: 30
+  divine-height: 150
+  divine-thickness: 4
+  divine-damage: 150.0
+  divine-cooldown-ms: 3600000
+  divine-windup-ticks: 100
+  divine-batch-blocks: 1000
+  divine-afterglow-ticks: 1200
+  divine-afterglow-interval-ticks: 20
+  aura-radius: 2.0
+  aura-rotation-ms: 5000
+
+phase-assault:
+  enabled: true
+  warning-seconds: 60
+  horde-base-size: 8
+  horde-per-tier: 2
+  horde-max-size: 30
+  spawn-radius-min: 24
+  spawn-radius-max: 40
+  waves: 2
+  wave-delay-seconds: 45
+  bed-raid-radius: 50
+  surface-depth-tolerance: 6
+  despawn-after-ms: 300000
+  despawn-radius: 64
+
+passive-aggression:
+  base-chance: 0.01
+  per-tier: 0.03
+  max-chance: 0.30
+
+abyssal-tendrils:
+  range: 50
+  patch-radius: 7.5
+  damage: 45.0
+  falling-damage: 60.0
+  safe-zone: 4
+  cooldown-ms: 60000
+  duration-ticks: 40
+  stalagmite-count: 180
+  stalagmite-min-height: 1
+  stalagmite-max-height: 3
+  stalagmite-tall-min-height: 4
+  stalagmite-tall-max-height: 7
+  lightning-strikes: 8
+  flying-blocks: 24
+  flying-block-lifetime-ticks: 30
+  particle-multiplier: 2.0
+
+abyssal-core:
+  burst-range: 19
+  burst-speed: 2.0
+  burst-radius: 4.0
+  burst-damage: 80.0
+  burst-cooldown-ms: 60000
+  burst-max-blocks: 4096
+  burst-drop-blocks: false
+  burst-respect-protections: true
+  area-radius: 7.5
+  area-damage: 100.0
+  area-cooldown-ms: 120000
+  area-lightning-strikes: 12
+  area-height-above: 2
+  area-height-below: 1
+  area-max-blocks: 1024
+  area-drop-blocks: false
+  area-respect-protections: true
+
+altars:
+  min-distance-from-spawn: 300
+  chance-denominator: 400
+  book-chance: 0.10
+  book-max-level: 2
+  ink-chance: 0.04
+  nucleus-chance: 0.02
+  common-rolls: 3
+  loot:
+    forge: ["IRON_INGOT:1-3", "COPPER_INGOT:1-3", "COAL:2-4", "FURNACE:1-1"]
+    soul: ["QUARTZ:1-3", "GLOWSTONE_DUST:1-3", "SOUL_LANTERN:1-1", "BONE:2-4"]
+    abyss: ["DEEPSLATE:2-4", "OBSIDIAN:1-2", "AMETHYST_SHARD:1-3", "SCULK:1-2"]
+    nightmare: ["BLACKSTONE:2-4", "WITHER_ROSE:1-2", "COAL_BLOCK:1-1", "REDSTONE:2-4"]
+    relics: ["BOOK:1-3", "PAPER:2-5", "LEATHER:1-2", "ENCHANTED_BOOK:1-1"]

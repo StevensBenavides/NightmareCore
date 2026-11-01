@@ -12,34 +12,23 @@ import com.nightmare.FastBoard.FastBoard;
 
 import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Skeleton;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -50,7 +39,6 @@ import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-import com.nightmare.Mobs.Mobs;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
@@ -72,7 +60,7 @@ public final class Events implements Listener {
 
                 board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name")));
 
-                NighmareScoreboard.boards.put(event.getPlayer().getUniqueId(), board);
+                NightmareScoreboard.boards.put(event.getPlayer().getUniqueId(), board);
 
             }
 
@@ -113,7 +101,7 @@ public final class Events implements Listener {
                 }
 
                 event.getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', config.getString("message_join.title")), null, 20, 20, 10);
-                event.getPlayer().getWorld().playSound(event.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 80, 100);
+                event.getPlayer().getWorld().playSound(event.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.8F, 1.0F);
 
             }
 
@@ -148,10 +136,8 @@ public final class Events implements Listener {
 
 
         } catch (Exception e) {
-            
             e.printStackTrace();
             plugin.getServer().getPluginManager().disablePlugin(plugin);
-
         }
 
     }
@@ -164,7 +150,7 @@ public final class Events implements Listener {
             final YamlConfiguration config = Main.getSettings();
 
             if (config.getBoolean("scoreboard.enable")) {
-                NighmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
+                NightmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
             }
             
             if (config.getBoolean("join_and_leave.enable")) {
@@ -189,17 +175,11 @@ public final class Events implements Listener {
             }
 
         } catch (Exception e) {
-
             e.printStackTrace();
             plugin.getServer().getPluginManager().disablePlugin(plugin);
-
         }    
 
     }
-
-    
-
-
     
     @EventHandler(priority = EventPriority.LOWEST)
     public void onItemConsumeEvent(PlayerItemConsumeEvent event) {
@@ -212,8 +192,8 @@ public final class Events implements Listener {
 
                 if (item.getType() == Material.POTION || item.getType() == Material.GLASS_BOTTLE) {
 
-                    PotionMeta meta = (PotionMeta) item.getItemMeta();
-        
+                    if (item.getItemMeta() instanceof PotionMeta meta) {
+    
                     if (meta.getBasePotionType() == PotionType.WATER) {
     
                         if (player.hasMetadata("thristy")) {
@@ -248,6 +228,8 @@ public final class Events implements Listener {
             
                     }
                     
+                    }
+
                 }
 
             }
@@ -298,7 +280,6 @@ public final class Events implements Listener {
     public void onServerPing(ServerListPingEvent event) {
 
         try {
-
             final YamlConfiguration config = Main.getSettings();
 
             if (config.getBoolean("motd.enable")) {
@@ -314,105 +295,10 @@ public final class Events implements Listener {
             }
 
         } catch (Exception e) {
-
             e.printStackTrace();
             plugin.getServer().getPluginManager().disablePlugin(plugin);
-
         }
         
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onSpawnEvent(EntitySpawnEvent event) {
-
-        try {
-
-            final YamlConfiguration config = Main.getSettings();
-        
-            if (event.getEntityType() == EntityType.ZOMBIE) 
-                Mobs.spawnNightmareZombie(event.getEntity(), config);
-            
-            if (event.getEntityType() == EntityType.CREEPER) 
-                Mobs.spawnNightmareCreeper(event.getEntity(), config);
-            
-            if (event.getEntityType() == EntityType.SPIDER) 
-                Mobs.spawnNightmareSpider(event.getEntity(), config);
-
-            if (event.getEntityType() == EntityType.SKELETON) 
-                Mobs.spawnNightmareSkeleton(event.getEntity(), config);
-
-            if (event.getEntityType() == EntityType.ENDERMAN) 
-                Mobs.spawnNightmareEnderman(event.getEntity(), config);
-
-            if (event.getEntityType() == EntityType.VILLAGER) 
-                Mobs.spawnNightmareVillager(event.getEntity(), config);
-        
-        } catch (Exception e) {
-        
-            e.printStackTrace();
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
-        
-        }
-        
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onEntityShootArrow(EntityShootBowEvent event) {
-
-        if (event.getBow().getItemMeta().getPersistentDataContainer() != null && event.getEntityType() == EntityType.SKELETON)  {
-
-            final PersistentDataContainer pdc = event.getBow().getItemMeta().getPersistentDataContainer();
-
-            if (pdc.get(new NamespacedKey(Main.getInstance(), "NightmareSkeletonCTierBow"), PersistentDataType.BOOLEAN) != null) {
-
-                Skeleton mob = (Skeleton) event.getEntity();
-
-                if (mob.getTarget() != null && mob.getTarget() instanceof Player) {
-                    mob.getWorld().createExplosion(event.getProjectile().getLocation(), 1.5F);
-                }
-            }
-
-        }
-
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onEntityDeath(EntityDeathEvent event) {
-
-        if (event.getEntity() != null) {
-
-            if (event.getEntity().hasMetadata("NightmareATierMob")) {
-                event.getEntity().getActivePotionEffects().forEach(potionEffect -> {
-                    event.getEntity().removePotionEffect(potionEffect.getType());
-                });
-
-                if (event.getEntity() instanceof Creeper) {
-                    event.getDrops().clear();
-                }
-            }
-
-            if (event.getEntity().hasMetadata("NightmareBTierMob")) {
-                event.getEntity().getActivePotionEffects().forEach(potionEffect -> {
-                    event.getEntity().removePotionEffect(potionEffect.getType());
-                });
-
-                if (event.getEntity() instanceof Creeper) {
-                    event.getDrops().clear();
-                }
-            }
-            
-            if (event.getEntity().hasMetadata("NightmareCTierMob")) {
-                event.getEntity().getActivePotionEffects().forEach(potionEffect -> {
-                    event.getEntity().removePotionEffect(potionEffect.getType());
-                });
-
-                if (event.getEntity() instanceof Creeper) {
-                    event.getDrops().clear();
-                }
-            }
-
-        }
-         
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -477,14 +363,14 @@ public final class Events implements Listener {
                             outSidePlayer.playSound(
                                 outSidePlayer.getLocation(), 
                                 Sound.ITEM_TRIDENT_RETURN, 
-                                12.0f,   
+                                0.9f,   
                                 1.0f   
                             );
     
                             outSidePlayer.playSound(
                                 outSidePlayer.getLocation(), 
                                 Sound.ITEM_TOTEM_USE, 
-                                8.0f,   
+                                0.8f,   
                                 1.0f   
                             );
                         
@@ -497,76 +383,34 @@ public final class Events implements Listener {
 
                     if (worldTimeOpt.isPresent()) {
                         WorldTime worldTime = worldTimeOpt.get();
-                        Date expirationDate = null; 
-                    
-                        if (worldTime.isDayBelow(50)) {
-                            long minutesToBan = 15; 
-                            expirationDate = new Date(System.currentTimeMillis() + (minutesToBan * 60 * 1000));
-                        } 
-                        
-                        player.getInventory().clear();
-                        player.ban("You fall into the nightmare.", expirationDate, "NightmareCore", true);
+                        long day = worldTime.getDay();
+                        int minutes;
+
+                        if (day < 27) {
+                            minutes = Main.balance.getInt("death-ban.days-0-26", 5);
+                        } else if (day < 54) {
+                            minutes = Main.balance.getInt("death-ban.days-27-53", 10);
+                        } else if (day < 81) {
+                            minutes = Main.balance.getInt("death-ban.days-54-80", 15);
+                        } else {
+                            minutes = Main.balance.getInt("death-ban.days-81-100", 20);
+                        }
+
+                        Date expirationDate = new Date(System.currentTimeMillis() + minutes * 60L * 1000L);
+
+                        if (!player.hasPermission("nightmare.bypass.deathban")) {
+                            player.ban("You fall into the nightmare.", expirationDate, "NightmareCore", true);
+                        }
                     }
                                     }
 
             } catch (Exception e) {
-        
                 e.printStackTrace();
                 plugin.getServer().getPluginManager().disablePlugin(plugin);
-            
             }    
-
-
-
+            
         }
         
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onToolBreaking(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) return;
-        
-        ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR) return;
-
-        TimeManagement.getSpecificWorldTime(player.getWorld().getName()).ifPresent(worldTime -> {
-            Randomness random = new Randomness();
-
-            if (worldTime.isDayAbove(50) && worldTime.isDayBelow(101)) {
-                if (random.is1percent()) { 
-                    item.setAmount(0);
-                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 0.5f);
-                }
-            } else if (worldTime.isDayAbove(100)) {
-                if (random.is5percent()) {
-                    item.setAmount(0);
-                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 0.2f);
-                }
-            }
-        });
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onMoveEvent(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (!player.isSprinting()) return; 
-
-        TimeManagement.getSpecificWorldTime(player.getWorld().getName()).ifPresent(worldTime -> {
-            Randomness random = new Randomness();
-
-            if (worldTime.isDayAbove(50)) {
-                if (random.is1percent() || random.is5percent()) { 
-                    ItemStack boots = player.getInventory().getBoots();
-
-                    if (boots != null && boots.getItemMeta() instanceof Damageable meta) {
-                        meta.setDamage(meta.getDamage() + 10);
-                        boots.setItemMeta(meta);
-                        player.damage(1.0);
-                    }
-                
-                }
-            }
-        });
     }
 
 }

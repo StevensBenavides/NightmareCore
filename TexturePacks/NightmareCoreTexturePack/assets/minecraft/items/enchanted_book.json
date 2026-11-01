@@ -1,0 +1,160 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "nightmare:lifesteal",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/lifesteal"
+        }
+      },
+      {
+        "when": "nightmare:stormcaller",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/stormcaller"
+        }
+      },
+      {
+        "when": "nightmare:blast_edge",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/blast_edge"
+        }
+      },
+      {
+        "when": "nightmare:frostbite",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/frostbite"
+        }
+      },
+      {
+        "when": "nightmare:venom",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/venom"
+        }
+      },
+      {
+        "when": "nightmare:executioner",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/executioner"
+        }
+      },
+      {
+        "when": "nightmare:berserker",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/berserker"
+        }
+      },
+      {
+        "when": "nightmare:soul_harvest",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/soul_harvest"
+        }
+      },
+      {
+        "when": "nightmare:void_rend",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/void_rend"
+        }
+      },
+      {
+        "when": "nightmare:guardian",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/guardian"
+        }
+      },
+      {
+        "when": "nightmare:retribution",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/retribution"
+        }
+      },
+      {
+        "when": "nightmare:second_wind",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/second_wind"
+        }
+      },
+      {
+        "when": "nightmare:blink",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/blink"
+        }
+      },
+      {
+        "when": "nightmare:nightmare_mark",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/nightmare_mark"
+        }
+      },
+      {
+        "when": "nightmare:aegis",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/aegis"
+        }
+      },
+      {
+        "when": "nightmare:abyssal_howl",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/abyssal_howl"
+        }
+      },
+      {
+        "when": "nightmare:abyssal_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/abyssal_core"
+        }
+      },
+      {
+        "when": "nightmare:soul_heart",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/soul_heart"
+        }
+      },
+      {
+        "when": "nightmare:abyssal_tendrils",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/abyssal_tendrils"
+        }
+      },
+      {
+        "when": "nightmare:abyssal_ink",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/abyssal_ink"
+        }
+      },
+      {
+        "when": "nightmare:abyssal_nucleus",
+        "model": {
+          "type": "minecraft:model",
+          "model": "nightmare:item/abyssal_nucleus"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/enchanted_book"
+    }
+  }
+}

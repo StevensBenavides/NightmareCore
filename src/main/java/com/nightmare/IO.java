@@ -44,6 +44,14 @@ public final class IO {
     public static void LoadConfigFiles(Plugin plugin) {
         Main.settings = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "settings.yml"));
         Main.messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "messages.yml"));
+
+        for (com.nightmare.tier.MobTier tier : com.nightmare.tier.MobTier.values()) {
+            String key = "config.mobs." + tier.name().toLowerCase() + "_tier";
+
+            if (!Main.settings.isSet(key)) {
+                Main.settings.set(key, "&c&lNightmare %mob% &4☠ Tier " + tier.name());
+            }
+        }
     }
 
     public static void GenerateDataFolder(Plugin plugin) throws IOException {
@@ -173,6 +181,17 @@ public final class IO {
             title: "&c☠ &7%player_killed% died &c☠"
             subtitle: "&c&lwas sent back to hell!"
 
+        # Nightmare pack (auto-applied on join)
+
+        resource_pack:
+            enable: true
+            host: "localhost"
+            port: 8274
+            path: "/NightmareCoreTexturePack.zip"
+            force: true
+            message_accept: "Nightmare pack loaded."
+            message_decline: "Nightmare pack declined."
+
         config:
             player:
                 display_health: true
@@ -181,12 +200,21 @@ public final class IO {
                 # c_tier = Name of a tier C mob.
                 # b_tier =  Name of a tier B mob.
                 # a_tier =  Name of a tier A mob.
+                # d_tier ... k_tier = Names of tiers D through K.
 
                 # %mob% -> Name a the mob (Mandatory).
 
                 c_tier: "&c&lNightmare %mob% &4☠&4 Tier C"
                 b_tier: "&c&lNightmare %mob% &4☠&e Tier B"
                 a_tier: "&c&lNightmare %mob% &4☠&a Tier A"
+                d_tier: "&c&lNightmare %mob% &4☠ Tier D"
+                e_tier: "&c&lNightmare %mob% &4☠ Tier E"
+                f_tier: "&c&lNightmare %mob% &4☠ Tier F"
+                g_tier: "&c&lNightmare %mob% &4☠ Tier G"
+                h_tier: "&c&lNightmare %mob% &4☠ Tier H"
+                i_tier: "&c&lNightmare %mob% &4☠ Tier I"
+                j_tier: "&c&lNightmare %mob% &4☠ Tier J"
+                k_tier: "&c&lNightmare %mob% &4☠ Tier K"
         """;
 
         Files.writeString(settingsPath, dataSettings);

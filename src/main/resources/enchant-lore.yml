@@ -1,0 +1,275 @@
+enchants:
+  lifesteal:
+    effect: >-
+      The weapon draws vitality from the wound and returns it to the hand
+      that holds it, while the target is left weaker.
+    motto: Drink, and give back.
+    lore:
+      1: >-
+        The soul god made this blade to feed the weak. It drinks blood and
+        gives life back.
+      2: >-
+        The blade drinks more now. Your cuts close while the enemy grows pale.
+      3: >-
+        It learned the beat of a heart. Each hit steals a little life for you.
+      4: >-
+        It no longer waits. It pulls life out through the wound.
+      5: >-
+        The blade is pure hunger now. What it takes, you keep, and the field
+        goes quiet.
+
+  stormcaller:
+    effect: >-
+      When the weapon connects, the sky answers with a chain of thunder that
+      leaps between nearby enemies.
+    motto: The sky answers the hammer.
+    lore:
+      1: >-
+        The soul god hung this rod in a tall tower. It still calls the rain.
+      2: >-
+        Thunder comes fast now. It jumps from your hit to one more enemy.
+      3: >-
+        The storm knows this weapon. Each hit wakes thunder on more foes.
+      4: >-
+        The air feels heavy near you. Thunder walks from body to body.
+      5: >-
+        You are the storm's hammer now. One hit, and the field burns white.
+
+  blast_edge:
+    effect: >-
+      Every fourth strike releases a burst of force around the target, tearing
+      at everything close.
+    motto: Count to four. Then run.
+    lore:
+      1: >-
+        The forge dropped this axe. Every fourth hit shakes the ground.
+      2: >-
+        The fourth hit lands harder. Stones crack and foes fall down.
+      3: >-
+        The axe loves the number four. It waits, then it breaks the earth.
+      4: >-
+        The ring of force is big now. Burnt dust hangs in the air.
+      5: >-
+        The fourth hit is not a hit. It is a small end of the world.
+
+  frostbite:
+    effect: >-
+      The blade leaves a lingering cold that drags at movement and leaves
+      frost on the armor.
+    motto: Winter never leaves the blade.
+    lore:
+      1: >-
+        The soul god left winter inside this blade. It never got warm.
+      2: >-
+        The cold stays in the wound. The enemy moves slow now.
+      3: >-
+        The blade brings winter with it. Each cut leaves white frost.
+      4: >-
+        Ice climbs up the armor. The air feels thick and cold.
+      5: >-
+        This is winter that never ends. The enemy stands still, frozen.
+
+  venom:
+    effect: >-
+      The wound carries a corruption that lingers and makes recovery harder.
+    motto: Small bite. Slow death.
+    lore:
+      1: >-
+        The deep god mixed spider poison into this dagger. Small cuts burn for
+        days.
+      2: >-
+        The wound will not close. The enemy breathes hard now.
+      3: >-
+        The poison is slow but sure. It eats strength bit by bit.
+      4: >-
+        The blood turns dark. The enemy drops to its knees.
+      5: >-
+        This is a quiet killer. It rots the body from the inside.
+
+  executioner:
+    effect: >-
+      Wounded targets are finished with a sudden surge of force.
+    motto: Finish what is weak.
+    lore:
+      1: >-
+        The deep god made this blade to end hunts. It bites weak foes most.
+      2: >-
+        It smells weak blood. Wounded foes feel it cut deeper.
+      3: >-
+        It has no mercy for the fallen. Low health means big pain.
+      4: >-
+        It ends what others start. One more hit, and it is over.
+      5: >-
+        This blade is the end. It falls like a judge's hammer.
+
+  berserker:
+    effect: >-
+      When the wielder is badly wounded, the nightmare sharpens the body and
+      quickens the blood.
+    motto: Bleed, then burn.
+    lore:
+      1: >-
+        This axe was stolen from the Nightmare god. It wakes when you bleed.
+      2: >-
+        Your pain makes it hot. You move fast when you are hurt.
+      3: >-
+        Pain is fuel now. The weaker you are, the harder you hit.
+      4: >-
+        At death's door the axe sings. You become the danger.
+      5: >-
+        It is your second heart. It will not let you fall.
+
+  soul_harvest:
+    effect: >-
+      Defeated enemies leave echoes behind; the blade gathers them and grows
+      heavier with each kill.
+    motto: The dead pay the living.
+    lore:
+      1: >-
+        The soul god reaps souls like wheat. Each kill leaves a small light.
+      2: >-
+        The lights follow your blade. Each one makes you hit harder.
+      3: >-
+        The blade counts your kills. More deaths, more strength.
+      4: >-
+        It drinks the last breath of the fallen. You grow heavy with power.
+      5: >-
+        You carry an army of echoes. The blade hits with all of them.
+
+  void_rend:
+    effect: >-
+      The blade opens a narrow rift that leaves the target exposed and the air
+      colder than it should be.
+    motto: Cut the world. Keep the piece.
+    lore:
+      1: >-
+        The deep god cut a hole in the world and left it in this sword.
+      2: >-
+        The hole grows. Cold air comes out when you swing.
+      3: >-
+        The cut breaks armor. The enemy cannot hide behind iron.
+      4: >-
+        The hole is a mouth now. It eats light and warmth.
+      5: >-
+        What this blade touches is gone. The dark keeps it.
+
+  guardian:
+    effect: >-
+      The armor answers violence with a brief surge of protection around the
+      wearer.
+    motto: Stand. Do not fall.
+    lore:
+      1: >-
+        The soul god blessed this seal. It wakes when you are hit.
+      2: >-
+        A calm wall rises around you. The blow feels soft.
+      3: >-
+        It answers pain with quiet. You stand one hit longer.
+      4: >-
+        Each hit makes the wall thicker. You breathe easy in battle.
+      5: >-
+        You are a fortress now. Blows break on you like waves.
+
+  retribution:
+    effect: >-
+      Part of the harm taken is returned to the attacker in a sudden backlash.
+    motto: You hit me. I hit back.
+    lore:
+      1: >-
+        The forge put anger in this plate. Hit it, and it bites back.
+      2: >-
+        It keeps every blow in mind. Then it gives them back.
+      3: >-
+        Pain goes in, pain comes out. Hard hits get hard answers.
+      4: >-
+        The armor learned to fight. Your foe feels his own strength.
+      5: >-
+        It is a mirror of pain. Attack it, and pay double.
+
+  second_wind:
+    effect: >-
+      When the body is close to breaking, the nightmare pulls it back with a
+      sudden reserve of life.
+    motto: Not yet. Not today.
+    lore:
+      1: >-
+        The soul god hid a spare breath in this clasp. It wakes when you fall.
+      2: >-
+        At your weakest, it lifts you. You stand up again.
+      3: >-
+        It says no to death. One more breath, one more fight.
+      4: >-
+        It grows warm when you grow cold. It pulls you back each time.
+      5: >-
+        This is a promise of life. Death must wait for another day.
+
+  blink:
+    effect: >-
+      When struck, the wearer slips through a short fold in space and
+      reappears nearby.
+    motto: Here. Gone. There.
+    lore:
+      1: >-
+        The soul god folded space into these boots. They slip sideways.
+      2: >-
+        When hit, you step out of the way. You land a few blocks off.
+      3: >-
+        You flicker now. Blows hit air where you stood.
+      4: >-
+        The fold is wide. You walk through it like a door.
+      5: >-
+        The boots are a door in space. You leave, then return behind your foe.
+
+  nightmare_mark:
+    effect: >-
+      Each strike leaves a mark; when the last mark is placed, the nightmare
+      detonates around the target.
+    motto: Five marks. One grave.
+    lore:
+      1: >-
+        This brand was cut from the Nightmare god's rusted thinking. Each hit adds one.
+      2: >-
+        The marks grow heavy. The foe feels them burn.
+      3: >-
+        It counts to five. Then the Nightmare god wakes inside the mark.
+      4: >-
+        The marks glow like coals. The air bends around the foe.
+      5: >-
+        Five marks, one name. Then black fire eats the body.
+
+  aegis:
+    effect: >-
+      The seal turns aside incoming projectiles and blunts their impact.
+    motto: The sky cannot touch you.
+    lore:
+      1: >-
+        The soul god hung this seal against arrows. Shots lose their way.
+      2: >-
+        The first arrow turns aside. The hit feels soft.
+      3: >-
+        Arrows bend in the air. They never find your skin.
+      4: >-
+        The seal shines bright. Arrows break into dust.
+      5: >-
+        It is a roof over you. The sky throws spears, and they fail.
+
+  abyssal_howl:
+    effect: >-
+      The weapon carries the fury of the deep; while it is held, the air
+      around the wielder grows heavy with the abyss.
+    motto: The deep is listening.
+    lore:
+      1: >-
+        The deep god howled into this weapon. Hold it, and the dark listens
+        back.
+
+  abyssal_core:
+    effect: >-
+      The chestplate carries the will of the abyss. Its wearer can send ruin in
+      a straight line or call it down in a circle, leaving black fire and
+      falling sky behind.
+    motto: The anvil never cools.
+    lore:
+      1: >-
+        The deep god beat this plate on the black anvil. Its eye never shuts,
+        and its fire never cools.

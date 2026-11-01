@@ -2,7 +2,7 @@ package com.nightmare;
 
 public class PlayerTime {
 
-    private long startTime;       
+    private final long startTime;
     private long thirstyStartTime; 
 
     public long minutes;
@@ -32,8 +32,9 @@ public class PlayerTime {
         this.previousSeconds = this.seconds;
 
         long totalElapsedSecs = (now - this.startTime) / 1000;
-        this.minutes = totalElapsedSecs / 60;
+
         this.seconds = totalElapsedSecs % 60;
+        this.minutes = totalElapsedSecs / 60;
 
         long thirstyElapsedSecs = (now - this.thirstyStartTime) / 1000;
         this.thirstyMinutes = thirstyElapsedSecs / 60;
@@ -47,19 +48,15 @@ public class PlayerTime {
     public long getThirstyMinutes() { 
         return this.thirstyMinutes;
     }
-    
     public long getPreviousMinutes() { 
         return this.previousMinutes; 
     }
-    
     public long getPreviousSeconds() { 
         return this.previousSeconds;
     }
-    
     public long getMinutes() { 
         return this.minutes; 
     }
-    
     public long getSeconds() { 
         return this.seconds; 
     }

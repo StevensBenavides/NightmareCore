@@ -1,0 +1,121 @@
+chapters:
+  - title: "&6I. The Forge"
+    icon: "CRAFTING_TABLE"
+    border: "ORANGE_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Long ago, three gods shared one forge."
+      - "&7The soul god gave breath to the living."
+      - "&7The abyss god gave shape to the world."
+      - "&7The nightmare god gave dreams to sleepers."
+      - "&7From that forge came the first relics."
+  - title: "&8II. The Overthinking"
+    icon: "WRITABLE_BOOK"
+    border: "GRAY_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "WITHER_SKELETON_SKULL"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7The nightmare god loved his dreams."
+      - "&7But every dream died when the sleeper woke."
+      - "&7He could not stop thinking about it."
+      - "&7Day after day he turned the same thought."
+      - "&7Inside him, his thinking started to rust."
+  - title: "&4III. The Slow Corruption"
+    icon: "NETHERITE_SWORD"
+    border: "RED_STAINED_GLASS_PANE"
+    left: "WITHER_SKELETON_SKULL"
+    right: "NETHERITE_SWORD"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7At first he only wanted dreams to last longer."
+      - "&7Then he wanted waking to end."
+      - "&7At last he wanted nothing to ever end."
+      - "&7His purpose changed slowly, and for the worse."
+      - "&7He took power from the Forge for himself."
+  - title: "&bIV. The Confrontation"
+    icon: "TOTEM_OF_UNDYING"
+    border: "CYAN_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Soul and abyss noticed power missing from the Forge."
+      - "&7They felt his thoughts turning dark."
+      - "&7So they went to face him, to talk about his strange ways of late."
+      - "&7But he struck first, and struck to kill them both."
+      - "&7That is how the battle began."
+  - title: "&bV. The Sundering"
+    icon: "HEART_OF_THE_SEA"
+    border: "LIGHT_BLUE_STAINED_GLASS_PANE"
+    left: "HEART_OF_THE_SEA"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7The soul god said no: without death, there is no life. Only echo."
+      - "&7He made the Soul Heart from soul-fire to protect the living."
+      - "&7The abyss god broke into two parts."
+      - "&7One part of the abyss fell with the nightmare."
+      - "&7The other part stayed with the soul."
+  - title: "&5VI. Soul and Abyss vs Nightmare"
+    icon: "NETHER_STAR"
+    border: "PURPLE_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "WITHER_SKELETON_SKULL"
+    hold-seconds: 12
+    battle: true
+    lines:
+      - "&7The Soul God and the Abyss God fought side by side."
+      - "&7Nightmare answered with his rusted dreams."
+      - "&7Where they clashed, the sky burned."
+      - "&7Wounded and losing, Nightmare tore open a door and fled."
+  - title: "&8VII. The Escape"
+    icon: "ENDER_PEARL"
+    border: "GRAY_STAINED_GLASS_PANE"
+    left: "WITHER_SKELETON_SKULL"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Broken and bleeding, the nightmare god escaped into the Nightmare Realm."
+      - "&7There, far from soul and abyss, his wounds closed around his hate."
+      - "&7And from that dark place, he learned to reach back."
+  - title: "&dVIII. The Nightmare Realm"
+    icon: "DRAGON_EGG"
+    border: "BLACK_STAINED_GLASS_PANE"
+    left: "WITHER_SKELETON_SKULL"
+    right: "SOUL_LANTERN"
+    hold-seconds: 14
+    battle: false
+    lines:
+      - "&7In the physical world, the nightmare god is the weakest of the three."
+      - "&7Against soul and abyss together, he would lose."
+      - "&7Soul and abyss are almost equal. Soul is only a little stronger."
+      - "&7But from the Nightmare Realm his power grows, and his reach is long."
+      - "&7Now he hunts every soul with good thoughts, or even a small wish to do good."
+      - "&7Steve, Alex, the villagers, and any soul that turns toward good."
+      - "&7He does it for revenge. The other gods hurt him badly in the war."
+      - "&7That wound cannot heal, not even with all the power of the Forge."
+      - "&7They also closed the Forge to him. If he came back, it would destroy him."
+      - "&7So from far away he sends nightmares into good souls, night after night, until they die."
+      - "&7His goal is simple: to wipe out all the good the soul god ever planted."
+  - title: "&eIX. The Relics"
+    icon: "ENCHANTED_BOOK"
+    border: "WHITE_STAINED_GLASS_PANE"
+    left: "HEART_OF_THE_SEA"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7You hold what is left of that war."
+      - "&7A heart that beats for the living."
+      - "&7An eye that never blinks."
+      - "&7Every enchantment is a piece of that fight."
+      - "&7And every time you use one, the war wakes again."

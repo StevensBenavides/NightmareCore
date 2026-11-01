@@ -29,17 +29,12 @@ public final class TimeManagement {
 
                 for (World world : plugin.getServer().getWorlds()) {
                     String worldName = world.getName();
-                    Optional<WorldTime> worldTime = Optional.of(worldTimes.get(worldName));
+                    WorldTime worldTime = worldTimes.get(worldName);
 
-                    if (worldTime.isPresent()) {
-                        WorldTime previousWorldTime = worldTime.get();
-
-                        previousWorldTime.update(world.getFullTime());
+                    if (worldTime == null) {
+                        worldTimes.put(worldName, new WorldTime(world));
                     } else {
-                        WorldTime worldTime_2 = new WorldTime(world);
-                        String worldName_2 = world.getName();
-
-                        worldTimes.put(worldName_2, worldTime_2);
+                        worldTime.update(world.getFullTime());
                     }
                 }
 
@@ -52,18 +47,13 @@ public final class TimeManagement {
                 for (World world : plugin.getServer().getWorlds()) {
                     for (Player player : world.getPlayers()) {
                         UUID playerUUID = player.getUniqueId();
-                        Optional<PlayerTime> currentPlayerTime = Optional.of(playerTimes.get(playerUUID));
-                        
-                        if (currentPlayerTime.isPresent()) {
-                            PlayerTime playerTime = currentPlayerTime.get();
+                        PlayerTime playerTime = playerTimes.get(playerUUID);
 
+                        if (playerTime == null) {
+                            playerTimes.put(playerUUID, new PlayerTime());
+                        } else {
                             playerTime.update();
-
-                            playerTimes.remove(playerUUID);
-                            playerTimes.put(playerUUID, playerTime);
-
                         }
-                    
                     }
                 }
 
@@ -75,36 +65,26 @@ public final class TimeManagement {
         for (World world : Main.getInstance().getServer().getWorlds()) {
             for (Player player : world.getPlayers()) {
                 UUID playerUUID = player.getUniqueId();
-                Optional<PlayerTime> currentPlayerTime = Optional.of(playerTimes.get(playerUUID));
-                
-                if (currentPlayerTime.isPresent()) {
-                    PlayerTime playerTime = currentPlayerTime.get();
+                PlayerTime playerTime = playerTimes.get(playerUUID);
 
+                if (playerTime == null) {
+                    playerTimes.put(playerUUID, new PlayerTime());
+                } else {
                     playerTime.update();
-
-                    playerTimes.remove(playerUUID);
-                    playerTimes.put(playerUUID, playerTime);
-
                 }
-            
             }
         }
     }
 
-
     public static void updateWorldsTimes() {
         for (World world : Main.getInstance().getServer().getWorlds()) {
             String worldName = world.getName();
-            Optional<WorldTime> worldTime = Optional.of(worldTimes.get(worldName));
+            WorldTime worldTime = worldTimes.get(worldName);
 
-            if (worldTime.isPresent()) {
-                WorldTime previousWorldTime = worldTime.get();
-                previousWorldTime.update(world.getFullTime());
+            if (worldTime == null) {
+                worldTimes.put(worldName, new WorldTime(world));
             } else {
-                WorldTime worldTime_2 = new WorldTime(world);
-                String worldName_2 = world.getName();
-
-                worldTimes.put(worldName_2, worldTime_2);
+                worldTime.update(world.getFullTime());
             }
         }
     }
