@@ -85,11 +85,11 @@ enchants:
 
   retribution:
     levels:
-      1: { reflect: 0.09, cap: 1.2 }
-      2: { reflect: 0.12, cap: 1.7 }
-      3: { reflect: 0.15, cap: 2.2 }
-      4: { reflect: 0.19, cap: 3.0 }
-      5: { reflect: 0.24, cap: 4.0 }
+      1: { reflect: 0.15, cap: 2.0 }
+      2: { reflect: 0.20, cap: 3.0 }
+      3: { reflect: 0.27, cap: 4.5 }
+      4: { reflect: 0.35, cap: 6.0 }
+      5: { reflect: 0.50, cap: 8.0 }
 
   second_wind:
     threshold: 0.28
