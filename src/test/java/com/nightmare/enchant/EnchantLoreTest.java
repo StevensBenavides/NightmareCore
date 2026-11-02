@@ -58,7 +58,7 @@ public class EnchantLoreTest {
         List<String> lore = EnchantLoreService.buildHelpListLore("lifesteal");
         String all = String.join(" ", lore).replaceAll("§.", "");
 
-        assertTrue(all.contains("pale blade"));
+        assertTrue(all.contains("feed the weak"));
         assertTrue(all.contains("Levels:"));
         assertTrue(all.contains("Applicable:"));
         assertFalse(all.contains("━"));
@@ -69,7 +69,7 @@ public class EnchantLoreTest {
         List<String> lore = EnchantLoreService.buildHelpDetailLore("lifesteal", 1);
         String all = String.join(" ", lore).replaceAll("§.", "");
 
-        assertTrue(all.contains("pale blade"));
+        assertTrue(all.contains("feed the weak"));
         assertTrue(all.contains("Healing:"));
         assertTrue(all.contains("Applicable on:"));
         assertTrue(all.contains("draws vitality"));
@@ -81,8 +81,8 @@ public class EnchantLoreTest {
         String levelFive = String.join(" ", EnchantLoreService.buildHelpDetailLore("void_rend", 5)).replaceAll("§.", "");
 
         assertFalse(levelOne.equals(levelFive));
-        assertTrue(levelOne.contains("narrow tear"));
-        assertTrue(levelFive.contains("world folds inward"));
+        assertTrue(levelOne.contains("cut a hole"));
+        assertTrue(levelFive.contains("dark keeps it"));
     }
 
     @Test
@@ -94,9 +94,10 @@ public class EnchantLoreTest {
         assertTrue(all.contains("Sneak + Left Click (any time)"));
         assertTrue(all.contains("Abyssal Cataclysm"));
         assertTrue(all.contains("Sneak + Right Click"));
-        assertTrue(all.contains("50 blocks"));
-        assertTrue(all.contains("8x8 blocks"));
-        assertTrue(all.contains("150 HP"));
+        assertTrue(all.contains("Range: 19 blocks"));
+        assertTrue(all.contains("Beam: 8x8 blocks"));
+        assertTrue(all.contains("Damage: 80 HP"));
+        assertTrue(all.contains("Damage: 100 HP"));
         assertTrue(all.contains("60s"));
         assertTrue(all.contains("120s"));
         assertFalse(all.contains("Trim"));

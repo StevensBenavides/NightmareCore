@@ -18,7 +18,7 @@ enchants:
       4: >-
         It no longer waits. It pulls life out through the wound.
       5: >-
-        The blade is pure hunger now. What it takes, you keep, and the field
+        The blade is pure craving now. What it takes, you keep, and the field
         goes quiet.
 
   stormcaller:
@@ -26,7 +26,7 @@ enchants:
       When the weapon connects, the sky answers with a chain of thunder that
       leaps between nearby enemies.
     mechanics: >-
-      Sometimes calls down lightning on nearby enemies when you hit, damaging
+      Sometimes calls down a storm on nearby enemies when you hit, damaging
       several of them at once. Can only happen once in a while.
     motto: The sky answers the hammer.
     lore:
@@ -85,17 +85,17 @@ enchants:
     effect: >-
       The wound carries a corruption that lingers and makes recovery harder.
     mechanics: >-
-      Every so often your hits poison your target, draining their health over
+      Every so often your hits venom your target, draining their health over
       time and reducing how much they can heal.
     motto: Small bite. Slow death.
     lore:
       1: >-
-        The deep god mixed spider poison into this dagger. Small cuts burn for
+        The deep god mixed spider venom into this dagger. Small cuts burn for
         days.
       2: >-
         The wound will not close. The enemy breathes hard now.
       3: >-
-        The poison is slow but sure. It eats strength bit by bit.
+        The venom is slow but sure. It eats power bit by bit.
       4: >-
         The blood turns dark. The enemy drops to its knees.
       5: >-
@@ -154,7 +154,7 @@ enchants:
       2: >-
         The lights follow your blade. Each one makes you hit harder.
       3: >-
-        The blade counts your kills. More deaths, more strength.
+        The blade counts your kills. More deaths, more power.
       4: >-
         It drinks the last breath of the fallen. You grow heavy with power.
       5: >-
@@ -215,7 +215,7 @@ enchants:
       3: >-
         Pain goes in, pain comes out. Hard hits get hard answers.
       4: >-
-        The armor learned to fight. Your foe feels his own strength.
+        The armor learned to fight. Your foe feels his own might.
       5: >-
         It is a mirror of pain. Attack it, and pay double.
 
@@ -305,9 +305,9 @@ enchants:
       The weapon carries the fury of the deep; while it is held, the air
       around the wielder grows heavy with the abyss.
     mechanics: >-
-      Every hit bursts dark ink and soul particles with a wither sound around
-      your target. Killing with it triggers a bigger burst of the same effect.
-      It does not change your damage.
+      Every hit bursts dark ink and soul particles with a deep howling sound
+      around your target. Killing with it triggers a bigger burst of the same
+      effect. It does not change your damage.
     motto: The deep is listening.
     lore:
       1: >-
@@ -323,7 +323,7 @@ enchants:
       While worn on your chestplate and sneaking, swinging fires a destructive
       beam forward that hurts enemies in its path and breaks blocks.
       Right-clicking instead unleashes a blast around you that strikes nearby
-      enemies with lightning. Also used in crafting and combinations.
+      enemies with thunder. Also used in crafting and combinations.
     motto: The anvil never cools.
     lore:
       1: >-

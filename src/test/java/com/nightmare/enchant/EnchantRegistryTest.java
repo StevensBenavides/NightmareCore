@@ -50,12 +50,12 @@ public class EnchantRegistryTest {
 
     @Test
     public void enchantLevelsUnlockByDay() {
-        assertEquals(0, EnchantBookService.maxLevelForDay("lifesteal", 26));
-        assertEquals(1, EnchantBookService.maxLevelForDay("lifesteal", 27));
-        assertEquals(2, EnchantBookService.maxLevelForDay("lifesteal", 54));
-        assertEquals(3, EnchantBookService.maxLevelForDay("lifesteal", 72));
-        assertEquals(4, EnchantBookService.maxLevelForDay("lifesteal", 81));
-        assertEquals(5, EnchantBookService.maxLevelForDay("lifesteal", 90));
+        assertEquals(0, EnchantBookService.maxLevelForDay("lifesteal", 8));
+        assertEquals(1, EnchantBookService.maxLevelForDay("lifesteal", 9));
+        assertEquals(2, EnchantBookService.maxLevelForDay("lifesteal", 27));
+        assertEquals(3, EnchantBookService.maxLevelForDay("lifesteal", 45));
+        assertEquals(4, EnchantBookService.maxLevelForDay("lifesteal", 63));
+        assertEquals(5, EnchantBookService.maxLevelForDay("lifesteal", 81));
         assertEquals(1, EnchantBookService.maxLevelForDay("abyssal_howl", 0));
         assertEquals(0, EnchantBookService.maxLevelForDay("nightmare_mark", 89));
         assertEquals(5, EnchantBookService.maxLevelForDay("nightmare_mark", 90));
