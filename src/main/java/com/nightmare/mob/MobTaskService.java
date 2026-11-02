@@ -263,6 +263,10 @@ public final class MobTaskService {
                             continue;
                         }
 
+                        if (mob.getLocation().distanceSquared(target.getLocation()) > 100.0) {
+                            continue;
+                        }
+
                         int duration = Main.balance.getInt("mob-effects.debuff-duration-ticks", 60);
                         int amplifier = Math.min(1, Main.balance.getInt("mob-effects.debuff-amplifier", 0));
 
