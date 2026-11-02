@@ -37,11 +37,11 @@ public final class RecipeCatalog {
             Map.entry("aegis", Material.ARROW));
 
     public static final Map<Integer, Integer> LEVEL_UNLOCK_DAYS = Map.of(
-            1, 27,
-            2, 54,
-            3, 72,
-            4, 81,
-            5, 90);
+            1, 9,
+            2, 27,
+            3, 45,
+            4, 63,
+            5, 81);
 
     private RecipeCatalog() {
     }
