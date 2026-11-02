@@ -10,11 +10,11 @@ enchants:
   stormcaller:
     cooldown: 2000
     levels:
-      1: { chance: 0.06, targets: 2, damage: 3.5 }
-      2: { chance: 0.09, targets: 3, damage: 4.5 }
-      3: { chance: 0.12, targets: 3, damage: 5.5 }
-      4: { chance: 0.15, targets: 4, damage: 7.0 }
-      5: { chance: 0.20, targets: 5, damage: 9.0 }
+      1: { chance: 0.08, targets: 2, damage: 3.5 }
+      2: { chance: 0.12, targets: 3, damage: 4.5 }
+      3: { chance: 0.15, targets: 3, damage: 5.5 }
+      4: { chance: 0.18, targets: 4, damage: 7.0 }
+      5: { chance: 0.24, targets: 5, damage: 9.0 }
 
   blast_edge:
     cooldown: 3000
@@ -77,11 +77,11 @@ enchants:
 
   guardian:
     levels:
-      1: { chance: 0.11, absorption: 0, duration: 70, cooldown: 12000 }
-      2: { chance: 0.15, absorption: 0, duration: 90, cooldown: 11000 }
-      3: { chance: 0.19, absorption: 1, duration: 90, cooldown: 10000 }
-      4: { chance: 0.24, absorption: 1, duration: 110, cooldown: 9000 }
-      5: { chance: 0.30, absorption: 2, duration: 140, cooldown: 8000 }
+      1: { chance: 0.14, absorption: 0, duration: 70, cooldown: 12000 }
+      2: { chance: 0.18, absorption: 0, duration: 90, cooldown: 11000 }
+      3: { chance: 0.22, absorption: 1, duration: 90, cooldown: 10000 }
+      4: { chance: 0.27, absorption: 1, duration: 110, cooldown: 9000 }
+      5: { chance: 0.34, absorption: 2, duration: 140, cooldown: 8000 }
 
   retribution:
     levels:
@@ -102,11 +102,11 @@ enchants:
 
   blink:
     levels:
-      1: { chance: 0.11, distance: 4, cooldown: 19000 }
-      2: { chance: 0.14, distance: 5, cooldown: 17000 }
-      3: { chance: 0.17, distance: 6, cooldown: 15000 }
-      4: { chance: 0.22, distance: 7, cooldown: 13000 }
-      5: { chance: 0.28, distance: 9, cooldown: 10000 }
+      1: { chance: 0.14, distance: 4, cooldown: 19000 }
+      2: { chance: 0.17, distance: 5, cooldown: 17000 }
+      3: { chance: 0.20, distance: 6, cooldown: 15000 }
+      4: { chance: 0.25, distance: 7, cooldown: 13000 }
+      5: { chance: 0.32, distance: 9, cooldown: 10000 }
 
   nightmare_mark:
     max-stacks: 5
@@ -116,11 +116,11 @@ enchants:
 
   aegis:
     levels:
-      1: { chance: 0.11, reduction: 0.22, cooldown: 4800 }
-      2: { chance: 0.14, reduction: 0.30, cooldown: 5600 }
-      3: { chance: 0.18, reduction: 0.38, cooldown: 6400 }
-      4: { chance: 0.23, reduction: 0.46, cooldown: 7200 }
-      5: { chance: 0.28, reduction: 0.54, cooldown: 5000 }
+      1: { chance: 0.14, reduction: 0.22, cooldown: 4800 }
+      2: { chance: 0.17, reduction: 0.30, cooldown: 5600 }
+      3: { chance: 0.21, reduction: 0.38, cooldown: 6400 }
+      4: { chance: 0.26, reduction: 0.46, cooldown: 7200 }
+      5: { chance: 0.32, reduction: 0.54, cooldown: 5000 }
 
   abyssal_howl:
     strength-amplifier: 2
