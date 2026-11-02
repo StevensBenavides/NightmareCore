@@ -185,12 +185,6 @@ public final class IO {
 
         resource_pack:
             enable: true
-            host: "localhost"
-            port: 8274
-            path: "/NightmareCoreTexturePack.zip"
-            force: true
-            message_accept: "Nightmare pack loaded."
-            message_decline: "Nightmare pack declined."
 
         config:
             player:
