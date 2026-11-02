@@ -79,10 +79,6 @@ public final class NightmareMarkEnchant extends CustomEnchant {
             return;
         }
 
-        if (EnchantService.PROCESSING.contains(victimId)) {
-            return;
-        }
-
         double damage = Main.enchants.getDouble("enchants.nightmare_mark.damage", 8.0);
         long cooldown = Main.enchants.getLong("enchants.nightmare_mark.cooldown", 15000L);
 

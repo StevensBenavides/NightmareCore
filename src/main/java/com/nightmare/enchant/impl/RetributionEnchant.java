@@ -55,7 +55,7 @@ public final class RetributionEnchant extends CustomEnchant {
             return;
         }
 
-        if (EnchantService.PROCESSING.contains(attacker.getUniqueId())) {
+        if (EnchantService.PROCESSING_DAMAGED.contains(attacker.getUniqueId())) {
             return;
         }
 

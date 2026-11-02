@@ -50,15 +50,13 @@ public final class VoidRendEnchant extends CustomEnchant {
             return;
         }
 
-        if (EnchantService.PROCESSING.contains(victim.getUniqueId())) {
-            return;
-        }
-
         double damage = Main.enchants.getDouble("enchants.void_rend.levels." + context.level + ".damage", 2.0);
         long cooldown = Main.enchants.getLong("enchants.void_rend.levels." + context.level + ".cooldown", 5000L);
 
         cooldowns.put(id, now + cooldown);
+
         victim.getWorld().spawnParticle(Particle.PORTAL, victim.getLocation().add(0.0, 1.0, 0.0), 24, 0.4, 0.6, 0.4, 0.1);
+
         victim.damage(damage, DamageSource.builder(DamageType.MAGIC)
                 .withCausingEntity(context.attacker)
                 .withDirectEntity(context.attacker)

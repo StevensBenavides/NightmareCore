@@ -74,7 +74,8 @@ public final class StormcallerEnchant extends CustomEnchant {
                 continue;
             }
 
-            if (EnchantService.PROCESSING.contains(living.getUniqueId())) {
+            if (!living.getUniqueId().equals(context.victim.getUniqueId())
+                    && EnchantService.PROCESSING_HIT.contains(living.getUniqueId())) {
                 continue;
             }
 

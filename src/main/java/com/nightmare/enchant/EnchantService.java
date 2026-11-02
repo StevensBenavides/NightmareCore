@@ -35,7 +35,9 @@ import com.nightmare.Main;
 
 public final class EnchantService implements Listener {
 
-    public static final Set<UUID> PROCESSING = new HashSet<>();
+    public static final Set<UUID> PROCESSING_HIT = new HashSet<>();
+
+    public static final Set<UUID> PROCESSING_DAMAGED = new HashSet<>();
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -65,7 +67,7 @@ public final class EnchantService implements Listener {
             return;
         }
 
-        if (!PROCESSING.add(victim.getUniqueId())) {
+        if (!PROCESSING_HIT.add(victim.getUniqueId())) {
             return;
         }
 
@@ -93,7 +95,7 @@ public final class EnchantService implements Listener {
                         event, event.getDamage()));
             }
         } finally {
-            PROCESSING.remove(victim.getUniqueId());
+            PROCESSING_HIT.remove(victim.getUniqueId());
         }
     }
 
@@ -113,7 +115,7 @@ public final class EnchantService implements Listener {
             }
         }
 
-        if (!PROCESSING.add(victim.getUniqueId())) {
+        if (!PROCESSING_DAMAGED.add(victim.getUniqueId())) {
             return;
         }
 
@@ -163,7 +165,7 @@ public final class EnchantService implements Listener {
                         entry.getValue(), event, event.getDamage()));
             }
         } finally {
-            PROCESSING.remove(victim.getUniqueId());
+            PROCESSING_DAMAGED.remove(victim.getUniqueId());
         }
     }
 
@@ -241,7 +243,8 @@ public final class EnchantService implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        EnchantService.PROCESSING.remove(event.getPlayer().getUniqueId());
+        EnchantService.PROCESSING_HIT.remove(event.getPlayer().getUniqueId());
+        EnchantService.PROCESSING_DAMAGED.remove(event.getPlayer().getUniqueId());
     }
 
     public static void tick() {

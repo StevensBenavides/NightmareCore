@@ -94,7 +94,11 @@ public final class EnchantBookService {
         ShapelessRecipe howl = new ShapelessRecipe(howlKey, createBook("abyssal_howl", 1));
 
         howl.addIngredient(1, Material.BOOK);
-        howl.addIngredient(4, Material.NETHER_STAR);
+
+        for (int i = 0; i < 4; i++) {
+            howl.addIngredient(new RecipeChoice.ExactChoice(createAbyssalNucleus()));
+        }
+
         howl.addIngredient(4, Material.CRYING_OBSIDIAN);
 
         if (Bukkit.getRecipe(howlKey) != null) {
@@ -111,8 +115,8 @@ public final class EnchantBookService {
 
         coreBook.shape("NUN", "UBU", "NUN");
         coreBook.setIngredient('N', Material.NETHERITE_INGOT);
-        coreBook.setIngredient('U', Material.NETHER_STAR);
-        coreBook.setIngredient('B', Material.ENCHANTED_BOOK);
+        coreBook.setIngredient('U', new RecipeChoice.ExactChoice(createAbyssalNucleus()));
+        coreBook.setIngredient('B', new RecipeChoice.ExactChoice(createBook("abyssal_howl", 1)));
 
         if (Bukkit.getRecipe(coreBookKey) != null) {
             Bukkit.removeRecipe(coreBookKey);

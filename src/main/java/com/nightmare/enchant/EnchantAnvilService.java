@@ -58,10 +58,10 @@ public final class EnchantAnvilService implements Listener {
                 return;
             }
 
-            int currentLevel = Math.max(firstLevel == null ? 1 : firstLevel, secondLevel == null ? 1 : secondLevel);
-            int combinedLevel = (firstLevel == null ? 1 : firstLevel) + (secondLevel == null ? 0 : secondLevel);
+            int firstLvl = firstLevel == null ? 1 : firstLevel;
+            int secondLvl = secondLevel == null ? 1 : secondLevel;
             int maximumLevel = Math.min(enchant.maxLevel, EnchantBookService.maxLevelForDay(firstId, day));
-            int resultLevel = Math.min(maximumLevel, Math.max(currentLevel, combinedLevel));
+            int resultLevel = Math.min(maximumLevel, firstLvl == secondLvl ? firstLvl + 1 : Math.max(firstLvl, secondLvl));
 
             if (resultLevel <= 0) {
                 event.setResult(null);
@@ -105,7 +105,10 @@ public final class EnchantAnvilService implements Listener {
         Integer existingLevel = targetContainer.get(EnchantKeys.KEYS.get(bookId), PersistentDataType.INTEGER);
 
         int maximumLevel = Math.min(enchant.maxLevel, EnchantBookService.maxLevelForDay(bookId, day));
-        int resultLevel = Math.min(maximumLevel, (existingLevel == null ? 0 : existingLevel) + bookLevel);
+
+        int existing = existingLevel == null ? 0 : existingLevel;
+        int upgraded = bookLevel > existing ? bookLevel : (bookLevel == existing ? existing + 1 : existing);
+        int resultLevel = Math.min(maximumLevel, upgraded);
 
         if (resultLevel <= 0) {
             event.setResult(null);
