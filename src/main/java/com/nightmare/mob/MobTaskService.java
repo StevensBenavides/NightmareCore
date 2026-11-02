@@ -84,6 +84,7 @@ public final class MobTaskService {
                 }
 
                 if (!canAttack && OFFENSIVE_POWERS.contains(power)) {
+                    state.cooldowns.put(power, now + 30000L);
                     continue;
                 }
 
@@ -183,7 +184,16 @@ public final class MobTaskService {
                         }
 
                         Vector direction = target.getEyeLocation().toVector().subtract(mob.getEyeLocation().toVector()).normalize().multiply(1.6);
-                        mob.launchProjectile(Arrow.class, direction);
+                        int arrows = 1 + state.tier.index / 5;
+
+                        for (int i = 0; i < arrows; i++) {
+                            Vector shot = direction.clone();
+
+                            shot.add(new Vector(Math.random() * 0.12 - 0.06, Math.random() * 0.08 - 0.04,
+                                    Math.random() * 0.12 - 0.06));
+
+                            mob.launchProjectile(Arrow.class, shot);
+                        }
 
                         state.cooldowns.put(power, now + 4000L);
                     }
@@ -238,16 +248,16 @@ public final class MobTaskService {
                         target.getWorld().playSound(target.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.6F, 0.8F);
 
                         for (Entity nearby : target.getWorld().getNearbyEntities(target.getLocation(), 4.0, 4.0, 4.0)) {
-                            if (nearby instanceof Player nearbyPlayer && !MobTargetingService.isTargetable(nearbyPlayer)) {
+                            if (!(nearby instanceof Player nearbyPlayer)
+                                    || nearbyPlayer.getUniqueId().equals(mob.getUniqueId())
+                                    || !MobTargetingService.isTargetable(nearbyPlayer)) {
                                 continue;
                             }
 
-                            if (nearby instanceof LivingEntity living && !living.getUniqueId().equals(mob.getUniqueId())) {
-                                living.damage(2.0 + state.tier.index / 2.0, DamageSource.builder(DamageType.EXPLOSION)
-                                        .withCausingEntity(mob)
-                                        .withDirectEntity(mob)
-                                        .build());
-                            }
+                            nearbyPlayer.damage(2.0 + state.tier.index / 2.0, DamageSource.builder(DamageType.EXPLOSION)
+                                    .withCausingEntity(mob)
+                                    .withDirectEntity(mob)
+                                    .build());
                         }
 
                         state.cooldowns.put(power, now + 6000L);

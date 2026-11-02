@@ -84,9 +84,7 @@ public final class PhaseAssaultService {
             if (newest.index > last) {
                 LAST_PHASE.put(world.getName(), newest.index);
 
-                if (newest.index == last + 1) {
-                    trigger(world, newest);
-                }
+                trigger(world, newest);
             } else if (newest.index < last) {
                 LAST_PHASE.put(world.getName(), newest.index);
             }
@@ -96,6 +94,12 @@ public final class PhaseAssaultService {
     }
 
     private void trigger(World world, MobTier tier) {
+        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 300));
+
+        if (liveRaidMobs(world) >= cap) {
+            return;
+        }
+
         for (Player player : world.getPlayers()) {
             if (!MobTargetingService.isTargetable(player) || !isOnSurface(player.getLocation())) {
                 continue;
@@ -129,6 +133,13 @@ public final class PhaseAssaultService {
     private void spawnWave(Player player, MobTier tier, int size) {
         if (size <= 0 || !player.isOnline() || !MobTargetingService.isTargetable(player)
                 || !isOnSurface(player.getLocation())) {
+            return;
+        }
+
+        World playerWorld = player.getWorld();
+        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 300));
+
+        if (liveRaidMobs(playerWorld) >= cap) {
             return;
         }
 
@@ -262,6 +273,21 @@ public final class PhaseAssaultService {
         int tolerance = Math.max(0, Main.balance.getInt("phase-assault.surface-depth-tolerance", 6));
         
         return location.getY() >= world.getHighestBlockYAt(location) - tolerance;
+    }
+
+    private int liveRaidMobs(World world) {
+        int count = 0;
+
+        for (UUID uuid : new ArrayList<>(RAID_MOBS.keySet())) {
+            Entity entity = Bukkit.getEntity(uuid);
+
+            if (entity instanceof LivingEntity living && entity.isValid() && !entity.isDead()
+                    && world.equals(living.getWorld())) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private void cleanupRaidMobs() {

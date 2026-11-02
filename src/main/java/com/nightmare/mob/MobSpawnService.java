@@ -94,17 +94,17 @@ public final class MobSpawnService implements Listener {
             return;
         }
 
-        if (tier != MobTier.K && day >= 90) {
+        boolean pityTriggered = false;
+
+        if (forcedTier == null && tier != MobTier.K && day >= 90) {
             int pity = K_PITY.getOrDefault(worldName, 0) + 1;
 
             if (pity >= 250) {
                 tier = MobTier.K;
-                pity = 0;
+                pityTriggered = true;
             }
 
             K_PITY.put(worldName, pity);
-        } else if (tier == MobTier.K) {
-            K_PITY.put(worldName, 0);
         }
 
         if (tier.index > profile.maxTierIndex) {
@@ -129,6 +129,12 @@ public final class MobSpawnService implements Listener {
             if (sameSpecies >= maxPerSpecies || totalK >= maxK) {
                 tier = MobTier.J;
             }
+        }
+
+        if (tier == MobTier.K) {
+            K_PITY.put(worldName, 0);
+        } else if (pityTriggered) {
+            K_PITY.put(worldName, 250);
         }
 
         mob.getPersistentDataContainer().set(MobKeys.MOB_TIER, PersistentDataType.STRING, tier.name());
