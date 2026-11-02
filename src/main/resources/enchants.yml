@@ -36,11 +36,11 @@ enchants:
   venom:
     cooldown: 4000
     levels:
-      1: { duration: 50, amplifier: 0, wither: false, anti-heal: 0.0 }
-      2: { duration: 70, amplifier: 0, wither: false, anti-heal: 0.0 }
-      3: { duration: 70, amplifier: 1, wither: false, anti-heal: 0.0 }
-      4: { duration: 90, amplifier: 1, wither: false, anti-heal: 0.0 }
-      5: { duration: 70, amplifier: 1, wither: true, anti-heal: 0.38 }
+      1: { duration: 60, amplifier: 0, wither: false, anti-heal: 0.0 }
+      2: { duration: 80, amplifier: 0, wither: false, anti-heal: 0.0 }
+      3: { duration: 90, amplifier: 1, wither: false, anti-heal: 0.0 }
+      4: { duration: 110, amplifier: 1, wither: false, anti-heal: 0.0 }
+      5: { duration: 100, amplifier: 1, wither: true, anti-heal: 0.45 }
 
   executioner:
     levels:
@@ -61,19 +61,19 @@ enchants:
 
   soul_harvest:
     levels:
-      1: { per-stack: 0.022, max-stacks: 3, duration: 220, heal: 1.5 }
-      2: { per-stack: 0.027, max-stacks: 3, duration: 260, heal: 1.5 }
-      3: { per-stack: 0.032, max-stacks: 4, duration: 300, heal: 2.0 }
-      4: { per-stack: 0.037, max-stacks: 4, duration: 340, heal: 2.5 }
-      5: { per-stack: 0.045, max-stacks: 5, duration: 430, heal: 2.5 }
+      1: { per-stack: 0.025, max-stacks: 3, duration: 260, heal: 1.5 }
+      2: { per-stack: 0.032, max-stacks: 3, duration: 300, heal: 1.5 }
+      3: { per-stack: 0.038, max-stacks: 4, duration: 340, heal: 2.0 }
+      4: { per-stack: 0.045, max-stacks: 4, duration: 400, heal: 2.5 }
+      5: { per-stack: 0.055, max-stacks: 5, duration: 500, heal: 2.5 }
 
   void_rend:
     levels:
-      1: { damage: 2.5, cooldown: 4800 }
-      2: { damage: 3.5, cooldown: 4600 }
-      3: { damage: 4.5, cooldown: 4200 }
-      4: { damage: 6.0, cooldown: 3600 }
-      5: { damage: 8.0, cooldown: 3000 }
+      1: { damage: 3.0, cooldown: 4600 }
+      2: { damage: 4.5, cooldown: 4300 }
+      3: { damage: 6.0, cooldown: 3900 }
+      4: { damage: 8.0, cooldown: 3300 }
+      5: { damage: 10.0, cooldown: 2800 }
 
   guardian:
     levels:
@@ -111,7 +111,7 @@ enchants:
   nightmare_mark:
     max-stacks: 5
     stack-duration: 130
-    damage: 9.0
+    damage: 12.0
     cooldown: 13000
 
   aegis:

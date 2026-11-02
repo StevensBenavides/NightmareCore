@@ -17,21 +17,21 @@ public final class RecipeCatalog {
             2, Material.EMERALD_BLOCK,
             3, Material.NETHERITE_SCRAP,
             4, Material.NETHERITE_INGOT,
-            5, Material.NETHER_STAR);
+            5, Material.NETHERITE_BLOCK);
 
     public static final Map<String, Material> CATALYSTS = Map.ofEntries(
             Map.entry("lifesteal", Material.REDSTONE),
             Map.entry("stormcaller", Material.LIGHTNING_ROD),
             Map.entry("blast_edge", Material.GUNPOWDER),
-            Map.entry("frostbite", Material.BLUE_ICE),
+            Map.entry("frostbite", Material.PACKED_ICE),
             Map.entry("venom", Material.SPIDER_EYE),
-            Map.entry("executioner", Material.IRON_AXE),
+            Map.entry("executioner", Material.IRON_SWORD),
             Map.entry("berserker", Material.BLAZE_POWDER),
             Map.entry("soul_harvest", Material.SOUL_SAND),
             Map.entry("void_rend", Material.ENDER_PEARL),
             Map.entry("guardian", Material.SHIELD),
             Map.entry("retribution", Material.CACTUS),
-            Map.entry("second_wind", Material.GOLDEN_APPLE),
+            Map.entry("second_wind", Material.GOLDEN_CARROT),
             Map.entry("blink", Material.ENDER_EYE),
             Map.entry("nightmare_mark", Material.WITHER_SKELETON_SKULL),
             Map.entry("aegis", Material.ARROW));
