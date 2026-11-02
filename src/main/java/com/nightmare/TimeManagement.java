@@ -93,6 +93,10 @@ public final class TimeManagement {
         playerTimes.put(uuid, new PlayerTime());
     }
 
+    public static void addPlayerTimeIfAbsent(UUID uuid) {
+        playerTimes.putIfAbsent(uuid, new PlayerTime());
+    }
+
     public static void removePlayerTime(UUID uuid) {
         playerTimes.remove(uuid);
     }

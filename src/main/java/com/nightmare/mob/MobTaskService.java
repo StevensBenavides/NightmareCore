@@ -209,6 +209,10 @@ public final class MobTaskService {
                             continue;
                         }
 
+                        if (mob.getLocation().distanceSquared(target.getLocation()) > 36.0) {
+                            continue;
+                        }
+
                         target.getWorld().strikeLightningEffect(target.getLocation());
                         target.damage(2.0 + state.tier.index / 2.0, DamageSource.builder(DamageType.LIGHTNING_BOLT)
                                 .withCausingEntity(mob)
@@ -219,6 +223,14 @@ public final class MobTaskService {
                     }
                     case "EXPLOSION" -> {
                         if (target == null) {
+                            continue;
+                        }
+
+                        if (state.tier.index < 2) {
+                            continue;
+                        }
+
+                        if (mob.getLocation().distanceSquared(target.getLocation()) > 36.0) {
                             continue;
                         }
 

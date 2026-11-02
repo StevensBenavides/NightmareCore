@@ -30,6 +30,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.Criteria;
@@ -131,7 +132,18 @@ public final class Events implements Listener {
                 Player player = event.getPlayer();
                 UUID playerUUID = player.getUniqueId();
     
-                TimeManagement.addPlayerTime(playerUUID);
+                TimeManagement.addPlayerTimeIfAbsent(playerUUID);
+
+                TimeManagement.getSpecificPlayerTime(playerUUID).ifPresent(playerTime -> {
+
+                    if (player.getGameMode() == GameMode.SURVIVAL && playerTime.getThirstyMinutes() >= 15) {
+
+                        player.setMetadata("thristy", new FixedMetadataValue(plugin, true));
+
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 1));
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Integer.MAX_VALUE, 1));
+                    }
+                });
             }
 
 
@@ -167,13 +179,6 @@ public final class Events implements Listener {
 
             }
 
-            {
-                Player player = event.getPlayer();
-                UUID playerUUID = player.getUniqueId();
-    
-                TimeManagement.removePlayerTime(playerUUID);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
             plugin.getServer().getPluginManager().disablePlugin(plugin);
@@ -188,6 +193,47 @@ public final class Events implements Listener {
         ItemStack item = event.getItem();
 
         {
+            if (player.getGameMode() == GameMode.SURVIVAL) {
+
+                final Optional<WorldTime> optionalWorldTime = TimeManagement.getSpecificWorldTime(player.getWorld().getName());
+
+                if (optionalWorldTime.isPresent()) {
+                    final WorldTime worldTime = optionalWorldTime.get();
+                    final Randomness random = new Randomness();
+
+                    if (worldTime.isDayBelow(20)) {
+                        if (random.is5percent()) {
+                            event.setCancelled(true);
+                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
+                        }
+                    } else if (worldTime.isDayBelow(40)) {
+                        if (random.is15percent()) {
+                            event.setCancelled(true);
+                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
+                        }
+                    }  else if (worldTime.isDayBelow50()) {
+                        if (random.is15percent()) {
+                            event.setCancelled(true);
+                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
+                        }
+                    }
+                    
+                    if (worldTime.isDayAbove(50)) {
+                        if (random.is15percent()) {
+                            event.setCancelled(true);
+                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
+                        }
+                    }
+
+                }
+                
+
+            }
+
+            if (event.isCancelled()) {
+                return;
+            }
+
             if (player.getGameMode() == GameMode.SURVIVAL) {
 
                 if (item.getType() == Material.POTION || item.getType() == Material.GLASS_BOTTLE) {
@@ -231,43 +277,6 @@ public final class Events implements Listener {
                     }
 
                 }
-
-            }
-
-            if (player.getGameMode() == GameMode.SURVIVAL) {
-
-                final Optional<WorldTime> optionalWorldTime = TimeManagement.getSpecificWorldTime(player.getWorld().getName());
-
-                if (optionalWorldTime.isPresent()) {
-                    final WorldTime worldTime = optionalWorldTime.get();
-                    final Randomness random = new Randomness();
-
-                    if (worldTime.isDayBelow(20)) {
-                        if (random.is5percent()) {
-                            event.setCancelled(true);
-                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
-                        }
-                    } else if (worldTime.isDayBelow(40)) {
-                        if (random.is15percent()) {
-                            event.setCancelled(true);
-                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
-                        }
-                    }  else if (worldTime.isDayBelow50()) {
-                        if (random.is15percent()) {
-                            event.setCancelled(true);
-                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
-                        }
-                    }
-                    
-                    if (worldTime.isDayAbove(50)) {
-                        if (random.is15percent()) {
-                            event.setCancelled(true);
-                            player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
-                        }
-                    }
-
-                }
-                
 
             }
 
