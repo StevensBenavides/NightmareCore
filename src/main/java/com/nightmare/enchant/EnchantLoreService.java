@@ -157,6 +157,14 @@ public final class EnchantLoreService {
         lore.add(ChatColor.RESET.toString());
         lore.addAll(wrap(helpEffect(id), ChatColor.GRAY, false));
         lore.add(ChatColor.RESET.toString());
+
+        String mechanics = helpMechanics(id);
+
+        if (!mechanics.isBlank()) {
+            lore.addAll(wrap(mechanics, ChatColor.WHITE, false));
+            lore.add(ChatColor.RESET.toString());
+        }
+
         lore.add(FOOTER);
 
         return lore;
@@ -192,6 +200,16 @@ public final class EnchantLoreService {
         }
 
         String text = Main.enchantLore.getString("enchants." + id + ".effect");
+        return text == null ? "" : text;
+
+    }
+
+    private static String helpMechanics(String id) {
+        if (Main.enchantLore == null) {
+            return "";
+        }
+
+        String text = Main.enchantLore.getString("enchants." + id + ".mechanics");
         return text == null ? "" : text;
 
     }

@@ -3,6 +3,9 @@ enchants:
     effect: >-
       The weapon draws vitality from the wound and returns it to the hand
       that holds it, while the target is left weaker.
+    mechanics: >-
+      Heals you for part of the damage you deal with every hit. No chance
+      or cooldown involved.
     motto: Drink, and give back.
     lore:
       1: >-
@@ -22,6 +25,9 @@ enchants:
     effect: >-
       When the weapon connects, the sky answers with a chain of thunder that
       leaps between nearby enemies.
+    mechanics: >-
+      Sometimes calls down lightning on nearby enemies when you hit, damaging
+      several of them at once. Can only happen once in a while.
     motto: The sky answers the hammer.
     lore:
       1: >-
@@ -39,6 +45,9 @@ enchants:
     effect: >-
       Every fourth strike releases a burst of force around the target, tearing
       at everything close.
+    mechanics: >-
+      Landing several hits in a row unleashes an explosion around your target
+      that damages nearby enemies. Needs a short cooldown between explosions.
     motto: Count to four. Then run.
     lore:
       1: >-
@@ -56,6 +65,9 @@ enchants:
     effect: >-
       The blade leaves a lingering cold that drags at movement and leaves
       frost on the armor.
+    mechanics: >-
+      Every hit slows your target down and chills them, making it harder for
+      them to chase or escape you.
     motto: Winter never leaves the blade.
     lore:
       1: >-
@@ -72,6 +84,9 @@ enchants:
   venom:
     effect: >-
       The wound carries a corruption that lingers and makes recovery harder.
+    mechanics: >-
+      Every so often your hits poison your target, draining their health over
+      time and reducing how much they can heal.
     motto: Small bite. Slow death.
     lore:
       1: >-
@@ -89,6 +104,9 @@ enchants:
   executioner:
     effect: >-
       Wounded targets are finished with a sudden surge of force.
+    mechanics: >-
+      When your target is already badly hurt, your hits deal extra finishing
+      damage to them.
     motto: Finish what is weak.
     lore:
       1: >-
@@ -106,6 +124,9 @@ enchants:
     effect: >-
       When the wielder is badly wounded, the nightmare sharpens the body and
       quickens the blood.
+    mechanics: >-
+      When your own health is low and you take damage, you fight back harder
+      and move faster for a short time. Can happen again after a cooldown.
     motto: Bleed, then burn.
     lore:
       1: >-
@@ -123,6 +144,9 @@ enchants:
     effect: >-
       Defeated enemies leave echoes behind; the blade gathers them and grows
       heavier with each kill.
+    mechanics: >-
+      Killing enemies charges you up, and your next hits deal extra damage
+      while charged. Killing also restores a bit of your health.
     motto: The dead pay the living.
     lore:
       1: >-
@@ -140,6 +164,9 @@ enchants:
     effect: >-
       The blade opens a narrow rift that leaves the target exposed and the air
       colder than it should be.
+    mechanics: >-
+      Every so often your hits tear through your target for extra damage.
+      Needs a short cooldown between tears.
     motto: Cut the world. Keep the piece.
     lore:
       1: >-
@@ -157,6 +184,9 @@ enchants:
     effect: >-
       The armor answers violence with a brief surge of protection around the
       wearer.
+    mechanics: >-
+      When you take damage, you sometimes gain extra temporary hearts that
+      absorb incoming hits. Can happen again after a cooldown.
     motto: Stand. Do not fall.
     lore:
       1: >-
@@ -173,6 +203,9 @@ enchants:
   retribution:
     effect: >-
       Part of the harm taken is returned to the attacker in a sudden backlash.
+    mechanics: >-
+      Whenever something hurts you, part of that damage is thrown back at
+      your attacker.
     motto: You hit me. I hit back.
     lore:
       1: >-
@@ -190,6 +223,10 @@ enchants:
     effect: >-
       When the body is close to breaking, the nightmare pulls it back with a
       sudden reserve of life.
+    mechanics: >-
+      Activates when your health drops to 28% or less. It heals you and
+      protects you for a few seconds so you can escape or keep fighting.
+      It can activate again once its cooldown ends.
     motto: Not yet. Not today.
     lore:
       1: >-
@@ -207,6 +244,10 @@ enchants:
     effect: >-
       When struck, the wearer slips through a short fold in space and
       reappears nearby.
+    mechanics: >-
+      When you take damage, you sometimes teleport a short distance away and
+      move faster briefly, giving you room to escape. Can happen again after
+      a cooldown.
     motto: Here. Gone. There.
     lore:
       1: >-
@@ -224,6 +265,9 @@ enchants:
     effect: >-
       Each strike leaves a mark; when the last mark is placed, the nightmare
       detonates around the target.
+    mechanics: >-
+      Your hits mark your target, and a fully marked target suffers extra
+      damage while being blinded and slowed. Marks fade if you stop hitting.
     motto: Five marks. One grave.
     lore:
       1: >-
@@ -240,6 +284,9 @@ enchants:
   aegis:
     effect: >-
       The seal turns aside incoming projectiles and blunts their impact.
+    mechanics: >-
+      When a projectile hits you, it sometimes hurts you less. Needs a short
+      cooldown between blocks.
     motto: The sky cannot touch you.
     lore:
       1: >-
@@ -257,6 +304,10 @@ enchants:
     effect: >-
       The weapon carries the fury of the deep; while it is held, the air
       around the wielder grows heavy with the abyss.
+    mechanics: >-
+      Every hit bursts dark ink and soul particles with a wither sound around
+      your target. Killing with it triggers a bigger burst of the same effect.
+      It does not change your damage.
     motto: The deep is listening.
     lore:
       1: >-
@@ -268,6 +319,11 @@ enchants:
       The chestplate carries the will of the abyss. Its wearer can send ruin in
       a straight line or call it down in a circle, leaving black fire and
       falling sky behind.
+    mechanics: >-
+      While worn on your chestplate and sneaking, swinging fires a destructive
+      beam forward that hurts enemies in its path and breaks blocks.
+      Right-clicking instead unleashes a blast around you that strikes nearby
+      enemies with lightning. Also used in crafting and combinations.
     motto: The anvil never cools.
     lore:
       1: >-
