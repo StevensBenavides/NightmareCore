@@ -20,9 +20,9 @@ caps:
   summon-cooldown-ticks: 400
 
 death-ban:
-  days-0-26: 5
-  days-27-53: 10
-  days-54-80: 15
+  days-0-26: 20
+  days-27-53: 20
+  days-54-80: 20
   days-81-100: 20
 
 nametags:
