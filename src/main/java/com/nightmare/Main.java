@@ -69,7 +69,11 @@ public final class Main extends JavaPlugin {
       com.nightmare.gui.StoryService.start(instance);
       com.nightmare.world.StructureService.load(instance);
       com.nightmare.world.StructureService.start(instance);
-      getCommand("nightmare").setExecutor(new com.nightmare.command.NightmareCommand());
+      com.nightmare.command.NightmareCommand nightmareCommand = new com.nightmare.command.NightmareCommand();
+
+      getCommand("nightmare").setExecutor(nightmareCommand);
+
+      getCommand("nightmare").setTabCompleter(nightmareCommand);
     }
 
     TimeManagement.init(instance);

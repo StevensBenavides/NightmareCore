@@ -44,7 +44,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
     private static final List<String> ROOT = List.of("help", "reload", "time", "creator", "system", "story");
     private static final List<String> RELOAD_TARGETS = List.of(
             "messages.yml", "settings.yml", "time", "enchants.yml", "balance.yml", "mobs.yml", "enchant-lore.yml", "story.yml", "all");
-    private static final List<String> SYSTEM = List.of("day", "enchant", "item", "relic", "cooldown", "reload", "altar");
+    private static final List<String> SYSTEM = List.of("day", "enchant", "item", "relic", "cooldown", "reload", "altar", "revive");
     private static final List<String> ITEM_IDS = List.of(
             "soul_heart", "abyssal_tendrils", "abyssal_ink", "abyssal_nucleus", "abyssal_howl", "abyssal_core");
     private static final List<String> TIME = List.of("add", "remove");
@@ -252,7 +252,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 2) {
-            sendUsage(sender, "/nightmare system <day|enchant|item|relic|cooldown|reload|altar>");
+            sendUsage(sender, "/nightmare system <day|enchant|item|relic|cooldown|reload|altar|revive>");
             return;
         }
 
@@ -562,8 +562,130 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 reloadTarget(sender, "all");
             }
             case "altar" -> handleAltar(sender, args);
+
+            case "revive" -> handleRevive(sender, args);
+
             default -> send(sender, "&cUnknown system subcommand '&f" + args[1] + "&c'.");
         }
+    }
+
+    private void handleRevive(CommandSender sender, String[] args) {
+
+        if (args.length != 3) {
+
+            sendUsage(sender, "/nightmare system revive <player|@s|@a>");
+
+            return;
+        }
+
+        String query = args[2];
+
+        if (query.equalsIgnoreCase("@a")) {
+
+            int revived = 0;
+
+            for (Player target : Bukkit.getOnlinePlayers()) {
+
+                if (pardonBan(target.getName())) {
+
+                    revived++;
+                }
+            }
+
+            for (org.bukkit.OfflinePlayer banned : Bukkit.getBannedPlayers()) {
+
+                String name = banned.getName();
+
+                if (name != null && isNightmareBan(name) && pardonBan(name)) {
+
+                    revived++;
+                }
+            }
+
+            send(sender, "&aRevived &f" + revived + "&a players.");
+
+            return;
+        }
+
+        if (query.equalsIgnoreCase("@s") || query.equalsIgnoreCase("@player")) {
+
+            if (!(sender instanceof Player self)) {
+
+                send(sender, "&cUse a name or @a from the console.");
+
+                return;
+            }
+
+            query = self.getName();
+        }
+
+        Player online = Bukkit.getPlayerExact(query);
+
+        String targetName = online != null ? online.getName() : null;
+
+        if (targetName == null) {
+
+            org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(query);
+
+            if (!offline.hasPlayedBefore() && !offline.isOnline()) {
+
+                send(sender, "&cPlayer '&f" + query + "&c' has never joined this server.");
+
+                return;
+            }
+
+            targetName = offline.getName() != null ? offline.getName() : query;
+        }
+
+        if (!Bukkit.getBanList(org.bukkit.BanList.Type.NAME).isBanned(targetName)) {
+
+            send(sender, "&7" + targetName + " is not banned.");
+
+            return;
+        }
+
+        pardonBan(targetName);
+
+        send(sender, "&aRevived &f" + targetName + "&a.");
+    }
+
+    private static boolean pardonBan(String name) {
+
+        boolean pardoned = false;
+
+        org.bukkit.BanList nameBan = Bukkit.getBanList(org.bukkit.BanList.Type.NAME);
+
+        if (nameBan.isBanned(name)) {
+
+            nameBan.pardon(name);
+
+            pardoned = true;
+        }
+
+        try {
+
+            org.bukkit.BanList profileBan = Bukkit.getBanList(org.bukkit.BanList.Type.PROFILE);
+
+            if (profileBan.isBanned(name)) {
+
+                profileBan.pardon(name);
+
+                pardoned = true;
+            }
+
+        } catch (Exception ignored) {
+
+            // Paper < 1.21 or Bukkit without PROFILE: NAME only applies.
+        }
+
+        return pardoned;
+    }
+
+    private static boolean isNightmareBan(String name) {
+
+        org.bukkit.BanEntry entry = Bukkit.getBanList(org.bukkit.BanList.Type.NAME).getBanEntry(name);
+
+        return entry != null && "NightmareCore".equals(entry.getSource());
     }
 
     private void handleAltar(CommandSender sender, String[] args) {
@@ -733,6 +855,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         send(sender, "&7/nightmare system cooldown <player|@player|@s|@a> reset &8- &fReset attack cooldowns.");
         send(sender, "&7/nightmare system reload &8- &fReload all plugin configs.");
         send(sender, "&7/nightmare system altar <place|list|teleport|remove> &8- &fManage lore altars.");
+        send(sender, "&7/nightmare system revive <player|@s|@a> &8- &fPardon the death-ban.");
     }
 
     private void sendCommandHelp(CommandSender sender) {
@@ -751,6 +874,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         send(sender, "&f/nightmare system cooldown <player|@player|@s|@a> reset");
         send(sender, "&f/nightmare system reload");
         send(sender, "&f/nightmare system altar <place|list|teleport|remove> [theme|id]");
+        send(sender, "&f/nightmare system revive <player|@s|@a>");
     }
 
     private static void send(CommandSender sender, String message) {
@@ -914,6 +1038,30 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
                 if (args[1].equalsIgnoreCase("altar")) {
                     return filter(List.of("place", "list", "teleport", "remove"), args[2]);
+                }
+
+                if (args[1].equalsIgnoreCase("revive")) {
+
+                    List<String> suggestions = new ArrayList<>();
+
+                    suggestions.add("@s");
+
+                    suggestions.add("@a");
+
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+
+                        suggestions.add(player.getName());
+                    }
+
+                    for (org.bukkit.BanEntry entry : Bukkit.getBanList(org.bukkit.BanList.Type.NAME).getBanEntries()) {
+
+                        if ("NightmareCore".equals(entry.getSource())) {
+
+                            suggestions.add(entry.getTarget());
+                        }
+                    }
+
+                    return filter(suggestions, args[2]);
                 }
             }
 
