@@ -16,7 +16,6 @@ import com.nightmare.Main;
 import com.nightmare.enchant.CustomEnchant;
 import com.nightmare.enchant.EnchantContext;
 import com.nightmare.enchant.EnchantTrigger;
-import com.nightmare.enchant.EnchantService;
 
 public final class NightmareMarkEnchant extends CustomEnchant {
 
@@ -97,6 +96,8 @@ public final class NightmareMarkEnchant extends CustomEnchant {
     }
     
     public static void resetCooldowns(java.util.UUID uuid) {
+        STACKS.remove(uuid);
+        EXPIRY.remove(uuid);
         COOLDOWNS.remove(uuid);
     }
 }

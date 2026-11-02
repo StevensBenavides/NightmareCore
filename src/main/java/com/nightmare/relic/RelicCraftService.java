@@ -63,10 +63,18 @@ public final class RelicCraftService implements Listener {
 
         if (AbyssalTendrilsItem.isTendrils(event.getCurrentItem())) {
             Main.getInstance().getServer().getScheduler().runTask(Main.getInstance(),
-                    () -> AbyssalTendrilsService.ensureBound(player));
+                    () -> {
+                        if (player.isOnline()) {
+                            AbyssalTendrilsService.ensureBound(player);
+                        }
+                    });
         } else if (SoulHeartItem.isSoulHeart(event.getCurrentItem())) {
             Main.getInstance().getServer().getScheduler().runTask(Main.getInstance(),
-                    () -> SoulHeartService.ensureBound(player));
+                    () -> {
+                        if (player.isOnline()) {
+                            SoulHeartService.ensureBound(player);
+                        }
+                    });
         }
     }
 

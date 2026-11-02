@@ -43,7 +43,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> ROOT = List.of("help", "reload", "time", "creator", "system", "story");
     private static final List<String> RELOAD_TARGETS = List.of(
-            "messages.yml", "settings.yml", "time", "enchants.yml", "balance.yml", "mobs.yml", "enchant-lore.yml", "story.yml", "all");
+            "messages.yml", "settings.yml", "time", "enchants.yml", "balance.yml", "mobs.yml", "enchant-lore.yml", "story.yml", "structures.yml", "all");
     private static final List<String> SYSTEM = List.of("day", "enchant", "item", "relic", "cooldown", "reload", "altar", "revive");
     private static final List<String> ITEM_IDS = List.of(
             "soul_heart", "abyssal_tendrils", "abyssal_ink", "abyssal_nucleus", "abyssal_howl", "abyssal_core");
@@ -161,6 +161,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 case "mobs.yml" -> MobProfileLoader.load(plugin);
                 case "enchant-lore.yml" -> Main.enchantLore = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "enchant-lore.yml"));
                 case "story.yml" -> com.nightmare.gui.StoryService.load(plugin);
+                case "structures.yml" -> com.nightmare.world.StructureService.load(plugin);
                 case "all" -> {
                     IO.reloadMessages(plugin);
                     IO.reloadSettings(plugin);
@@ -171,6 +172,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                     MobProfileLoader.load(plugin);
                     Main.enchantLore = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "enchant-lore.yml"));
                     com.nightmare.gui.StoryService.load(plugin);
+                    com.nightmare.world.StructureService.load(plugin);
                     EnchantBookService.registerRecipes(plugin);
                     com.nightmare.relic.RelicRecipeService.register(plugin);
                 }

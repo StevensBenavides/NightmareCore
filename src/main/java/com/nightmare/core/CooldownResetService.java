@@ -11,6 +11,7 @@ import com.nightmare.enchant.impl.GuardianEnchant;
 import com.nightmare.enchant.impl.NightmareMarkEnchant;
 import com.nightmare.enchant.impl.RetributionEnchant;
 import com.nightmare.enchant.impl.SecondWindEnchant;
+import com.nightmare.enchant.impl.SoulHarvestEnchant;
 import com.nightmare.enchant.impl.StormcallerEnchant;
 import com.nightmare.enchant.impl.VenomEnchant;
 import com.nightmare.enchant.impl.VoidRendEnchant;
@@ -34,6 +35,7 @@ public final class CooldownResetService {
         GuardianEnchant.resetCooldowns(uuid);
         RetributionEnchant.resetCooldowns(uuid);
         SecondWindEnchant.resetCooldowns(uuid);
+        SoulHarvestEnchant.resetCooldowns(uuid);
         BlinkEnchant.resetCooldowns(uuid);
         NightmareMarkEnchant.resetCooldowns(uuid);
         AegisEnchant.resetCooldowns(uuid);

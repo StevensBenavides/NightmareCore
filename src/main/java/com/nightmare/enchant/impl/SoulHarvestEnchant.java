@@ -73,4 +73,9 @@ public final class SoulHarvestEnchant extends CustomEnchant {
         }
     }
 
+    public static void resetCooldowns(java.util.UUID uuid) {
+        STACKS.remove(uuid);
+        EXPIRY.remove(uuid);
+    }
+
 }

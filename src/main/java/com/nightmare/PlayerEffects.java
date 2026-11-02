@@ -54,15 +54,12 @@ public class PlayerEffects {
                                 }
     
                                 boolean isPreviousThristy = false;
-    
-                                List<MetadataValue> metadataValueList = player.getMetadata("thristy");
-                                Optional<MetadataValue> metadataValueOptionalWrapped = Optional.of(metadataValueList.get(0));
-    
-                                if (metadataValueOptionalWrapped.isPresent()) {
-    
-                                    MetadataValue metadataValueThristy = metadataValueOptionalWrapped.get();
-                                    isPreviousThristy = metadataValueThristy.asBoolean();
-    
+
+                                for (MetadataValue metadataValueThristy : player.getMetadata("thristy")) {
+                                    if (metadataValueThristy.getOwningPlugin() == plugin) {
+                                        isPreviousThristy = metadataValueThristy.asBoolean();
+                                        break;
+                                    }
                                 }
 
                                 int thristyLimit = 15;
@@ -100,13 +97,12 @@ public class PlayerEffects {
                             if (player.hasMetadata("thristy")) {
 
                                 boolean isThristy = false;
-    
-                                List<MetadataValue> metadataValueList = player.getMetadata("thristy");
-                                Optional<MetadataValue> metadataValueOptionalWrapped = Optional.of(metadataValueList.get(0));
-    
-                                if (metadataValueOptionalWrapped.isPresent()) {
-                                    MetadataValue metadataValueThristy = metadataValueOptionalWrapped.get();
-                                    isThristy = metadataValueThristy.asBoolean();
+
+                                for (MetadataValue metadataValueThristy : player.getMetadata("thristy")) {
+                                    if (metadataValueThristy.getOwningPlugin() == plugin) {
+                                        isThristy = metadataValueThristy.asBoolean();
+                                        break;
+                                    }
                                 }
     
                                 if (isThristy) {

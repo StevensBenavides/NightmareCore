@@ -157,6 +157,7 @@ public final class Main extends JavaPlugin {
     com.nightmare.relic.TendrilsEffects.dispose();
     com.nightmare.relic.WhiteExplosionEffect.dispose();
     com.nightmare.core.NightmarePackService.dispose();
+    com.nightmare.world.StructureService.save();
     com.nightmare.PlayerEffects.RANDOM_EFFECT_COOLDOWN.clear();
     DisplayStopMessage();
   }

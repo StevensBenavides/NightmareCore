@@ -162,7 +162,12 @@ public final class Events implements Listener {
             final YamlConfiguration config = Main.getSettings();
 
             if (config.getBoolean("scoreboard.enable")) {
-                NightmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
+                com.nightmare.FastBoard.FastBoard board =
+                        NightmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
+
+                if (board != null) {
+                    board.delete();
+                }
             }
             
             if (config.getBoolean("join_and_leave.enable")) {
@@ -216,9 +221,7 @@ public final class Events implements Listener {
                             event.setCancelled(true);
                             player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
                         }
-                    }
-                    
-                    if (worldTime.isDayAbove(50)) {
+                    } else {
                         if (random.is15percent()) {
                             event.setCancelled(true);
                             player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.7f, 0.7f);
@@ -243,15 +246,14 @@ public final class Events implements Listener {
                     if (meta.getBasePotionType() == PotionType.WATER) {
     
                         if (player.hasMetadata("thristy")) {
-    
+
                             boolean isThristy = false;
-    
-                            List<MetadataValue> metadataValueList = player.getMetadata("thristy");
-                            Optional<MetadataValue> metadataValueOptionalWrapped = Optional.of(metadataValueList.get(0));
-                    
-                            if (metadataValueOptionalWrapped.isPresent()) {
-                                MetadataValue metadataValue = metadataValueOptionalWrapped.get();
-                                isThristy = metadataValue.asBoolean();
+
+                            for (MetadataValue metadataValue : player.getMetadata("thristy")) {
+                                if (metadataValue.getOwningPlugin() == plugin) {
+                                    isThristy = metadataValue.asBoolean();
+                                    break;
+                                }
                             }
             
                             if (isThristy) {
