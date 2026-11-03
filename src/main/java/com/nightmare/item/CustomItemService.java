@@ -187,32 +187,67 @@ public final class CustomItemService {
         return item;
     }
 
-    public static ItemStack createArmor(MobTier tier, EquipmentSlot slot, boolean legendary) {
-        int enchantLevel = Main.balance.getInt("tiers." + tier.name() + ".enchant-level", tier.enchantLevel);
-
-        Material material;
-
-        if (tier.index >= 9) {
-            material = switch (slot) {
+    private static Material armorMaterialForTier(int tierIndex, EquipmentSlot slot) {
+        if (tierIndex >= 9) {
+            return switch (slot) {
                 case HEAD -> Material.NETHERITE_HELMET;
                 case CHEST -> Material.NETHERITE_CHESTPLATE;
                 case LEGS -> Material.NETHERITE_LEGGINGS;
                 default -> Material.NETHERITE_BOOTS;
             };
-        } else if (tier.index >= 4) {
-            material = switch (slot) {
+        }
+
+        if (tierIndex >= 4) {
+            return switch (slot) {
                 case HEAD -> Material.DIAMOND_HELMET;
                 case CHEST -> Material.DIAMOND_CHESTPLATE;
                 case LEGS -> Material.DIAMOND_LEGGINGS;
                 default -> Material.DIAMOND_BOOTS;
             };
-        } else {
-            material = switch (slot) {
+        }
+
+        if (tierIndex >= 2) {
+            return switch (slot) {
                 case HEAD -> Material.IRON_HELMET;
                 case CHEST -> Material.IRON_CHESTPLATE;
                 case LEGS -> Material.IRON_LEGGINGS;
                 default -> Material.IRON_BOOTS;
             };
+        }
+
+        return switch (slot) {
+            case HEAD -> Material.CHAINMAIL_HELMET;
+            case CHEST -> Material.CHAINMAIL_CHESTPLATE;
+            case LEGS -> Material.CHAINMAIL_LEGGINGS;
+            default -> Material.CHAINMAIL_BOOTS;
+        };
+    }
+
+    private static Material downgradeArmor(Material material, EquipmentSlot slot) {
+        return switch (material) {
+            case NETHERITE_HELMET -> Material.DIAMOND_HELMET;
+            case NETHERITE_CHESTPLATE -> Material.DIAMOND_CHESTPLATE;
+            case NETHERITE_LEGGINGS -> Material.DIAMOND_LEGGINGS;
+            case NETHERITE_BOOTS -> Material.DIAMOND_BOOTS;
+            case DIAMOND_HELMET -> Material.IRON_HELMET;
+            case DIAMOND_CHESTPLATE -> Material.IRON_CHESTPLATE;
+            case DIAMOND_LEGGINGS -> Material.IRON_LEGGINGS;
+            case DIAMOND_BOOTS -> Material.IRON_BOOTS;
+            case IRON_HELMET -> Material.CHAINMAIL_HELMET;
+            case IRON_CHESTPLATE -> Material.CHAINMAIL_CHESTPLATE;
+            case IRON_LEGGINGS -> Material.CHAINMAIL_LEGGINGS;
+            case IRON_BOOTS -> Material.CHAINMAIL_BOOTS;
+            default -> armorMaterialForTier(0, slot);
+        };
+    }
+
+    public static ItemStack createArmor(MobTier tier, EquipmentSlot slot, boolean legendary) {
+        int enchantLevel = Main.balance.getInt("tiers." + tier.name() + ".enchant-level", tier.enchantLevel);
+
+        Material material = armorMaterialForTier(tier.index, slot);
+
+        if (tier.index > 0 && ThreadLocalRandom.current().nextDouble() < 0.30) {
+            material = downgradeArmor(material, slot);
         }
 
         ItemStack item = new ItemStack(material);

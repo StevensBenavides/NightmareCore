@@ -216,10 +216,24 @@ public final class MobSpawnService implements Listener {
                     equipment.setItemInMainHand(CustomItemService.createMeleeWeapon(tier, tier.elite));
                 }
 
-                equipment.setHelmet(CustomItemService.createArmor(tier, EquipmentSlot.HEAD, tier.elite));
-                equipment.setChestplate(CustomItemService.createArmor(tier, EquipmentSlot.CHEST, tier.elite));
-                equipment.setLeggings(CustomItemService.createArmor(tier, EquipmentSlot.LEGS, tier.elite));
-                equipment.setBoots(CustomItemService.createArmor(tier, EquipmentSlot.FEET, tier.elite));
+                double pieceChance = 0.30 + 0.06 * tier.index;
+                ThreadLocalRandom random = ThreadLocalRandom.current();
+
+                if (random.nextDouble() < pieceChance) {
+                    equipment.setHelmet(CustomItemService.createArmor(tier, EquipmentSlot.HEAD, tier.elite));
+                }
+
+                if (random.nextDouble() < pieceChance) {
+                    equipment.setChestplate(CustomItemService.createArmor(tier, EquipmentSlot.CHEST, tier.elite));
+                }
+
+                if (random.nextDouble() < pieceChance) {
+                    equipment.setLeggings(CustomItemService.createArmor(tier, EquipmentSlot.LEGS, tier.elite));
+                }
+
+                if (random.nextDouble() < pieceChance) {
+                    equipment.setBoots(CustomItemService.createArmor(tier, EquipmentSlot.FEET, tier.elite));
+                }
                 equipment.setItemInMainHandDropChance(0.0F);
                 equipment.setHelmetDropChance(0.0F);
                 equipment.setChestplateDropChance(0.0F);

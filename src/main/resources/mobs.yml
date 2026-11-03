@@ -1,10 +1,17 @@
 groups:
-  undead_hostiles:
+  zombie_melee:
+    category: HOSTILE
+    max-tier: 10
+    gear: true
+    powers: [AURA, SUMMON]
+    types: [ZOMBIE, HUSK, DROWNED, ZOMBIE_VILLAGER, WITHER_SKELETON, PHANTOM]
+
+  skeleton_archers:
     category: HOSTILE
     max-tier: 10
     gear: true
     powers: [AURA, SUMMON, VOLLEY]
-    types: [ZOMBIE, HUSK, DROWNED, ZOMBIE_VILLAGER, SKELETON, STRAY, BOGGED, PARCHED, WITHER_SKELETON, PHANTOM]
+    types: [SKELETON, STRAY, BOGGED, PARCHED]
 
   arthropods:
     category: HOSTILE

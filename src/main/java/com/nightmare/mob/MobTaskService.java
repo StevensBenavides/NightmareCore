@@ -1,6 +1,7 @@
 package com.nightmare.mob;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -34,6 +36,11 @@ public final class MobTaskService {
 
     private static final Set<String> OFFENSIVE_POWERS = Set.of(
             "AURA", "SUMMON", "MOBILITY", "VOLLEY", "CHARGE", "LIGHTNING", "EXPLOSION", "DEBUFF");
+
+    private static final Set<EntityType> VOLLEY_TYPES = EnumSet.of(
+            EntityType.SKELETON, EntityType.STRAY, EntityType.BOGGED, EntityType.PARCHED,
+            EntityType.PILLAGER, EntityType.BLAZE, EntityType.WITCH,
+            EntityType.GUARDIAN, EntityType.ELDER_GUARDIAN);
 
     private MobTaskService() {
     }
@@ -180,6 +187,11 @@ public final class MobTaskService {
                     }
                     case "VOLLEY" -> {
                         if (target == null) {
+                            continue;
+                        }
+
+                        if (!VOLLEY_TYPES.contains(mob.getType())) {
+                            state.cooldowns.put(power, now + 30000L);
                             continue;
                         }
 
