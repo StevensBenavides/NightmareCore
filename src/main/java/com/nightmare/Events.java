@@ -173,27 +173,25 @@ public final class Events implements Listener {
 
     }
 
-    private record GuideEntry(String command, String description, String permission) {
+    private record GuideEntry(String command, String descriptionKey, String fallback, String permission) {
     }
 
     private static final List<GuideEntry> JOIN_GUIDE = List.of(
-            new GuideEntry("/nightmare help", "Open the main guide menu.", null),
-            new GuideEntry("/nightmare help enchants", "Browse all custom enchantments.", null),
-            new GuideEntry("/nightmare help relics", "Browse relics and altars.", null),
-            new GuideEntry("/nightmare help <enchant>", "Details of one enchant (e.g. /nightmare help lifesteal).", null),
-            new GuideEntry("/nightmare help commands", "Full command reference in chat.", null),
-            new GuideEntry("/nightmare story", "Open the nightmare story.", "nightmare.story"));
+            new GuideEntry("/nightmare help", "guide.help", "Open the main guide menu.", null),
+            new GuideEntry("/nightmare story", "guide.story", "Open the nightmare story.", null));
 
     private static void sendJoinGuide(Player player) {
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&6&lNightmare Guide &7| &fUseful commands:"));
+                com.nightmare.lang.LangService.msg("guide.header",
+                        "&6&lNightmare Guide &7| &fUseful commands:")));
 
         for (GuideEntry entry : JOIN_GUIDE) {
             if (entry.permission() != null && !player.hasPermission(entry.permission())) {
                 continue;
             }
 
-            String line = "&f" + entry.command() + " &7- " + entry.description();
+            String description = com.nightmare.lang.LangService.msg(entry.descriptionKey(), entry.fallback());
+            String line = "&f" + entry.command() + " &7- " + description;
 
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     PlaceholderAPI.setPlaceholders(player, line)));
@@ -456,7 +454,8 @@ public final class Events implements Listener {
                         Date expirationDate = new Date(System.currentTimeMillis() + minutes * 60L * 1000L);
 
                         if (!player.hasPermission("nightmare.bypass.deathban")) {
-                            player.ban("You fall into the nightmare.", expirationDate, "NightmareCore", true);
+                            player.ban(com.nightmare.lang.LangService.msg("death.ban_reason",
+                                    "You fall into the nightmare."), expirationDate, "NightmareCore", true);
                         }
                     }
                                     }

@@ -119,7 +119,8 @@ public final class PhaseAssaultService {
         int total = Math.min(maxSize, baseSize + tier.index * perTier);
 
         player.sendTitle(ChatColor.DARK_RED + "" + ChatColor.BOLD + "PHASE " + tier.name(),
-                ChatColor.RED + "The nightmare is coming for you.", 10, 50, 10);
+                ChatColor.RED + com.nightmare.lang.LangService.msg("assault.subtitle",
+                        "The nightmare is coming for you."), 10, 50, 10);
         player.playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.8F, 0.6F);
 
         for (int wave = 0; wave < waves; wave++) {

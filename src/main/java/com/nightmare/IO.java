@@ -118,6 +118,9 @@ public final class IO {
 
         prefix: "&x&f&b&0&2&0&2&lN&x&f&b&0&b&0&b&li&x&f&b&1&3&1&3&lg&x&f&b&1&c&1&c&lh&x&f&c&2&4&2&4&lt&x&f&c&2&d&2&d&lm&x&f&c&3&5&3&5&la&x&f&c&3&e&3&e&lr&x&f&c&4&6&4&6&le &x&f&c&4&f&4&f&lC&x&f&d&5&7&5&7&lo&x&f&d&6&0&6&0&lr&x&f&d&6&8&6&8&le &x&f&d&7&1&7&1&l☠ &r"
 
+        # Plugin language: en | es
+        language: en
+
         # Scoreboard
         # Placeholders of the scoreboard:
 

@@ -288,7 +288,8 @@ public final class StructureService implements Listener {
             Location interAt = new Location(world, baseX + 6.5, touchGround + 1.0, baseZ + 0.5);
             Location hintAt = new Location(world, baseX + 6.5, touchGround + 3.4, baseZ + 0.5);
 
-            texts.add(spawnText(world, hintAt, "§eClick here to read the tale", 160, false));
+            texts.add(spawnText(world, hintAt, com.nightmare.lang.LangService.msg("structures.hint_tale",
+                    "§eClick here to read the tale"), 160, false));
 
             Interaction interaction = world.spawn(interAt, Interaction.class, entity -> {
                 entity.setInteractionWidth(1.2F);
@@ -619,7 +620,8 @@ public final class StructureService implements Listener {
         String key = blockKey(event.getClickedBlock().getLocation());
 
         if (LECTERNS.contains(key)) {
-            event.getPlayer().sendMessage("§7Nightmare Origin — " + "§fuse §6/nightmare story §fto read the full tale.");
+            event.getPlayer().sendMessage(com.nightmare.lang.LangService.msg("structures.lectern_msg",
+                    "§7Nightmare Origin &8- §fuse §6/nightmare story §fto read the full tale."));
         }
     }
 

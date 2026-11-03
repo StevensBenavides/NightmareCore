@@ -38,6 +38,7 @@ public final class Main extends JavaPlugin {
     enchants = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "enchants.yml"));
     balance = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "balance.yml"));
     enchantLore = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "enchant-lore.yml"));
+    com.nightmare.lang.LangService.init(instance);
     com.nightmare.mob.MobProfileLoader.load(instance);
     com.nightmare.enchant.EnchantBookService.registerRecipes(instance);
     com.nightmare.relic.TendrilsEffects.init(instance);
