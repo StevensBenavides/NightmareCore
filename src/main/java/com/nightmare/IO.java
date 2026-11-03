@@ -176,6 +176,10 @@ public final class IO {
                 - "&fVisit our development &cDiscord: &4https://discord.com/invite/DWfuQRsxwb&r."
                 - ""
 
+        join_guide:
+            enable: true
+            delay_ticks: 100
+
         message_death:
             enable: true
             title: "&c☠ &7%player_killed% died &c☠"

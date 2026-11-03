@@ -106,6 +106,25 @@ public final class Events implements Listener {
 
             }
 
+            if (config.getBoolean("join_guide.enable")) {
+                long delay = Math.max(0L, config.getLong("join_guide.delay_ticks", 100L));
+                UUID joinedUuid = event.getPlayer().getUniqueId();
+
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    Player joined = plugin.getServer().getPlayer(joinedUuid);
+
+                    if (joined == null || !joined.isOnline()) {
+                        return;
+                    }
+
+                    if (!Main.getSettings().getBoolean("join_guide.enable", true)) {
+                        return;
+                    }
+
+                    sendJoinGuide(joined);
+                }, delay);
+            }
+
             if (config.getBoolean("config.player.display_health")) {
 
                 ScoreboardManager manager = event.getPlayer().getServer().getScoreboardManager();
@@ -152,6 +171,33 @@ public final class Events implements Listener {
             plugin.getServer().getPluginManager().disablePlugin(plugin);
         }
 
+    }
+
+    private record GuideEntry(String command, String description, String permission) {
+    }
+
+    private static final List<GuideEntry> JOIN_GUIDE = List.of(
+            new GuideEntry("/nightmare help", "Open the main guide menu.", null),
+            new GuideEntry("/nightmare help enchants", "Browse all custom enchantments.", null),
+            new GuideEntry("/nightmare help relics", "Browse relics and altars.", null),
+            new GuideEntry("/nightmare help <enchant>", "Details of one enchant (e.g. /nightmare help lifesteal).", null),
+            new GuideEntry("/nightmare help commands", "Full command reference in chat.", null),
+            new GuideEntry("/nightmare story", "Open the nightmare story.", "nightmare.story"));
+
+    private static void sendJoinGuide(Player player) {
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "&6&lNightmare Guide &7| &fUseful commands:"));
+
+        for (GuideEntry entry : JOIN_GUIDE) {
+            if (entry.permission() != null && !player.hasPermission(entry.permission())) {
+                continue;
+            }
+
+            String line = "&f" + entry.command() + " &7- " + entry.description();
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    PlaceholderAPI.setPlaceholders(player, line)));
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

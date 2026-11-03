@@ -23,4 +23,4 @@ permissions:
     default: op
   nightmare.story:
     description: "Open Nightmare Origin, the story of the gods."
-    default: op
+    default: true
