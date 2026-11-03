@@ -112,7 +112,7 @@ commands:
       - "&f/nightmare system altar <place|list|teleport|remove> [theme|id]"
       - "&f/nightmare system revive <player|@s|@a>"
 guide:
-  header: "&6&lNightmare Guide &7| &fUseful commands:"
+  header: "&c&lNightmare Guide &7| &fUseful commands:"
   help: "Open the main guide menu."
   help_enchants: "Browse all custom enchantments."
   help_relics: "Browse relics and altars."
