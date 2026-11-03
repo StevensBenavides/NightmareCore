@@ -14,6 +14,7 @@ import com.nightmare.enchant.EnchantBookService;
 import com.nightmare.enchant.EnchantLoreService;
 import com.nightmare.item.ItemModels;
 import com.nightmare.enchant.EnchantRegistry;
+import com.nightmare.lang.LangService;
 import com.nightmare.enchant.RecipeCatalog;
 import com.nightmare.enchant.RecipeStep;
 
@@ -39,9 +40,9 @@ public final class GuiManager {
         Inventory inventory = create(holder, 27, "§8Nightmare Guide");
 
         inventory.setItem(12, GuiItemFactory.item(Material.ENCHANTED_BOOK, "§6§l✦ Enchantments",
-                List.of("§eClick to browse enchantments, levels and recipes.")));
+                List.of("§e" + LangService.msg("gui.browse_enchants", "Click to browse enchantments, levels and recipes."))));
         inventory.setItem(14, GuiItemFactory.item(Material.ENDER_EYE, "§5§l✦ Relics",
-                List.of("§eClick to view the relic and recipe.")));
+                List.of("§e" + LangService.msg("gui.browse_relics", "Click to view the relic and recipe."))));
 
         player.openInventory(inventory);
     }
@@ -89,8 +90,9 @@ public final class GuiManager {
             inventory.setItem(18 + buttonLevel, GuiItemFactory.levelButton(enchant, buttonLevel, safeLevel, day));
         }
 
-        inventory.setItem(31, GuiItemFactory.item(Material.CRAFTING_TABLE, "§eView Recipe",
-                List.of("§7See the crafting grid", "§7for this enchantment level.")));
+        inventory.setItem(31, GuiItemFactory.item(Material.CRAFTING_TABLE, "§e" + LangService.msg("gui.view_recipe", "View Recipe"),
+                List.of("§7" + LangService.msg("gui.see_grid_1", "See the crafting grid"),
+                        "§7" + LangService.msg("gui.see_grid_2", "for this enchantment level."))));
 
         applyNavigation(inventory, false, false);
 
@@ -133,14 +135,14 @@ public final class GuiManager {
             inventory.setItem(guiSlot, GuiItemFactory.recipeIngredient(ingredient));
         }
 
-        inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§eCraft", List.of()));
+        inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
-                "§7" + (recipe.shapeless() ? "Shapeless" : "Shaped"), recipe.summary()));
+                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), recipe.summary()));
 
         if (abyssal) {
             inventory.setItem(4, GuiItemFactory.item(Material.PAPER,
-                    "§dStep " + safeStep + " / " + steps.size(), List.of("§7" + recipe.title())));
+                    "§d" + LangService.msg("gui.step", "Step") + " " + safeStep + " / " + steps.size(), List.of("§7" + recipe.title())));
         }
 
         applyNavigation(inventory, abyssal && safeStep > 1, abyssal && safeStep < steps.size());
@@ -172,7 +174,7 @@ public final class GuiManager {
                         "§7Sprint + Left Click: Soul Burst",
                         "§7Sneak + Swap Hand: Divine Cut",
                         "§r",
-                        "§eClick to view recipe.")), "soul_heart"));
+                        "§e" + LangService.msg("gui.click_to_recipe", "Click to view the recipe."))), "soul_heart"));
         inventory.setItem(24, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l❖ Abyssal Tendrils",
                 List.of("§5❖ An eye that never blinks.",
                         "§7Pulled from the dark by the deep god.",
@@ -181,7 +183,7 @@ public final class GuiManager {
                         "§7Sprint + Swap Hand: release tendrils",
                         "§7Falling 10+ blocks: deeper rupture",
                         "§r",
-                        "§eClick to view recipe.")), "abyssal_tendrils"));
+                        "§e" + LangService.msg("gui.click_to_recipe", "Click to view the recipe."))), "abyssal_tendrils"));
 
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);
@@ -208,7 +210,7 @@ public final class GuiManager {
                         "§r",
                         "§7Sprint + Swap Hand: release tendrils.",
                         "§7Falling 10+ blocks: deeper rupture.")), "abyssal_tendrils"));
-        inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§eCraft", List.of()));
+        inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
                 "§7" + (recipe.shapeless() ? "Shapeless" : "Shaped"), recipe.summary()));
@@ -236,7 +238,7 @@ public final class GuiManager {
                         "§7It hates the Nightmare god's rusted thinking, and burns it where it stands.",
                         "§r",
                         "§7Soul Burst and Divine Cut.")));
-        inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§eCraft", List.of()));
+        inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
                 "§7" + (recipe.shapeless() ? "Shapeless" : "Shaped"), recipe.summary()));
@@ -257,19 +259,19 @@ public final class GuiManager {
     }
 
     private static void applyNavigation(Inventory inventory, boolean previousPage, boolean nextPage) {
-        inventory.setItem(BACK_SLOT, GuiItemFactory.item(Material.ARROW, "§aBack",
-                List.of("§7Return to the previous menu.")));
-        inventory.setItem(CLOSE_SLOT, GuiItemFactory.item(Material.BARRIER, "§cClose",
-                List.of("§7Close this menu.")));
+        inventory.setItem(BACK_SLOT, GuiItemFactory.item(Material.ARROW, "§a" + LangService.msg("gui.back", "Back"),
+                List.of("§7" + LangService.msg("gui.back_to", "Return to the previous menu."))));
+        inventory.setItem(CLOSE_SLOT, GuiItemFactory.item(Material.BARRIER, "§c" + LangService.msg("gui.close", "Close"),
+                List.of("§7" + LangService.msg("gui.close_menu", "Close this menu."))));
 
         if (previousPage) {
-            inventory.setItem(PREV_SLOT, GuiItemFactory.item(Material.ARROW, "§ePrevious Page",
-                    List.of("§7Go to the previous page.")));
+            inventory.setItem(PREV_SLOT, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.previous_page", "Previous Page"),
+                    List.of("§7" + LangService.msg("gui.go_previous", "Go to the previous page."))));
         }
 
         if (nextPage) {
-            inventory.setItem(NEXT_SLOT, GuiItemFactory.item(Material.ARROW, "§eNext Page",
-                    List.of("§7Go to the next page.")));
+            inventory.setItem(NEXT_SLOT, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.next_page", "Next Page"),
+                    List.of("§7" + LangService.msg("gui.go_next", "Go to the next page."))));
         }
     }
 
