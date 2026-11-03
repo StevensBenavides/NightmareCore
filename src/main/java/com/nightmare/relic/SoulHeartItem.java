@@ -115,23 +115,11 @@ public final class SoulHeartItem {
         long burstCooldown = balance().getLong("soul-heart.burst-cooldown-ms", 45000L);
         long divineCooldown = balance().getLong("soul-heart.divine-cooldown-ms", 3600000L);
 
-        List<String> lore = new ArrayList<>();
-
-        lore.add(ChatColor.WHITE + "" + ChatColor.BOLD + "Legendary Relic");
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "The soul god shaped this heart from soul fire.");
-        lore.add(ChatColor.GRAY + "It beats for the living, and hates the Nightmare god's rusted thinking.");
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + "How to use:");
-        lore.add(ChatColor.GRAY + "Sprint + Left Click: Soul Burst");
-        lore.add(ChatColor.GRAY + "Sneak + Swap Hand: Divine Cut");
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "Burst: " + ChatColor.WHITE + number(balance().getDouble("soul-heart.burst-damage", 200.0)) + " HP / "
-                + ChatColor.YELLOW + number(burstCooldown / 1000.0) + "s");
-        lore.add(ChatColor.GRAY + "Divine Cut: " + ChatColor.WHITE + number(balance().getDouble("soul-heart.divine-damage", 150.0)) + " HP / "
-                + ChatColor.YELLOW + number(divineCooldown / 1000.0) + "s");
-
-        return lore;
+        return com.nightmare.lang.LangService.loreLines("relics.soul_heart.lines",
+                "%dmg_burst%", number(balance().getDouble("soul-heart.burst-damage", 200.0)),
+                "%cd_burst%", number(burstCooldown / 1000.0),
+                "%dmg_divine%", number(balance().getDouble("soul-heart.divine-damage", 150.0)),
+                "%cd_divine%", number(divineCooldown / 1000.0));
     }
 
     private static void setCustomModel(ItemMeta meta, String id) {

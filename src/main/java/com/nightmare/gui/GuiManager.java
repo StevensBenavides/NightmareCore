@@ -167,23 +167,9 @@ public final class GuiManager {
         }
 
         inventory.setItem(20, ItemModels.apply(GuiItemFactory.item(Material.HEART_OF_THE_SEA, "§f§l❖ Soul Heart",
-                List.of("§f❖ A heart that beats for the living.",
-                        "§7A gift of the soul god, shaped from soul fire.",
-                        "§7It hates the Nightmare god, and burns it where it stands.",
-                        "§r",
-                        "§7Sprint + Left Click: Soul Burst",
-                        "§7Sneak + Swap Hand: Divine Cut",
-                        "§r",
-                        "§e" + LangService.msg("gui.click_to_recipe", "Click to view the recipe."))), "soul_heart"));
+                LangService.loreLines("gui.relic_soul_heart")), "soul_heart"));
         inventory.setItem(24, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l❖ Abyssal Tendrils",
-                List.of("§5❖ An eye that never blinks.",
-                        "§7Pulled from the dark by the deep god.",
-                        "§7Its tendrils reach out and crush his rusted thinking.",
-                        "§r",
-                        "§7Sprint + Swap Hand: release tendrils",
-                        "§7Falling 10+ blocks: deeper rupture",
-                        "§r",
-                        "§e" + LangService.msg("gui.click_to_recipe", "Click to view the recipe."))), "abyssal_tendrils"));
+                LangService.loreLines("gui.relic_tendrils")), "abyssal_tendrils"));
 
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);
@@ -204,16 +190,11 @@ public final class GuiManager {
         }
 
         inventory.setItem(4, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l❖ Abyssal Tendrils",
-                List.of("§5❖ An eye that never blinks.",
-                        "§7Pulled from the dark by the deep god.",
-                        "§7Its tendrils reach out and crush the Nightmare god.",
-                        "§r",
-                        "§7Sprint + Swap Hand: release tendrils.",
-                        "§7Falling 10+ blocks: deeper rupture.")), "abyssal_tendrils"));
+                LangService.loreLines("gui.recipe_tendrils_book")), "abyssal_tendrils"));
         inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
-                "§7" + (recipe.shapeless() ? "Shapeless" : "Shaped"), recipe.summary()));
+                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), recipe.summary()));
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);
     }
@@ -233,15 +214,11 @@ public final class GuiManager {
         }
 
         inventory.setItem(4, GuiItemFactory.item(Material.PAPER, "§fRelic: Soul Heart",
-                List.of("§f❖ A heart that beats for the living.",
-                        "§7A gift of the soul god, shaped from soul fire.",
-                        "§7It hates the Nightmare god's rusted thinking, and burns it where it stands.",
-                        "§r",
-                        "§7Soul Burst and Divine Cut.")));
+                LangService.loreLines("gui.recipe_soul_heart_book")));
         inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
-                "§7" + (recipe.shapeless() ? "Shapeless" : "Shaped"), recipe.summary()));
+                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), recipe.summary()));
 
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);

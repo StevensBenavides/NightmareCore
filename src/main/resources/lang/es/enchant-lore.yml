@@ -1,0 +1,329 @@
+enchants:
+  lifesteal:
+    effect: >-
+      El arma extrae vitalidad de la herida y la devuelve a quien la empuña,
+      mientras el objetivo queda más débil.
+    mechanics: >-
+      Te cura parte del daño que infliges con cada golpe. Sin probabilidad
+      ni cooldown.
+    motto: Bebe y devuelve.
+    lore:
+      1: >-
+        El dios del alma hizo esta hoja para alimentar al débil. Bebe sangre y
+        devuelve vida.
+      2: >-
+        La hoja bebe más ahora. Tus cortes cierran mientras el enemigo palidece.
+      3: >-
+        Aprendió el latido de un corazón. Cada golpe te roba un poco de vida.
+      4: >-
+        Ya no espera. Extrae vida a través de la herida.
+      5: >-
+        La hoja ahora es pura ansia. Lo que toma, lo guardas, y el campo
+        queda en silencio.
+
+  stormcaller:
+    effect: >-
+      Cuando el arma conecta, el cielo responde con una cadena de truenos que
+      salta entre enemigos cercanos.
+    mechanics: >-
+      A veces invoca una tormenta sobre enemigos cercanos cuando golpeas,
+      dañando a varios a la vez. Solo puede pasar de vez en cuando.
+    motto: El cielo responde al martillo.
+    lore:
+      1: >-
+        El dios del alma colgó esta vara en una torre alta. Aún llama a la lluvia.
+      2: >-
+        El trueno llega rápido ahora. Salta de tu golpe a un enemigo más.
+      3: >-
+        La tormenta conoce esta arma. Cada golpe despierta truenos sobre más enemigos.
+      4: >-
+        El aire se siente pesado cerca de ti. El trueno camina de cuerpo en cuerpo.
+      5: >-
+        Ahora eres el martillo de la tormenta. Un golpe y el campo arde en blanco.
+
+  blast_edge:
+    effect: >-
+      Cada cuarto golpe libera una ráfaga de fuerza alrededor del objetivo,
+      destrozando todo lo cercano.
+    mechanics: >-
+      Encadenar varios golpes libera una explosión alrededor de tu objetivo
+      que daña a los enemigos cercanos. Necesita un corto cooldown entre explosiones.
+    motto: Cuenta hasta cuatro. Luego corre.
+    lore:
+      1: >-
+        La forja soltó esta hacha. Cada cuarto golpe sacude la tierra.
+      2: >-
+        El cuarto golpe pega más fuerte. Las piedras se quiebran y los enemigos caen.
+      3: >-
+        El hacha ama el número cuatro. Espera, y luego rompe la tierra.
+      4: >-
+        El anillo de fuerza es grande ahora. Polvo quemado flota en el aire.
+      5: >-
+        El cuarto golpe no es un golpe. Es un pequeño fin del mundo.
+
+  frostbite:
+    effect: >-
+      La hoja deja un frío persistente que frena el movimiento y deja
+      escarcha en la armadura.
+    mechanics: >-
+      Cada golpe frena a tu objetivo y lo enfría, haciendo más difícil que
+      te persiga o escape de ti.
+    motto: El invierno nunca deja la hoja.
+    lore:
+      1: >-
+        El dios del alma dejó el invierno dentro de esta hoja. Nunca se calentó.
+      2: >-
+        El frío se queda en la herida. El enemigo ahora se mueve lento.
+      3: >-
+        La hoja trae el invierno consigo. Cada corte deja escarcha blanca.
+      4: >-
+        El hielo trepa por la armadura. El aire se siente denso y frío.
+      5: >-
+        Este es un invierno que nunca termina. El enemigo se queda quieto, helado.
+
+  venom:
+    effect: >-
+      La herida carga una corrupción que perdura y dificulta la recuperación.
+    mechanics: >-
+      Cada tanto tus golpes envenenan a tu objetivo, drenando su salud con el
+      tiempo y reduciendo lo que puede curarse.
+    motto: Mordida pequeña. Muerte lenta.
+    lore:
+      1: >-
+        El dios profundo mezcló veneno de araña en esta daga. Los cortes pequeños queman por días.
+      2: >-
+        La herida no cerrará. Al enemigo ahora le cuesta respirar.
+      3: >-
+        El veneno es lento pero seguro. Devora la fuerza poco a poco.
+      4: >-
+        La sangre se oscurece. El enemigo cae de rodillas.
+      5: >-
+        Es un asesino silencioso. Pudre el cuerpo desde dentro.
+
+  executioner:
+    effect: >-
+      Los objetivos heridos son rematados con una súbita oleada de fuerza.
+    mechanics: >-
+      Cuando tu objetivo ya está muy herido, tus golpes le infligen daño
+      extra de remate.
+    motto: Termina lo que está débil.
+    lore:
+      1: >-
+        El dios profundo hizo esta hoja para terminar cacerías. Muerde más a los débiles.
+      2: >-
+        Huele la sangre débil. Los enemigos heridos sienten su corte más hondo.
+      3: >-
+        No tiene piedad con los caídos. Poca salud significa mucho dolor.
+      4: >-
+        Termina lo que otros empiezan. Un golpe más y se acabó.
+      5: >-
+        Esta hoja es el final. Cae como el martillo de un juez.
+
+  berserker:
+    effect: >-
+      Cuando el portador está malherido, la pesadilla afila el cuerpo y
+      acelera la sangre.
+    mechanics: >-
+      Cuando tu salud está baja y recibes daño, golpeas más fuerte y te mueves
+      más rápido por un corto tiempo. Puede pasar de nuevo tras un cooldown.
+    motto: Sangra, luego arde.
+    lore:
+      1: >-
+        Esta hacha fue robada al dios Pesadilla. Despierta cuando sangras.
+      2: >-
+        Tu dolor la calienta. Te mueves rápido cuando estás herido.
+      3: >-
+        El dolor ahora es combustible. Mientras más débil, más fuerte golpeas.
+      4: >-
+        En la puerta de la muerte el hacha canta. Tú te vuelves el peligro.
+      5: >-
+        Es tu segundo corazón. No te dejará caer.
+
+  soul_harvest:
+    effect: >-
+      Los enemigos derrotados dejan ecos; la hoja los recoge y crece
+      más pesada con cada muerte.
+    mechanics: >-
+      Matar enemigos te carga, y tus siguientes golpes infligen daño extra
+      mientras dure la carga. Matar también restaura un poco de tu salud.
+    motto: Los muertos pagan a los vivos.
+    lore:
+      1: >-
+        El dios del alma siega almas como trigo. Cada muerte deja una luz pequeña.
+      2: >-
+        Las luces siguen tu hoja. Cada una te hace golpear más fuerte.
+      3: >-
+        La hoja cuenta tus muertes. Más muertes, más poder.
+      4: >-
+        Bebe el último aliento del caído. Te vuelves pesado de poder.
+      5: >-
+        Llevas un ejército de ecos. La hoja golpea con todos ellos.
+
+  void_rend:
+    effect: >-
+      La hoja abre una grieta estrecha que deja al objetivo expuesto y al aire
+      más frío de lo que debería.
+    mechanics: >-
+      Cada tanto tus golpes desgarran a tu objetivo con daño extra. Necesita
+      un corto cooldown entre desgarros.
+    motto: Corta el mundo. Quédate el pedazo.
+    lore:
+      1: >-
+        El dios profundo abrió un hueco en el mundo y lo dejó en esta espada.
+      2: >-
+        El hueco crece. Aire frío sale cuando blandas la espada.
+      3: >-
+        El corte rompe armaduras. El enemigo no puede esconderse tras el hierro.
+      4: >-
+        El hueco ahora es una boca. Come luz y calor.
+      5: >-
+        Lo que esta hoja toca desaparece. La oscuridad se lo queda.
+
+  guardian:
+    effect: >-
+      La armadura responde a la violencia con una breve oleada de protección
+      alrededor del portador.
+    mechanics: >-
+      Cuando recibes daño, a veces ganas corazones temporales extra que
+      absorben golpes. Puede pasar de nuevo tras un cooldown.
+    motto: Aguanta. No caigas.
+    lore:
+      1: >-
+        El dios del alma bendijo este sello. Despierta cuando te golpean.
+      2: >-
+        Un muro calmo se alza a tu alrededor. El golpe se siente suave.
+      3: >-
+        Responde al dolor con calma. Aguantas un golpe más.
+      4: >-
+        Cada golpe hace el muro más grueso. Respiras tranquilo en batalla.
+      5: >-
+        Ahora eres una fortaleza. Los golpes rompen contra ti como olas.
+
+  retribution:
+    effect: >-
+      Parte del daño sufrido se devuelve al atacante en un repentino contraataque.
+    mechanics: >-
+      Cuando algo te hiere, parte de ese daño se devuelve a tu atacante.
+    motto: Tú me golpeas. Yo devuelvo el golpe.
+    lore:
+      1: >-
+        La forja puso ira en esta placa. Golpéala y te morderá de vuelta.
+      2: >-
+        Guarda cada golpe en mente. Luego los devuelve.
+      3: >-
+        El dolor entra, el dolor sale. Los golpes duros reciben respuestas duras.
+      4: >-
+        La armadura aprendió a pelear. Tu enemigo siente su propia fuerza.
+      5: >-
+        Es un espejo de dolor. Atácalo y paga el doble.
+
+  second_wind:
+    effect: >-
+      Cuando el cuerpo está por romperse, la pesadilla lo rescata con una
+      súbita reserva de vida.
+    mechanics: >-
+      Se activa cuando tu salud baja al 28% o menos. Te cura y te protege unos
+      segundos para que puedas escapar o seguir peleando. Puede activarse de
+      nuevo cuando termine su cooldown.
+    motto: Aún no. Hoy no.
+    lore:
+      1: >-
+        El dios del alma escondió un aliento extra en este broche. Despierta cuando caes.
+      2: >-
+        En tu peor momento, te levanta. Te pones de pie otra vez.
+      3: >-
+        Le dice que no a la muerte. Un aliento más, una pelea más.
+      4: >-
+        Se calienta cuando te enfrías. Te rescata cada vez.
+      5: >-
+        Esta es una promesa de vida. La muerte deberá esperar otro día.
+
+  blink:
+    effect: >-
+      Al ser golpeado, el portador se desliza por un corto pliegue del espacio
+      y reaparece cerca.
+    mechanics: >-
+      Cuando recibes daño, a veces te teletransportas una corta distancia y te
+      mueves más rápido brevemente, dándote espacio para escapar. Puede pasar
+      de nuevo tras un cooldown.
+    motto: Aquí. Allá. Listo.
+    lore:
+      1: >-
+        El dios del alma dobló el espacio en estas botas. Se deslizan de lado.
+      2: >-
+        Cuando te golpean, sales del camino. Aterrizas unos bloques más allá.
+      3: >-
+        Parpadeas. Los golpes pegan al aire donde estabas.
+      4: >-
+        El pliegue es amplio. Lo cruzas como una puerta.
+      5: >-
+        Las botas son una puerta en el espacio. Sales y vuelves tras tu enemigo.
+
+  nightmare_mark:
+    effect: >-
+      Cada golpe deja una marca; cuando se coloca la última, la pesadilla
+      detona alrededor del objetivo.
+    mechanics: >-
+      Tus golpes marcan a tu objetivo, y uno totalmente marcado sufre daño extra
+      mientras queda cegado y frenado. Las marcas se desvanecen si dejas de golpear.
+    motto: Cinco marcas. Una tumba.
+    lore:
+      1: >-
+        Esta marca fue cortada del oxidado pensar del dios Pesadilla. Cada golpe suma una.
+      2: >-
+        Las marcas pesan. El enemigo las siente arder.
+      3: >-
+        Cuenta hasta cinco. Entonces el dios Pesadilla despierta dentro de la marca.
+      4: >-
+        Las marcas brillan como brasas. El aire se dobla alrededor del enemigo.
+      5: >-
+        Cinco marcas, un nombre. Luego el fuego negro devora el cuerpo.
+
+  aegis:
+    effect: >-
+      El sello desvía los proyectiles entrantes y suaviza su impacto.
+    mechanics: >-
+      Cuando un proyectil te golpea, a veces te duele menos. Necesita un corto
+      cooldown entre bloqueos.
+    motto: El cielo no puede tocarte.
+    lore:
+      1: >-
+        El dios del alma colgó este sello contra las flechas. Los tiros pierden el rumbo.
+      2: >-
+        La primera flecha se desvía. El golpe se siente suave.
+      3: >-
+        Las flechas se doblan en el aire. Nunca encuentran tu piel.
+      4: >-
+        El sello brilla fuerte. Las flechas se hacen polvo.
+      5: >-
+        Es un techo sobre ti. El cielo lanza jabalinas, y fallan.
+
+  abyssal_howl:
+    effect: >-
+      El arma carga la furia de lo profundo; mientras se empuña, el aire
+      alrededor del portador se vuelve pesado de abismo.
+    mechanics: >-
+      Cada golpe estalla tinta oscura y partículas de alma con un aullido
+      profundo alrededor de tu objetivo. Matar con ella genera un estallido
+      mayor del mismo efecto. No cambia tu daño.
+    motto: Lo profundo escucha.
+    lore:
+      1: >-
+        El dios profundo aulló en esta arma. Empúñala y la oscuridad escucha
+        de vuelta.
+
+  abyssal_core:
+    effect: >-
+      La pechera carga la voluntad del abismo. Su portador puede enviar ruina en
+      línea recta o invocarla en círculo, dejando fuego negro y
+      cielo cayendo tras de sí.
+    mechanics: >-
+      Con la pechera puesta y agachado, atacar lanza un rayo destructivo hacia
+      adelante que hiere enemigos a su paso y rompe bloques. Click derecho en
+      cambio desata una explosión a tu alrededor que golpea enemigos cercanos
+      con truenos. También se usa en crafteos y combinaciones.
+    motto: El yunque nunca se enfría.
+    lore:
+      1: >-
+        El dios profundo forjó esta placa en el yunque negro. Su ojo nunca se
+        cierra, y su fuego nunca se enfría.

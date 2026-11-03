@@ -17,6 +17,7 @@ public final class LangService {
     private static String language = "en";
     private static YamlConfiguration base;
     private static YamlConfiguration override;
+    private static YamlConfiguration loreEs;
     private static final Map<String, Boolean> warnedMissing = new HashMap<>();
 
     private LangService() {
@@ -33,13 +34,16 @@ public final class LangService {
 
         ensureLangFile(plugin, "lang/en/messages.yml");
         ensureLangFile(plugin, "lang/es/messages.yml");
+        ensureLangFile(plugin, "lang/es/enchant-lore.yml");
 
         base = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/en/messages.yml"));
 
         if (language.equals("es")) {
             override = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/es/messages.yml"));
+            loreEs = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/es/enchant-lore.yml"));
         } else {
             override = null;
+            loreEs = null;
         }
 
         warnedMissing.clear();
@@ -116,6 +120,43 @@ public final class LangService {
         }
 
         return result;
+    }
+
+    public static String lore(String path) {
+        if (language.equals("es") && loreEs != null && loreEs.contains(path)) {
+            String value = loreEs.getString(path);
+
+            if (value != null) {
+                return value;
+            }
+        }
+
+        if (Main.enchantLore != null) {
+            String value = Main.enchantLore.getString(path);
+
+            if (value != null) {
+                return value;
+            }
+        }
+
+        warnMissing(path);
+        return "";
+    }
+
+    public static java.util.List<String> loreLines(String path, String... pairs) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+
+        for (String line : list(path)) {
+            String text = line;
+
+            for (int i = 0; i + 1 < pairs.length; i += 2) {
+                text = text.replace(pairs[i], pairs[i + 1]);
+            }
+
+            out.add(org.bukkit.ChatColor.translateAlternateColorCodes('&', text));
+        }
+
+        return out;
     }
 
     private static void warnMissing(String path) {

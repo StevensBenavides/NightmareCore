@@ -165,9 +165,9 @@ public final class EnchantBookService {
         }
 
         meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Ink");
-        meta.setLore(new ArrayList<>(Arrays.asList(
-                ChatColor.GRAY + "First ash of the forge.",
-                ChatColor.DARK_GRAY + "Crafting component.")));
+        meta.setLore(com.nightmare.lang.LangService.loreLines("items.ink_lore",
+                "&7First ash of the forge.",
+                "&8Crafting component."));
 
         meta.getPersistentDataContainer().set(ItemKeys.ABYSSAL_INK, PersistentDataType.BOOLEAN, true);
 
@@ -187,9 +187,9 @@ public final class EnchantBookService {
         }
 
         meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Nucleus");
-        meta.setLore(new ArrayList<>(Arrays.asList(
-                ChatColor.GRAY + "A cold heart of the anvil.",
-                ChatColor.DARK_GRAY + "Crafting component.")));
+        meta.setLore(com.nightmare.lang.LangService.loreLines("items.nucleus_lore",
+                "&7A cold heart of the anvil.",
+                "&8Crafting component."));
 
         meta.getPersistentDataContainer().set(ItemKeys.ABYSSAL_CORE, PersistentDataType.BOOLEAN, true);
 

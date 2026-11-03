@@ -115,29 +115,13 @@ public final class AbyssalTendrilsItem {
 
     public static List<String> buildLore() {
         long cooldown = balance().getLong("abyssal-tendrils.cooldown-ms", 60000L);
-        double range = balance().getDouble("abyssal-tendrils.range", 50.0);
-        double radius = balance().getDouble("abyssal-tendrils.patch-radius", 7.5);
-        double damage = balance().getDouble("abyssal-tendrils.damage", 75.0);
-        double fallingDamage = balance().getDouble("abyssal-tendrils.falling-damage", 100.0);
 
-        List<String> lore = new ArrayList<>();
-
-        lore.add(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Legendary Relic");
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "The deep god pulled this eye from the dark.");
-        lore.add(ChatColor.GRAY + "Its tendrils still reach for the Nightmare god to crush.");
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + "How to use:");
-        lore.add(ChatColor.GRAY + "Sprint + Swap Hand: release the tendrils.");
-        lore.add(ChatColor.GRAY + "Looking down while falling from at least 10 blocks calls a deeper rupture.");
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "Range: " + ChatColor.WHITE + number(range) + " blocks");
-        lore.add(ChatColor.GRAY + "Patch: " + ChatColor.WHITE + number(radius * 2.0) + " blocks");
-        lore.add(ChatColor.GRAY + "Damage: " + ChatColor.WHITE + number(damage) + " HP");
-        lore.add(ChatColor.GRAY + "Falling damage: " + ChatColor.WHITE + number(fallingDamage) + " HP");
-        lore.add(ChatColor.GRAY + "Cooldown: " + ChatColor.YELLOW + number(cooldown / 1000.0) + "s");
-        
-        return lore;
+        return com.nightmare.lang.LangService.loreLines("relics.abyssal_tendrils.lines",
+                "%range%", number(balance().getDouble("abyssal-tendrils.range", 50.0)),
+                "%patch%", number(balance().getDouble("abyssal-tendrils.patch-radius", 7.5) * 2.0),
+                "%damage%", number(balance().getDouble("abyssal-tendrils.damage", 75.0)),
+                "%falling%", number(balance().getDouble("abyssal-tendrils.falling-damage", 100.0)),
+                "%cooldown%", number(cooldown / 1000.0));
     }
 
     private static org.bukkit.configuration.file.YamlConfiguration balance() {

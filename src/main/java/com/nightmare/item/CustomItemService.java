@@ -77,9 +77,8 @@ public final class CustomItemService {
         }
 
         meta.setItemName(ChatColor.DARK_RED + "Nightmare Blade " + ChatColor.GRAY + tier.name());
-        meta.setLore(new ArrayList<>(Arrays.asList(
-                ChatColor.DARK_GRAY + "Forged by the nightmare.",
-                ChatColor.GRAY + "Tier " + tier.name())));
+        meta.setLore(com.nightmare.lang.LangService.loreLines("items.nightmare_blade_lore",
+                "%tier%", tier.name()));
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
                 String.join("\n", meta.getLore()));
         meta.getPersistentDataContainer().set(ItemKeys.CUSTOM_ITEM, PersistentDataType.BOOLEAN, true);
@@ -140,9 +139,8 @@ public final class CustomItemService {
         }
 
         meta.setItemName(ChatColor.DARK_RED + "Nightmare Bow " + ChatColor.GRAY + tier.name());
-        meta.setLore(new ArrayList<>(Arrays.asList(
-                ChatColor.DARK_GRAY + "The hunt never ends.",
-                ChatColor.GRAY + "Tier " + tier.name())));
+        meta.setLore(com.nightmare.lang.LangService.loreLines("items.nightmare_bow_lore",
+                "%tier%", tier.name()));
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
                 String.join("\n", meta.getLore()));
         meta.getPersistentDataContainer().set(ItemKeys.CUSTOM_ITEM, PersistentDataType.BOOLEAN, true);
@@ -258,9 +256,8 @@ public final class CustomItemService {
         }
 
         meta.setItemName(ChatColor.DARK_RED + "Nightmare Armor " + ChatColor.GRAY + tier.name());
-        meta.setLore(new ArrayList<>(Arrays.asList(
-                ChatColor.DARK_GRAY + "Clad in the nightmare.",
-                ChatColor.GRAY + "Tier " + tier.name())));
+        meta.setLore(com.nightmare.lang.LangService.loreLines("items.nightmare_armor_lore",
+                "%tier%", tier.name()));
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
                 String.join("\n", meta.getLore()));
         meta.getPersistentDataContainer().set(ItemKeys.CUSTOM_ITEM, PersistentDataType.BOOLEAN, true);
