@@ -35,6 +35,7 @@ public final class LangService {
         ensureLangFile(plugin, "lang/en/messages.yml");
         ensureLangFile(plugin, "lang/es/messages.yml");
         ensureLangFile(plugin, "lang/es/enchant-lore.yml");
+        ensureLangFile(plugin, "lang/es/story.yml");
 
         base = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/en/messages.yml"));
 

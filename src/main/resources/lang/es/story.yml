@@ -1,0 +1,121 @@
+chapters:
+  - title: "&6I. La Forja"
+    icon: "CRAFTING_TABLE"
+    border: "ORANGE_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Hace mucho, tres dioses compartían una forja."
+      - "&7El dios del alma dio aliento a los vivos."
+      - "&7El dios del abismo dio forma al mundo."
+      - "&7El dios pesadilla dio sueños a los durmientes."
+      - "&7De esa forja salieron las primeras reliquias."
+  - title: "&8II. El Pensar Demasiado"
+    icon: "WRITABLE_BOOK"
+    border: "GRAY_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "WITHER_SKELETON_SKULL"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7El dios pesadilla amaba sus sueños."
+      - "&7Pero cada sueño moría cuando el durmiente despertaba."
+      - "&7No podía dejar de pensar en eso."
+      - "&7Día tras día daba vueltas al mismo pensamiento."
+      - "&7Dentro de él, su pensar empezó a oxidarse."
+  - title: "&4III. La Corrupción Lenta"
+    icon: "NETHERITE_SWORD"
+    border: "RED_STAINED_GLASS_PANE"
+    left: "WITHER_SKELETON_SKULL"
+    right: "NETHERITE_SWORD"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Al principio solo quería que los sueños duraran más."
+      - "&7Después quiso que el despertar terminara."
+      - "&7Al final no quiso que nada terminara nunca."
+      - "&7Su propósito cambió despacio, y para mal."
+      - "&7Tomó poder de la Forja para él solo."
+  - title: "&bIV. La Confrontación"
+    icon: "TOTEM_OF_UNDYING"
+    border: "CYAN_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Alma y abismo notaron que faltaba poder en la Forja."
+      - "&7Sintieron sus pensamientos volverse oscuros."
+      - "&7Fueron a enfrentarlo, a hablar de sus extrañas formas de último tiempo."
+      - "&7Pero él golpeó primero, y golpeó para matar a ambos."
+      - "&7Así empezó la batalla."
+  - title: "&bV. La Ruptura"
+    icon: "HEART_OF_THE_SEA"
+    border: "LIGHT_BLUE_STAINED_GLASS_PANE"
+    left: "HEART_OF_THE_SEA"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7El dios del alma dijo que no: sin muerte, no hay vida. Solo eco."
+      - "&7Hizo el Soul Heart de fuego de alma para proteger a los vivos."
+      - "&7El dios del abismo se partió en dos."
+      - "&7Una parte del abismo cayó con la pesadilla."
+      - "&7La otra parte se quedó con el alma."
+  - title: "&5VI. Alma y Abismo vs Pesadilla"
+    icon: "NETHER_STAR"
+    border: "PURPLE_STAINED_GLASS_PANE"
+    left: "SOUL_LANTERN"
+    right: "WITHER_SKELETON_SKULL"
+    hold-seconds: 12
+    battle: true
+    lines:
+      - "&7El Dios Alma y el Dios Abismo pelearon lado a lado."
+      - "&7Pesadilla respondió con sus sueños oxidados."
+      - "&7Donde chocaron, el cielo ardió."
+      - "&7Herido y perdiendo, Pesadilla abrió una puerta y huyó."
+  - title: "&8VII. La Huida"
+    icon: "ENDER_PEARL"
+    border: "GRAY_STAINED_GLASS_PANE"
+    left: "WITHER_SKELETON_SKULL"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Roto y sangrando, el dios pesadilla escapó al Reino Pesadilla."
+      - "&7Ahí, lejos del alma y el abismo, sus heridas cerraron sobre su odio."
+      - "&7Y desde ese lugar oscuro, aprendió a alcanzar de vuelta."
+  - title: "&dVIII. El Reino Pesadilla"
+    icon: "DRAGON_EGG"
+    border: "BLACK_STAINED_GLASS_PANE"
+    left: "WITHER_SKELETON_SKULL"
+    right: "SOUL_LANTERN"
+    hold-seconds: 14
+    battle: false
+    lines:
+      - "&7En el mundo físico, el dios pesadilla es el más débil de los tres."
+      - "&7Contra alma y abismo juntos, perdería."
+      - "&7Alma y abismo son casi iguales. Alma es solo un poco más fuerte."
+      - "&7Pero desde el Reino Pesadilla su poder crece, y su alcance es largo."
+      - "&7Ahora caza cada alma con buenos pensamientos, o hasta un pequeño deseo de hacer el bien."
+      - "&7Steve, Alex, los aldeanos, y cualquier alma que se incline al bien."
+      - "&7Lo hace por venganza. Los otros dioses lo hirieron feo en la guerra."
+      - "&7Esa herida no puede sanar, ni con todo el poder de la Forja."
+      - "&7También le cerraron la Forja. Si volviera, lo destruiría."
+      - "&7Así que desde lejos envía pesadillas a las almas buenas, noche tras noche, hasta que mueren."
+      - "&7Su meta es simple: borrar todo lo bueno que el dios del alma plantó."
+  - title: "&eIX. Las Reliquias"
+    icon: "ENCHANTED_BOOK"
+    border: "WHITE_STAINED_GLASS_PANE"
+    left: "HEART_OF_THE_SEA"
+    right: "ENDER_EYE"
+    hold-seconds: 10
+    battle: false
+    lines:
+      - "&7Sostienes lo que queda de esa guerra."
+      - "&7Un corazón que late por los vivos."
+      - "&7Un ojo que nunca parpadea."
+      - "&7Cada encantamiento es un pedazo de esa pelea."
+      - "&7Y cada vez que usas uno, la guerra despierta de nuevo."

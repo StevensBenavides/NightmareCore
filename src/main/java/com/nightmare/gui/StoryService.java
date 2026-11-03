@@ -22,6 +22,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import com.nightmare.lang.LangService;
+
 public final class StoryService implements Listener {
 
     public record Chapter(String title, Material icon, Material border, Material left, Material right,
@@ -39,7 +41,17 @@ public final class StoryService implements Listener {
         plugin.saveResource("story.yml", false);
         CHAPTERS.clear();
 
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "story.yml"));
+        java.io.File file = new java.io.File(plugin.getDataFolder(), "story.yml");
+
+        if ("es".equals(com.nightmare.lang.LangService.language())) {
+            java.io.File esFile = new java.io.File(plugin.getDataFolder(), "lang/es/story.yml");
+
+            if (esFile.exists()) {
+                file = esFile;
+            }
+        }
+
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
 
         for (Map<?, ?> raw : yml.getMapList("chapters")) {
             List<String> lines = new ArrayList<>();
@@ -171,7 +183,7 @@ public final class StoryService implements Listener {
             lore.add("§8§o(…)");
         } else if (chapterIndex + 1 >= CHAPTERS.size()) {
             lore.add("§r");
-            lore.add("§eThe End — use §6← §eto reread.");
+            lore.add("§e" + LangService.msg("story.the_end", "The End — use ← to reread."));
         }
 
         Material border = current.border();
@@ -198,14 +210,15 @@ public final class StoryService implements Listener {
             inventory.setItem(24, GuiItemFactory.item(current.right(), "§f" + current.title(), List.of()));
         }
 
-        inventory.setItem(45, GuiItemFactory.item(Material.BARRIER, "§cClose", List.of("§7Close the chronicle.")));
-        inventory.setItem(48, GuiItemFactory.item(Material.ARROW, "§ePrevious",
-                List.of("§7Go to the previous chapter.")));
+        inventory.setItem(45, GuiItemFactory.item(Material.BARRIER, "§c" + LangService.msg("story.close", "Close"),
+                List.of("§7" + LangService.msg("story.close_desc", "Close the chronicle."))));
+        inventory.setItem(48, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("story.previous", "Previous"),
+                List.of("§7" + LangService.msg("story.previous_desc", "Go to the previous chapter."))));
         inventory.setItem(49, GuiItemFactory.item(Material.CLOCK,
-                paused(player.getUniqueId()) ? "§eResume" : "§ePause",
-                List.of("§7Pause or resume the tale.")));
-        inventory.setItem(50, GuiItemFactory.item(Material.ARROW, "§eNext",
-                List.of("§7Go to the next chapter.")));
+                paused(player.getUniqueId()) ? "§e" + LangService.msg("story.resume", "Resume") : "§e" + LangService.msg("story.pause", "Pause"),
+                List.of("§7" + LangService.msg("story.pause_desc", "Pause or resume the tale."))));
+        inventory.setItem(50, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("story.next", "Next"),
+                List.of("§7" + LangService.msg("story.next_desc", "Go to the next chapter."))));
 
         player.updateInventory();
     }
@@ -213,21 +226,21 @@ public final class StoryService implements Listener {
     private static void battleFrame(Inventory inventory, Chapter current, int frame) {
         int phase = frame % 4;
 
-        ItemStack clash = GuiItemFactory.item(Material.NETHER_STAR, "§c§lCLASH!",
-                List.of("§7Soul and Abyss strike as one."));
+        ItemStack clash = GuiItemFactory.item(Material.NETHER_STAR, "§c§l" + LangService.msg("story.clash", "CLASH!"),
+                List.of("§7" + LangService.msg("story.clash_desc", "Soul and Abyss strike as one.")));
         ItemStack foe = GuiItemFactory.item(Material.WITHER_SKELETON_SKULL, "§8Nightmare",
-                List.of("§7answered with rusted dreams."));
+                List.of("§7" + LangService.msg("story.foe_desc", "answered with rusted dreams.")));
         ItemStack soul = GuiItemFactory.item(current.left(), "§fSoul God", List.of());
         ItemStack abyss = GuiItemFactory.item(current.right(), "§5Abyss God", List.of());
-        ItemStack spark = GuiItemFactory.item(Material.FIRE_CHARGE, "§6Impact", List.of());
+        ItemStack spark = GuiItemFactory.item(Material.FIRE_CHARGE, "§6" + LangService.msg("story.impact", "Impact"), List.of());
 
         inventory.setItem(13, new ItemStack(Material.AIR));
         inventory.setItem(31, new ItemStack(Material.AIR));
 
         if (phase == 1) {
-            inventory.setItem(20, GuiItemFactory.item(current.left(), "§fSoul God", List.of("§7strikes!")));
+            inventory.setItem(20, GuiItemFactory.item(current.left(), "§fSoul God", List.of("§7" + LangService.msg("story.strikes", "strikes!"))));
             inventory.setItem(22, clash);
-            inventory.setItem(24, GuiItemFactory.item(current.right(), "§5Abyss God", List.of("§7strikes!")));
+            inventory.setItem(24, GuiItemFactory.item(current.right(), "§5Abyss God", List.of("§7" + LangService.msg("story.strikes", "strikes!"))));
             inventory.setItem(13, spark);
             inventory.setItem(31, spark);
         } else if (phase == 3) {
@@ -237,7 +250,7 @@ public final class StoryService implements Listener {
         } else {
             inventory.setItem(20, soul);
             inventory.setItem(22, GuiItemFactory.item(Material.WITHER_SKELETON_SKULL, "§8Nightmare",
-                    List.of("§7looms.")));
+                    List.of("§7" + LangService.msg("story.looms", "looms."))));
             inventory.setItem(24, abyss);
         }
     }

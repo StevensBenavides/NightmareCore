@@ -126,6 +126,23 @@ assault:
 structures:
   hint_tale: "&eClick here to read the tale"
   lectern_msg: "&7Nightmare Origin &8- &fuse &6/nightmare story &fto read the full tale."
+story:
+  close: "Close"
+  close_desc: "Close the chronicle."
+  previous: "Previous"
+  previous_desc: "Go to the previous chapter."
+  pause: "Pause"
+  resume: "Resume"
+  pause_desc: "Pause or resume the tale."
+  next: "Next"
+  next_desc: "Go to the next chapter."
+  the_end: "The End — use ← to reread."
+  clash: "CLASH!"
+  clash_desc: "Soul and Abyss strike as one."
+  foe_desc: "answered with rusted dreams."
+  strikes: "strikes!"
+  looms: "looms."
+  impact: "Impact"
 death:
   ban_reason: "You fall into the nightmare."
 gui:

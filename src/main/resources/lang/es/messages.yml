@@ -126,6 +126,23 @@ assault:
 structures:
   hint_tale: "&eClick aquí para leer el relato"
   lectern_msg: "&7Nightmare Origin &8- &fusa &6/nightmare story &fpara leer el relato completo."
+story:
+  close: "Cerrar"
+  close_desc: "Cierra la crónica."
+  previous: "Anterior"
+  previous_desc: "Ve al capítulo anterior."
+  pause: "Pausar"
+  resume: "Continuar"
+  pause_desc: "Pausa o continúa el relato."
+  next: "Siguiente"
+  next_desc: "Ve al siguiente capítulo."
+  the_end: "El Fin — usa ← para releer."
+  clash: "¡CHOQUE!"
+  clash_desc: "Soul y Abyss golpean como uno."
+  foe_desc: "respondió con sueños oxidados."
+  strikes: "¡ataca!"
+  looms: "acecha."
+  impact: "Impacto"
 death:
   ban_reason: "Caíste en la pesadilla."
 gui:
