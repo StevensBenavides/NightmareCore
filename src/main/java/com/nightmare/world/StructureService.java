@@ -466,7 +466,7 @@ public final class StructureService implements Listener {
             return;
         }
 
-        lectern.getInventory().addItem(loreBook(chapter));
+        lectern.getSnapshotInventory().addItem(loreBook(chapter));
         lectern.update();
     }
 
@@ -518,7 +518,7 @@ public final class StructureService implements Listener {
                 return;
             }
 
-            Inventory inventory = chest.getBlockInventory();
+            Inventory inventory = chest.getSnapshotInventory();
             Random random = new Random(seed ^ 0x9E3779B9L);
             String themeKey = theme.name().toLowerCase();
             List<String> pool = Main.balance.getStringList("altars.loot." + themeKey);
@@ -598,6 +598,10 @@ public final class StructureService implements Listener {
             }
 
             chest.update();
+
+            Main.getInstance().getLogger().info("Altar chest filled: " + themeKey + " at "
+                    + location.getWorld().getName() + ":" + location.getBlockX() + "," + location.getBlockY() + ","
+                    + location.getBlockZ() + " items=" + added);
         } catch (Exception exception) {
             Main.getInstance().getLogger().warning("Could not fill altar chest at "
                     + location.getWorld().getName() + ":" + location.getBlockX() + "," + location.getBlockY() + ","
@@ -775,6 +779,16 @@ public final class StructureService implements Listener {
         for (Altar altar : ALTARS.values()) {
             if (altar.looted() || !altar.chests().contains(key)) {
                 continue;
+            }
+
+            StructureTheme theme = StructureTheme.byName(altar.theme());
+
+            if (theme != null) {
+                Block block = at.getBlock();
+
+                if (block.getState() instanceof Chest chest && chest.getSnapshotInventory().isEmpty()) {
+                    fillChest(at, theme, altar.seed());
+                }
             }
 
             ALTARS.put(altar.id(), new Altar(altar.id(), altar.world(), altar.x(), altar.y(), altar.z(),
