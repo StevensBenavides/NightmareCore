@@ -95,8 +95,8 @@ public final class LangService {
         return fallback;
     }
 
-    public static String format(String path, String... pairs) {
-        String text = msg(path);
+    public static String format(String path, String fallback, String... pairs) {
+        String text = msg(path, fallback);
 
         for (int i = 0; i + 1 < pairs.length; i += 2) {
             text = text.replace(pairs[i], pairs[i + 1]);

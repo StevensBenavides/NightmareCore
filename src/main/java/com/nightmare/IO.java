@@ -265,19 +265,18 @@ public final class IO {
     }
 
     public static void reloadSettings(Plugin plugin) throws IOException {
-        
+
         File settings = new File(plugin.getDataFolder(), "settings.yml");
 
         if (!settings.exists())
             throw new IOException("settings.yml does not exist.");
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(settings); 
-
-        HashMapOfSettings.clear();  
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);
 
         if (config.getString("prefix") == null)
             throw new IOException("prefix not found in settings.yml.");
 
+        HashMapOfSettings.clear();
         HashMapOfSettings.put("prefix", config.getString("prefix").toString());
 
         Main.setSettings();
@@ -285,30 +284,27 @@ public final class IO {
     }
 
     public static void reloadMessages(Plugin plugin) throws IOException {
-        
+
         File messages = new File(plugin.getDataFolder(), "messages.yml");
 
         if (!messages.exists())
             throw new IOException("messages.yml does not exist.");
-        
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(messages);   
-        
-        HashMapOfMessages.clear();
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(messages);
 
         if (config.getString("permission") == null)
             throw new IOException("perm not found in messages.yml.");
 
-        HashMapOfMessages.put("permission", config.getString("permission").toString());   
-
         if (config.getString("reload.messages") == null)
             throw new IOException("reload.messages not found in messages.yml.");
 
-        HashMapOfMessages.put("reload-messages", config.getString("reload.messages").toString());    
-        
         if (config.getString("reload.settings") == null)
             throw new IOException("reload.settings not found in messages.yml.");
 
-        HashMapOfMessages.put("reload-settings", config.getString("reload.settings").toString());     
+        HashMapOfMessages.clear();
+        HashMapOfMessages.put("permission", config.getString("permission").toString());
+        HashMapOfMessages.put("reload-messages", config.getString("reload.messages").toString());
+        HashMapOfMessages.put("reload-settings", config.getString("reload.settings").toString());
 
         Main.setMessages();
 

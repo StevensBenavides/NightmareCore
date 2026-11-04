@@ -59,7 +59,7 @@ public final class Events implements Listener {
 
                 FastBoard board = new FastBoard(event.getPlayer());
 
-                board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name")));
+                board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name", "")));
 
                 NightmareScoreboard.boards.put(event.getPlayer().getUniqueId(), board);
 
@@ -101,7 +101,7 @@ public final class Events implements Listener {
                     event.getPlayer().sendMessage(line);
                 }
 
-                event.getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', config.getString("message_join.title")), null, 20, 20, 10);
+                event.getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', config.getString("message_join.title", "")), null, 20, 20, 10);
                 event.getPlayer().getWorld().playSound(event.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.8F, 1.0F);
 
             }
@@ -168,7 +168,7 @@ public final class Events implements Listener {
 
         } catch (Exception e) {
             e.printStackTrace();
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
         }
 
     }
@@ -230,7 +230,7 @@ public final class Events implements Listener {
 
         } catch (Exception e) {
             e.printStackTrace();
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
         }    
 
     }
@@ -351,7 +351,7 @@ public final class Events implements Listener {
 
         } catch (Exception e) {
             e.printStackTrace();
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
         }
         
     }
@@ -382,8 +382,8 @@ public final class Events implements Listener {
                     final boolean isDeathMessageEnabled = config.getBoolean("message_death.enable");
     
                     if (isDeathMessageEnabled) {
-                        String titleMessage = config.getString("message_death.title");
-                        String subtitleMessage = config.getString("message_death.subtitle");
+                        String titleMessage = config.getString("message_death.title", "");
+                        String subtitleMessage = config.getString("message_death.subtitle", "");
                         
                         titleMessage = titleMessage.replace("%player_killed%", player.getName());
                         subtitleMessage = subtitleMessage.replace("%player_killed%", player.getName());
@@ -462,7 +462,7 @@ public final class Events implements Listener {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                plugin.getServer().getPluginManager().disablePlugin(plugin);
+                plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
             }    
             
         }

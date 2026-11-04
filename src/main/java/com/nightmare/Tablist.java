@@ -19,49 +19,45 @@ public final class Tablist {
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
 
+            final YamlConfiguration config = Main.getSettings();
+
+            if (config == null || !config.getBoolean("tablist.enable", true)) {
+                return;
+            }
+
+            String header = config.getString("tablist.header", "Header TabList");
+            String footer = config.getString("tablist.footer", "Footer TabList");
+
+            if (header == null) header = "Header TabList";
+            if (footer == null) footer = "Footer TabList";
+
             for (Player player : plugin.getServer().getOnlinePlayers()) {
 
-                if (player == null) return;
+                if (player == null) continue;
 
-                final YamlConfiguration config = Main.getSettings();    
-
-                if (config.get("tablist.header") == null  || config.get("tablist.footer") == null)
-                    try {
-                        throw new IOException("tablist.header or tablist.footer not found in settings.yml.");
-                    } catch (IOException e) {
-                        plugin.getServer().getPluginManager().disablePlugin(plugin);
-                        e.printStackTrace();
-                    }
-
-                String header = config.getString("tablist.header");
-                String footer = config.getString("tablist.footer");
-
-                if (header == null) header = "Header TabList";
-                if (footer == null) footer = "Footer TabList";
-
-                Pattern patternHeader = Pattern.compile("%.+?%");
-                Matcher matcherHeader = patternHeader.matcher(header);
-
-                Pattern patternFooter = Pattern.compile("%.+?%");
-                Matcher matcherFooter = patternFooter.matcher(footer);
-
-                if (matcherHeader.find() && matcherFooter.find()) {
-                    player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header.replace(matcherHeader.group(), PlaceholderAPI.setPlaceholders(player, matcherHeader.group()))), ChatColor.translateAlternateColorCodes('&', footer.replace(matcherFooter.group(), PlaceholderAPI.setPlaceholders(player, matcherFooter.group()))));
-                    continue;
-                } else if (matcherHeader.find()) {
-                    player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header.replace(matcherHeader.group(), PlaceholderAPI.setPlaceholders(player, matcherHeader.group()))), ChatColor.translateAlternateColorCodes('&', footer));
-                    continue;
-                } else if (matcherFooter.find()) {
-                    player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header), ChatColor.translateAlternateColorCodes('&', footer.replace(matcherFooter.group(), PlaceholderAPI.setPlaceholders(player, matcherFooter.group()))));
-                    continue;
-                }
-
-                player.setPlayerListHeaderFooter(ChatColor.translateAlternateColorCodes('&', header), ChatColor.translateAlternateColorCodes('&', footer));
+                player.setPlayerListHeaderFooter(
+                        ChatColor.translateAlternateColorCodes('&', applyPlaceholders(player, header)),
+                        ChatColor.translateAlternateColorCodes('&', applyPlaceholders(player, footer)));
 
             }
 
         }, 0, 50L);
 
+    }
+
+    private static String applyPlaceholders(Player player, String text) {
+        Matcher matcher = Pattern.compile("%.+?%").matcher(text);
+        StringBuilder result = new StringBuilder();
+        int last = 0;
+
+        while (matcher.find()) {
+            result.append(text, last, matcher.start());
+            result.append(PlaceholderAPI.setPlaceholders(player, matcher.group()));
+            last = matcher.end();
+        }
+
+        result.append(text.substring(last));
+        return result.toString();
     }
 
 }

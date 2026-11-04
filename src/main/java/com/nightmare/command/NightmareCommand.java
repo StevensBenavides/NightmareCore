@@ -146,57 +146,110 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
     }
 
     private void reloadTarget(CommandSender sender, String target) {
-        try {
-            switch (target) {
-                case "messages.yml" -> IO.reloadMessages(plugin);
-                case "settings.yml" -> {
-                    IO.reloadSettings(plugin);
-                    LangService.reload(plugin);
-                }
-                case "language" -> LangService.reload(plugin);
-                case "time" -> {
-                    TimeManagement.updatePlayerTimes();
-                    TimeManagement.updateWorldsTimes();
-                }
-                case "enchants.yml" -> {
-                    Main.enchants = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "enchants.yml"));
-                    EnchantBookService.registerRecipes(plugin);
-                }
-                case "balance.yml" -> {
-                    Main.balance = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "balance.yml"));
-                    com.nightmare.relic.RelicRecipeService.register(plugin);
-                }
-                case "mobs.yml" -> MobProfileLoader.load(plugin);
-                case "enchant-lore.yml" -> Main.enchantLore = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "enchant-lore.yml"));
-                case "story.yml" -> com.nightmare.gui.StoryService.load(plugin);
-                case "structures.yml" -> com.nightmare.world.StructureService.load(plugin);
-                case "all" -> {
-                    IO.reloadMessages(plugin);
-                    IO.reloadSettings(plugin);
-                    LangService.reload(plugin);
-                    TimeManagement.updatePlayerTimes();
-                    TimeManagement.updateWorldsTimes();
-                    Main.enchants = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "enchants.yml"));
-                    Main.balance = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "balance.yml"));
-                    MobProfileLoader.load(plugin);
-                    Main.enchantLore = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "enchant-lore.yml"));
-                    com.nightmare.gui.StoryService.load(plugin);
-                    com.nightmare.world.StructureService.load(plugin);
-                    EnchantBookService.registerRecipes(plugin);
-                    com.nightmare.relic.RelicRecipeService.register(plugin);
-                }
-                default -> {
-                send(sender, LangService.format("commands.generic.unknown_reload_target",
+        if (!RELOAD_TARGETS.contains(target)) {
+            send(sender, LangService.format("commands.generic.unknown_reload_target",
                     "&cUnknown reload target '&f%target%&c'.", "%target%", target));
-                    return;
-                }
+            return;
+        }
+
+        try {
+            if (target.equals("all")) {
+                validateAllReloadFiles();
+                reloadAll();
+            } else {
+                reloadOne(target);
             }
 
             send(sender, LangService.format("commands.reload.done",
                     "&aReloaded &f%target%&a.", "%target%", target));
         } catch (Exception exception) {
             send(sender, LangService.format("commands.reload.failed",
-                    "&cCould not reload &f%target%&c: %error%", "%target%", target, "%error%", exception.getMessage()));
+                    "&cCould not reload &f%target%&c: %error%", "%target%", target,
+                    "%error%", String.valueOf(exception.getMessage())));
+        }
+    }
+
+    private void reloadOne(String target) throws Exception {
+        switch (target) {
+            case "messages.yml" -> {
+                IO.reloadMessages(plugin);
+                LangService.reload(plugin);
+            }
+            case "settings.yml" -> {
+                IO.reloadSettings(plugin);
+                LangService.reload(plugin);
+            }
+            case "language" -> LangService.reload(plugin);
+            case "time" -> {
+                TimeManagement.updatePlayerTimes();
+                TimeManagement.updateWorldsTimes();
+            }
+            case "enchants.yml" -> Main.enchants = loadReloadYaml("enchants.yml");
+            case "balance.yml" -> Main.balance = loadReloadYaml("balance.yml");
+            case "mobs.yml" -> MobProfileLoader.load(plugin);
+            case "enchant-lore.yml" -> Main.enchantLore = loadReloadYaml("enchant-lore.yml");
+            case "story.yml" -> com.nightmare.gui.StoryService.load(plugin);
+            case "structures.yml" -> com.nightmare.world.StructureService.load(plugin);
+            default -> throw new IllegalArgumentException("Unknown reload target: " + target);
+        }
+    }
+
+    private void reloadAll() throws Exception {
+        IO.reloadMessages(plugin);
+        IO.reloadSettings(plugin);
+        LangService.reload(plugin);
+        TimeManagement.updatePlayerTimes();
+        TimeManagement.updateWorldsTimes();
+        Main.enchants = loadReloadYaml("enchants.yml");
+        Main.balance = loadReloadYaml("balance.yml");
+        MobProfileLoader.load(plugin);
+        Main.enchantLore = loadReloadYaml("enchant-lore.yml");
+        com.nightmare.gui.StoryService.load(plugin);
+        com.nightmare.world.StructureService.load(plugin);
+    }
+
+    private YamlConfiguration loadReloadYaml(String name) throws IOException {
+        File file = new File(plugin.getDataFolder(), name);
+
+        if (!file.exists()) {
+            throw new IOException(name + " does not exist.");
+        }
+
+        return YamlConfiguration.loadConfiguration(file);
+    }
+
+    private void validateAllReloadFiles() throws IOException {
+        String[] files = {
+                "messages.yml", "settings.yml", "enchants.yml", "balance.yml",
+                "mobs.yml", "enchant-lore.yml", "structures.yml"};
+
+        for (String name : files) {
+            File file = new File(plugin.getDataFolder(), name);
+
+            if (!file.exists()) {
+                throw new IOException(name + " does not exist.");
+            }
+
+            if (YamlConfiguration.loadConfiguration(file).getKeys(false).isEmpty()) {
+                throw new IOException(name + " is empty or invalid.");
+            }
+        }
+
+        File story = new File(plugin.getDataFolder(), "story.yml");
+
+        if (!story.exists()) {
+            throw new IOException("story.yml does not exist.");
+        }
+
+        if (YamlConfiguration.loadConfiguration(story).getMapList("chapters").isEmpty()) {
+            throw new IOException("story.yml has no chapters.");
+        }
+
+        YamlConfiguration settings = YamlConfiguration.loadConfiguration(
+                new File(plugin.getDataFolder(), "settings.yml"));
+
+        if (settings.getString("prefix") == null) {
+            throw new IOException("prefix not found in settings.yml.");
         }
     }
 
@@ -626,12 +679,14 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                         "&aReset all cooldowns for &f%player%&a.", "%player%", target.getName()));
             }
             case "reload" -> {
-                if (args.length != 2) {
-                    sendUsage(sender, "/nightmare system reload");
+                String reloadTarget = args.length >= 3 ? args[2].toLowerCase() : "all";
+
+                if (args.length > 3) {
+                    sendUsage(sender, "/nightmare system reload [target]");
                     return;
                 }
 
-                reloadTarget(sender, "all");
+                reloadTarget(sender, reloadTarget);
             }
             case "altar" -> handleAltar(sender, args);
 
@@ -1074,7 +1129,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2) {
             return switch (args[0].toLowerCase()) {
-                case "help" -> filter(helpOptions(), args[1]);
+                case "help", "h" -> filter(helpOptions(), args[1]);
                 case "reload" -> sender.hasPermission("nightmare.reload") ? filter(RELOAD_TARGETS, args[1]) : List.of();
                 case "time" -> sender.hasPermission("nightmare.system") ? filter(TIME, args[1]) : List.of();
                 case "system", "sys" -> sender.hasPermission("nightmare.system") ? filter(SYSTEM, args[1]) : List.of();
@@ -1084,6 +1139,10 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 3) {
             if (args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("sys")) {
+                if (!sender.hasPermission("nightmare.system")) {
+                    return List.of();
+                }
+
                 if (args[1].equalsIgnoreCase("day")) {
                     return filter(List.of("0", "50", "100"), args[2]);
                 }
@@ -1140,20 +1199,26 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
                     return filter(suggestions, args[2]);
                 }
-            }
 
-                if (args[1].equalsIgnoreCase("altar")) {
-                    return filter(List.of("place", "list", "teleport", "remove"), args[2]);
-                }
-
-                if (args[0].equalsIgnoreCase("time")) {
-                    return filter(List.of("1", "5", "10"), args[2]);
+                if (args[1].equalsIgnoreCase("reload")) {
+                    return filter(RELOAD_TARGETS, args[2]);
                 }
 
                 return List.of();
+            }
+
+            if (args[0].equalsIgnoreCase("time")) {
+                if (!sender.hasPermission("nightmare.system")) {
+                    return List.of();
+                }
+
+                return filter(List.of("1", "5", "10"), args[2]);
+            }
+
+            return List.of();
         }
 
-        if (args.length == 4 && args[0].equalsIgnoreCase("system") && args[1].equalsIgnoreCase("altar")) {
+        if (args.length == 4 && (args[0].equalsIgnoreCase("system") || args[0].equalsIgnoreCase("sys")) && args[1].equalsIgnoreCase("altar")) {
             if (args[2].equalsIgnoreCase("place")) {
                 return filter(List.of("forge", "soul", "abyss", "nightmare", "relics"), args[3]);
             }

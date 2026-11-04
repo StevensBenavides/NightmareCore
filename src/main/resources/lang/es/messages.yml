@@ -91,7 +91,7 @@ commands:
       - "&7/nightmare system item info &8- &fMuestra el modelo del item en mano."
       - "&7/nightmare system relic <give|remove|restore|info> <player> [relic] &8- &fGestiona reliquias."
       - "&7/nightmare system cooldown <player|@player|@s|@a> reset &8- &fResetea los cooldowns de ataque."
-      - "&7/nightmare system reload &8- &fRecarga todas las configuraciones."
+      - "&7/nightmare system reload [target] &8- &fRecarga configuraciones."
       - "&7/nightmare system altar <place|list|teleport|remove> &8- &fGestiona altares del lore."
       - "&7/nightmare system revive <player|@s|@a> &8- &fPerdona el death-ban."
     command_help:
@@ -108,7 +108,7 @@ commands:
       - "&f/nightmare system item give <player> <item>"
       - "&f/nightmare system relic <give|remove|restore|info> <player> [relic]"
       - "&f/nightmare system cooldown <player|@player|@s|@a> reset"
-      - "&f/nightmare system reload"
+      - "&f/nightmare system reload [target]"
       - "&f/nightmare system altar <place|list|teleport|remove> [theme|id]"
       - "&f/nightmare system revive <player|@s|@a>"
 guide:

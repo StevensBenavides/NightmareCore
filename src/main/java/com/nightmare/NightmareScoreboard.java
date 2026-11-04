@@ -25,7 +25,7 @@ public final class NightmareScoreboard {
     
     public void startScoreboard() {
 
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             for (FastBoard board : boards.values()) {
                 updateScoreboard(board);
             }

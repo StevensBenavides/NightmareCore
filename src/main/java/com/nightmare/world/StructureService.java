@@ -67,11 +67,22 @@ public final class StructureService implements Listener {
         plugin = owner;
 
         plugin.saveResource("structures.yml", false);
+
+        File structuresFile = new File(plugin.getDataFolder(), "structures.yml");
+
+        if (!structuresFile.exists()) {
+            return;
+        }
+
+        if (!ALTARS.isEmpty()) {
+            save();
+        }
+
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(structuresFile);
+
         ALTARS.clear();
         CHESTS.clear();
         LECTERNS.clear();
-
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "structures.yml"));
 
         for (Map<?, ?> raw : yml.getMapList("structures")) {
             Altar altar = new Altar(
