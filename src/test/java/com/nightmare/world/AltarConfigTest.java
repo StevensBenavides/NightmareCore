@@ -22,10 +22,13 @@ public class AltarConfigTest {
 
     @Test
     public void altarGenerationIsDense() {
-        assertEquals(40, balance.getInt("altars.chance-denominator"));
+        assertEquals(120, balance.getInt("altars.chance-denominator"));
         assertFalse(balance.getBoolean("altars.only-new-chunks", true));
         assertEquals(5, balance.getInt("altars.common-rolls"));
         assertEquals(150, balance.getInt("altars.min-distance-from-spawn"));
+        assertEquals(128, balance.getInt("altars.min-distance-between"));
+        assertEquals(4, balance.getInt("altars.max-height-difference"));
+        assertEquals(20, balance.getInt("altars.max-obstructed"));
     }
 
     @Test

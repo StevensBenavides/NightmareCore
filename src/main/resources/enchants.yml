@@ -1,54 +1,54 @@
 enchants:
   lifesteal:
     levels:
-      1: { heal-percent: 0.12, heal-cap: 3.0 }
-      2: { heal-percent: 0.16, heal-cap: 4.0 }
-      3: { heal-percent: 0.20, heal-cap: 6.0 }
-      4: { heal-percent: 0.24, heal-cap: 8.0 }
-      5: { heal-percent: 0.30, heal-cap: 12.0 }
+      1: { heal-percent: 0.15, heal-cap: 4.0 }
+      2: { heal-percent: 0.19, heal-cap: 5.0 }
+      3: { heal-percent: 0.23, heal-cap: 7.0 }
+      4: { heal-percent: 0.28, heal-cap: 9.0 }
+      5: { heal-percent: 0.35, heal-cap: 14.0 }
 
   stormcaller:
     cooldown: 1400
     levels:
-      1: { chance: 0.14, targets: 2, damage: 6.0 }
-      2: { chance: 0.19, targets: 3, damage: 8.0 }
-      3: { chance: 0.24, targets: 4, damage: 10.0 }
-      4: { chance: 0.29, targets: 5, damage: 12.5 }
-      5: { chance: 0.36, targets: 6, damage: 16.0 }
+      1: { chance: 0.18, targets: 2, damage: 6.0 }
+      2: { chance: 0.23, targets: 3, damage: 8.0 }
+      3: { chance: 0.28, targets: 4, damage: 10.0 }
+      4: { chance: 0.33, targets: 5, damage: 12.5 }
+      5: { chance: 0.40, targets: 6, damage: 16.0 }
 
   blast_edge:
     cooldown: 2400
     levels:
-      1: { damage: 8.0, radius: 2.4 }
-      2: { damage: 10.0, radius: 3.0 }
-      3: { damage: 13.0, radius: 3.5 }
-      4: { damage: 16.0, radius: 4.1 }
-      5: { damage: 21.0, radius: 4.8 }
+      1: { damage: 9.0, radius: 2.4 }
+      2: { damage: 11.0, radius: 3.0 }
+      3: { damage: 14.0, radius: 3.5 }
+      4: { damage: 18.0, radius: 4.1 }
+      5: { damage: 23.0, radius: 4.8 }
 
   frostbite:
     levels:
-      1: { duration: 60, amplifier: 0, freeze-ticks: 0 }
-      2: { duration: 80, amplifier: 1, freeze-ticks: 20 }
-      3: { duration: 90, amplifier: 1, freeze-ticks: 40 }
-      4: { duration: 110, amplifier: 1, freeze-ticks: 80 }
-      5: { duration: 130, amplifier: 2, freeze-ticks: 160 }
+      1: { duration: 70, amplifier: 0, freeze-ticks: 0 }
+      2: { duration: 90, amplifier: 1, freeze-ticks: 20 }
+      3: { duration: 100, amplifier: 1, freeze-ticks: 40 }
+      4: { duration: 120, amplifier: 1, freeze-ticks: 90 }
+      5: { duration: 150, amplifier: 2, freeze-ticks: 180 }
 
   venom:
     cooldown: 2800
     levels:
-      1: { duration: 100, amplifier: 0, wither: false, anti-heal: 0.0 }
-      2: { duration: 120, amplifier: 1, wither: false, anti-heal: 0.10 }
-      3: { duration: 140, amplifier: 1, wither: true, anti-heal: 0.20 }
-      4: { duration: 160, amplifier: 2, wither: true, anti-heal: 0.35 }
-      5: { duration: 180, amplifier: 2, wither: true, anti-heal: 0.60 }
+      1: { duration: 110, amplifier: 0, wither: false, anti-heal: 0.0 }
+      2: { duration: 130, amplifier: 1, wither: false, anti-heal: 0.10 }
+      3: { duration: 150, amplifier: 1, wither: true, anti-heal: 0.20 }
+      4: { duration: 170, amplifier: 2, wither: true, anti-heal: 0.35 }
+      5: { duration: 190, amplifier: 2, wither: true, anti-heal: 0.60 }
 
   executioner:
     levels:
-      1: { threshold: 0.25, bonus: 0.25 }
-      2: { threshold: 0.28, bonus: 0.31 }
-      3: { threshold: 0.31, bonus: 0.38 }
-      4: { threshold: 0.34, bonus: 0.46 }
-      5: { threshold: 0.38, bonus: 0.58 }
+      1: { threshold: 0.26, bonus: 0.28 }
+      2: { threshold: 0.29, bonus: 0.35 }
+      3: { threshold: 0.32, bonus: 0.42 }
+      4: { threshold: 0.35, bonus: 0.50 }
+      5: { threshold: 0.39, bonus: 0.62 }
 
   berserker:
     threshold: 0.50
@@ -61,19 +61,19 @@ enchants:
 
   soul_harvest:
     levels:
-      1: { per-stack: 0.035, max-stacks: 4, duration: 340, heal: 2.0 }
-      2: { per-stack: 0.045, max-stacks: 5, duration: 380, heal: 2.5 }
-      3: { per-stack: 0.055, max-stacks: 5, duration: 420, heal: 3.0 }
-      4: { per-stack: 0.065, max-stacks: 6, duration: 480, heal: 3.5 }
-      5: { per-stack: 0.080, max-stacks: 7, duration: 600, heal: 4.0 }
+      1: { per-stack: 0.045, max-stacks: 4, duration: 340, heal: 2.0 }
+      2: { per-stack: 0.055, max-stacks: 5, duration: 380, heal: 2.5 }
+      3: { per-stack: 0.065, max-stacks: 5, duration: 420, heal: 3.0 }
+      4: { per-stack: 0.080, max-stacks: 6, duration: 480, heal: 3.5 }
+      5: { per-stack: 0.100, max-stacks: 7, duration: 600, heal: 4.0 }
 
   void_rend:
     levels:
-      1: { damage: 4.0, cooldown: 3800 }
-      2: { damage: 6.0, cooldown: 3500 }
-      3: { damage: 8.0, cooldown: 3200 }
-      4: { damage: 10.0, cooldown: 2800 }
-      5: { damage: 13.0, cooldown: 2400 }
+      1: { damage: 5.0, cooldown: 3800 }
+      2: { damage: 7.0, cooldown: 3500 }
+      3: { damage: 9.0, cooldown: 3200 }
+      4: { damage: 12.0, cooldown: 2800 }
+      5: { damage: 15.0, cooldown: 2400 }
 
   guardian:
     levels:

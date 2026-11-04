@@ -64,6 +64,13 @@ public final class StructureService implements Listener {
     private static final Set<String> ATTEMPTED = ConcurrentHashMap.newKeySet();
     private static final Queue<String[]> BUILD_QUEUE = new ConcurrentLinkedQueue<>();
 
+    private static final Map<String, List<String>> FALLBACK_LOOT = Map.of(
+            "forge", List.of("IRON_INGOT:1-2", "COAL:2-4", "TORCH:4-8"),
+            "soul", List.of("BONE:2-4", "QUARTZ:1-3", "SOUL_TORCH:2-4"),
+            "abyss", List.of("DEEPSLATE:2-4", "INK_SAC:1-3", "AMETHYST_SHARD:1-2"),
+            "nightmare", List.of("BLACKSTONE:2-4", "GUNPOWDER:1-3", "ARROW:4-8"),
+            "relics", List.of("PAPER:2-4", "BOOK:1-2", "FEATHER:1-2"));
+
     public StructureService() {
     }
 
@@ -258,7 +265,21 @@ public final class StructureService implements Listener {
             return;
         }
 
-        int baseY = world.getHighestBlockYAt(centerX, centerZ);
+        int minBetween = Math.max(0, Main.balance.getInt("altars.min-distance-between", 128));
+
+        if (minBetween > 0) {
+            for (Altar altar : ALTARS.values()) {
+                if (!altar.world().equals(world.getName())) {
+                    continue;
+                }
+
+                if (Math.hypot(altar.x() - centerX, altar.z() - centerZ) < minBetween) {
+                    return;
+                }
+            }
+        }
+
+        int baseY = surfaceMax(world, centerX, centerZ);
 
         if (!suitable(world, centerX, baseY, centerZ)) {
             return;
@@ -267,6 +288,18 @@ public final class StructureService implements Listener {
         StructureTheme theme = StructureTheme.values()[(int) Long.remainderUnsigned(hash >>> 8, 5)];
 
         build(world, centerX, baseY, centerZ, theme, hash, false);
+    }
+
+    private static int surfaceMax(World world, int centerX, int centerZ) {
+        int max = Integer.MIN_VALUE;
+
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                max = Math.max(max, world.getHighestBlockYAt(centerX + dx, centerZ + dz));
+            }
+        }
+
+        return max == Integer.MIN_VALUE ? world.getHighestBlockYAt(centerX, centerZ) : max;
     }
 
     private static long hash(long seed, int chunkX, int chunkZ) {
@@ -306,8 +339,8 @@ public final class StructureService implements Listener {
             }
         }
 
-        int maxHeightDifference = Math.max(0, Main.balance.getInt("altars.max-height-difference", 6));
-        int maxObstructed = Math.max(0, Main.balance.getInt("altars.max-obstructed", 40));
+        int maxHeightDifference = Math.max(0, Main.balance.getInt("altars.max-height-difference", 4));
+        int maxObstructed = Math.max(0, Main.balance.getInt("altars.max-obstructed", 20));
 
         return max - min <= maxHeightDifference && obstructed <= maxObstructed;
     }
@@ -402,6 +435,11 @@ public final class StructureService implements Listener {
                 List.of(), null, result.lectern() == null ? null : blockKey(result.lectern()));
 
         ALTARS.put(id, altar);
+        CHESTS.addAll(altar.chests());
+
+        for (Location chest : result.chests()) {
+            fillChest(chest, theme, seed);
+        }
 
         save();
 
@@ -471,67 +509,101 @@ public final class StructureService implements Listener {
     }
 
     private static void fillChest(Location location, StructureTheme theme, long seed) {
-        Block block = location.getBlock();
+        int added = 0;
 
-        if (!(block.getState() instanceof Chest chest)) {
-            return;
-        }
+        try {
+            Block block = location.getBlock();
 
-        Inventory inventory = chest.getBlockInventory();
-        Random random = new Random(seed ^ 0x9E3779B9L);
-        List<String> pool = Main.balance.getStringList("altars.loot." + theme.name().toLowerCase());
+            if (!(block.getState() instanceof Chest chest)) {
+                return;
+            }
 
-        int rolls = Main.balance.getInt("altars.common-rolls", 5);
-        Set<Material> used = new HashSet<>();
+            Inventory inventory = chest.getBlockInventory();
+            Random random = new Random(seed ^ 0x9E3779B9L);
+            String themeKey = theme.name().toLowerCase();
+            List<String> pool = Main.balance.getStringList("altars.loot." + themeKey);
 
-        for (int i = 0; i < rolls && !pool.isEmpty(); i++) {
-            String entry = null;
+            if (pool.isEmpty()) {
+                pool = FALLBACK_LOOT.getOrDefault(themeKey, FALLBACK_LOOT.get("forge"));
+            }
 
-            for (int attempt = 0; attempt < 8; attempt++) {
-                String candidate = pool.get(random.nextInt(pool.size()));
-                Material material = materialOf(candidate);
+            int rolls = Math.max(1, Main.balance.getInt("altars.common-rolls", 5));
+            Set<Material> used = new HashSet<>();
 
-                if (material != null && !used.contains(material)) {
-                    entry = candidate;
-                    break;
+            for (int i = 0; i < rolls && !pool.isEmpty(); i++) {
+                String entry = null;
+
+                for (int attempt = 0; attempt < 8; attempt++) {
+                    String candidate = pool.get(random.nextInt(pool.size()));
+                    Material material = materialOf(candidate);
+
+                    if (material != null && !used.contains(material)) {
+                        entry = candidate;
+                        break;
+                    }
+                }
+
+                if (entry == null) {
+                    entry = pool.get(random.nextInt(pool.size()));
+                }
+
+                ItemStack item = parseLoot(entry, random);
+
+                if (item != null) {
+                    inventory.addItem(item);
+                    used.add(item.getType());
+                    added++;
                 }
             }
 
-            if (entry == null) {
-                entry = pool.get(random.nextInt(pool.size()));
+            if (random.nextDouble() < Main.balance.getDouble("altars.book-chance", 0.15)) {
+                ItemStack book = rollThemeBook(theme, random);
+
+                if (book != null) {
+                    inventory.addItem(book);
+                    added++;
+                }
             }
 
-            ItemStack item = parseLoot(entry, random);
-
-            if (item != null) {
-                inventory.addItem(item);
-                used.add(item.getType());
+            if (random.nextDouble() < Main.balance.getDouble("altars.ink-chance", 0.10)) {
+                inventory.addItem(EnchantBookService.createAbyssalInk());
+                added++;
             }
-        }
 
-        if (random.nextDouble() < Main.balance.getDouble("altars.book-chance", 0.15)) {
-            ItemStack book = rollThemeBook(theme, random);
-
-            if (book != null) {
-                inventory.addItem(book);
+            if (random.nextDouble() < Main.balance.getDouble("altars.nucleus-chance", 0.10)) {
+                inventory.addItem(EnchantBookService.createAbyssalNucleus());
+                added++;
             }
+
+            StoryService.Chapter chapter = StoryService.chapter(theme.storyChapter);
+
+            if (chapter != null) {
+                inventory.addItem(loreBook(chapter));
+                added++;
+            }
+
+            if (added == 0) {
+                for (String fallback : FALLBACK_LOOT.getOrDefault(themeKey, FALLBACK_LOOT.get("forge"))) {
+                    ItemStack item = parseLoot(fallback, random);
+
+                    if (item != null) {
+                        inventory.addItem(item);
+                        added++;
+
+                        if (added >= 2) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            chest.update();
+        } catch (Exception exception) {
+            Main.getInstance().getLogger().warning("Could not fill altar chest at "
+                    + location.getWorld().getName() + ":" + location.getBlockX() + "," + location.getBlockY() + ","
+                    + location.getBlockZ() + " (" + theme.name().toLowerCase() + ", items=" + added + "): "
+                    + exception.getMessage());
         }
-
-        if (random.nextDouble() < Main.balance.getDouble("altars.ink-chance", 0.10)) {
-            inventory.addItem(EnchantBookService.createAbyssalInk());
-        }
-
-        if (random.nextDouble() < Main.balance.getDouble("altars.nucleus-chance", 0.10)) {
-            inventory.addItem(EnchantBookService.createAbyssalNucleus());
-        }
-
-        StoryService.Chapter chapter = StoryService.chapter(theme.storyChapter);
-
-        if (chapter != null) {
-            inventory.addItem(loreBook(chapter));
-        }
-
-        chest.update();
     }
 
     private static Material materialOf(String entry) {
@@ -578,7 +650,11 @@ public final class StructureService implements Listener {
 
         int amount = min + (max > min ? random.nextInt(max - min + 1) : 0);
 
-        return new ItemStack(material, Math.max(1, amount));
+        try {
+            return new ItemStack(material, Math.max(1, amount));
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     private static final Map<StructureTheme, List<String>> THEME_BOOKS = Map.of(

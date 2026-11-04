@@ -77,23 +77,44 @@ public final class StructureDesigns {
             }
         }
 
-        if (floorMode != 2) {
-            for (String cell : footprint) {
-                String[] parts = cell.split(",");
+        for (String cell : footprint) {
+            String[] parts = cell.split(",");
 
-                int dx = Integer.parseInt(parts[0]);
-                int dz = Integer.parseInt(parts[1]);
-                if (floorMode == 1 && random.nextDouble() < 0.30) {
-                    continue;
-                }
+            int dx = Integer.parseInt(parts[0]);
+            int dz = Integer.parseInt(parts[1]);
+            int surface = world.getHighestBlockYAt(baseX + dx, baseZ + dz);
 
-                int[] r = rotate(dx, dz, rotation);
+            if (baseY - surface > 8) {
+                continue;
+            }
 
-                Material floor = theme.floor().apply(random, Math.abs(dx) + Math.abs(dz));
+            for (int y = surface + 1; y < baseY; y++) {
+                set(world, baseX + dx, y, baseZ + dz, theme.pillar().apply(random), placed);
+            }
+        }
 
-                if (floor != null && random.nextDouble() < theme.floorKeep) {
-                    set(world, baseX + r[0], baseY + r[1], baseZ, floor, placed);
-                }
+        double floorKeep = Math.max(0.85, Math.min(1.0, theme.floorKeep));
+
+        for (String cell : footprint) {
+            String[] parts = cell.split(",");
+
+            int dx = Integer.parseInt(parts[0]);
+            int dz = Integer.parseInt(parts[1]);
+
+            if (floorMode == 1 && random.nextDouble() < 0.30) {
+                continue;
+            }
+
+            if (floorMode == 2 && random.nextDouble() < 0.15) {
+                continue;
+            }
+
+            int[] r = rotate(dx, dz, rotation);
+
+            Material floor = theme.floor().apply(random, Math.abs(dx) + Math.abs(dz));
+
+            if (floor != null && random.nextDouble() < floorKeep) {
+                set(world, baseX + r[0], baseY, baseZ + r[1], floor, placed);
             }
         }
 
@@ -124,26 +145,17 @@ public final class StructureDesigns {
         }
 
         int pillarHeight = roof == 3 ? 5 : 2 + random.nextInt(3);
+        double ruin = Math.min(0.20, Math.max(0.0, theme.ruinChance));
 
-        List<int[]> pillarTops = new ArrayList<>();
+        for (int[] corner : pillars) {
+            int[] r = rotate(corner[0], corner[1], rotation);
+            int height = roof == 3 ? pillarHeight : 2 + random.nextInt(3);
 
-        if (roof >= 1) {
-            for (int[] corner : pillars) {
-                int[] r = rotate(corner[0], corner[1], rotation);
-                int height = roof == 3 ? pillarHeight : 2 + random.nextInt(3);
-                int top = 0;
-
-                for (int y = 1; y <= height; y++) {
-                    if (random.nextDouble() < theme.ruinChance) {
-                        continue;
-                    }
-                    set(world, baseX + r[0], baseY + r[1], baseZ + y, theme.pillar().apply(random), placed);
-                    top = y;
+            for (int y = 1; y <= height; y++) {
+                if (y > 2 && random.nextDouble() < ruin) {
+                    continue;
                 }
-
-                if (top > 0) {
-                    pillarTops.add(new int[] { r[0], r[1], top });
-                }
+                set(world, baseX + r[0], baseY + y, baseZ + r[1], theme.pillar().apply(random), placed);
             }
         }
 
@@ -159,10 +171,10 @@ public final class StructureDesigns {
                 for (int i = 1; i < steps; i++) {
                     int bx = a[0] + (b[0] - a[0]) * i / steps;
                     int bz = a[1] + (b[1] - a[1]) * i / steps;
-                    if (random.nextDouble() < theme.ruinChance) {
+                    if (random.nextDouble() < ruin) {
                         continue;
                     }
-                    set(world, baseX + bx, baseY + bz, baseZ + beamY, theme.pillar().apply(random), placed);
+                    set(world, baseX + bx, baseY + beamY, baseZ + bz, theme.pillar().apply(random), placed);
                 }
 
             }
@@ -179,12 +191,12 @@ public final class StructureDesigns {
                     continue;
                 }
 
-                if (random.nextDouble() < theme.ruinChance) {
+                if (random.nextDouble() < ruin) {
                     continue;
                 }
                 int[] r = rotate(dx, dz, rotation);
 
-                set(world, baseX + r[0], baseY + r[1], baseZ + 6, theme.pillar().apply(random), placed);
+                set(world, baseX + r[0], baseY + 6, baseZ + r[1], theme.pillar().apply(random), placed);
             }
         }
 
@@ -199,7 +211,7 @@ public final class StructureDesigns {
             if (!extraMaterial.isBlock()) {
                 continue;
             }
-            Block extraBlock = world.getBlockAt(baseX + r[0], baseY + extra[2] + r[1], baseZ);
+            Block extraBlock = world.getBlockAt(baseX + r[0], baseY + extra[2], baseZ + r[1]);
 
             if (canReplace(extraBlock)) {
                 extraBlock.setType(extraMaterial, false);
@@ -211,7 +223,7 @@ public final class StructureDesigns {
 
         if (lecternCell != null) {
             int[] lecternRel = rotate(lecternCell[0], lecternCell[1], rotation);
-            Block lecternBlock = world.getBlockAt(baseX + lecternRel[0], baseY + lecternRel[1] + 1, baseZ);
+            Block lecternBlock = world.getBlockAt(baseX + lecternRel[0], baseY + 1, baseZ + lecternRel[1]);
 
             if (canReplace(lecternBlock)) {
                 lecternBlock.setType(Material.LECTERN, false);
@@ -239,7 +251,7 @@ public final class StructureDesigns {
             }
 
             int[] chestRel = rotate(chestCell[0], chestCell[1], rotation);
-            Block chestBlock = world.getBlockAt(baseX + chestRel[0], baseY + chestRel[1] + 1, baseZ);
+            Block chestBlock = world.getBlockAt(baseX + chestRel[0], baseY + 1, baseZ + chestRel[1]);
 
             if (canReplace(chestBlock)) {
                 chestBlock.setType(Material.CHEST, false);

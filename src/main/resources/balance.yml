@@ -127,9 +127,10 @@ abyssal-core:
 altars:
   only-new-chunks: false
   min-distance-from-spawn: 150
-  chance-denominator: 40
-  max-height-difference: 6
-  max-obstructed: 40
+  min-distance-between: 128
+  chance-denominator: 120
+  max-height-difference: 4
+  max-obstructed: 20
   chest-none-chance: 30
   chest-one-chance: 40
   chest-two-chance: 30
