@@ -21,7 +21,7 @@ public final class VoidRendEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public VoidRendEnchant() {
-        super("void_rend", "Void Rend", 5, false,
+        super("void_rend", "Void Rend", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,

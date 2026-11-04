@@ -25,7 +25,7 @@ public final class BlastEdgeEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Integer>> HITS = new HashMap<>();
 
     public BlastEdgeEnchant() {
-        super("blast_edge", "Blast Edge", 5, false,
+        super("blast_edge", "Blast Edge", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,

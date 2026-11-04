@@ -11,7 +11,7 @@ import com.nightmare.enchant.EnchantTrigger;
 public final class ExecutionerEnchant extends CustomEnchant {
 
     public ExecutionerEnchant() {
-        super("executioner", "Executioner", 5, false,
+        super("executioner", "Executioner", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,

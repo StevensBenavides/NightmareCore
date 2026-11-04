@@ -1,126 +1,126 @@
 enchants:
   lifesteal:
     levels:
-      1: { heal-percent: 0.09, heal-cap: 2.0 }
-      2: { heal-percent: 0.12, heal-cap: 3.0 }
-      3: { heal-percent: 0.15, heal-cap: 4.5 }
-      4: { heal-percent: 0.18, heal-cap: 6.5 }
-      5: { heal-percent: 0.22, heal-cap: 9.0 }
+      1: { heal-percent: 0.12, heal-cap: 3.0 }
+      2: { heal-percent: 0.16, heal-cap: 4.0 }
+      3: { heal-percent: 0.20, heal-cap: 6.0 }
+      4: { heal-percent: 0.24, heal-cap: 8.0 }
+      5: { heal-percent: 0.30, heal-cap: 12.0 }
 
   stormcaller:
-    cooldown: 2000
+    cooldown: 1400
     levels:
-      1: { chance: 0.08, targets: 2, damage: 3.5 }
-      2: { chance: 0.12, targets: 3, damage: 4.5 }
-      3: { chance: 0.15, targets: 3, damage: 5.5 }
-      4: { chance: 0.18, targets: 4, damage: 7.0 }
-      5: { chance: 0.24, targets: 5, damage: 9.0 }
+      1: { chance: 0.14, targets: 2, damage: 6.0 }
+      2: { chance: 0.19, targets: 3, damage: 8.0 }
+      3: { chance: 0.24, targets: 4, damage: 10.0 }
+      4: { chance: 0.29, targets: 5, damage: 12.5 }
+      5: { chance: 0.36, targets: 6, damage: 16.0 }
 
   blast_edge:
-    cooldown: 3000
+    cooldown: 2400
     levels:
-      1: { damage: 6.0, radius: 2.2 }
-      2: { damage: 8.0, radius: 2.7 }
-      3: { damage: 10.0, radius: 3.2 }
-      4: { damage: 12.0, radius: 3.7 }
-      5: { damage: 16.0, radius: 4.4 }
+      1: { damage: 8.0, radius: 2.4 }
+      2: { damage: 10.0, radius: 3.0 }
+      3: { damage: 13.0, radius: 3.5 }
+      4: { damage: 16.0, radius: 4.1 }
+      5: { damage: 21.0, radius: 4.8 }
 
   frostbite:
     levels:
-      1: { duration: 40, amplifier: 0, freeze-ticks: 0 }
-      2: { duration: 60, amplifier: 0, freeze-ticks: 0 }
-      3: { duration: 65, amplifier: 1, freeze-ticks: 0 }
-      4: { duration: 80, amplifier: 1, freeze-ticks: 20 }
-      5: { duration: 100, amplifier: 1, freeze-ticks: 120 }
+      1: { duration: 60, amplifier: 0, freeze-ticks: 0 }
+      2: { duration: 80, amplifier: 1, freeze-ticks: 20 }
+      3: { duration: 90, amplifier: 1, freeze-ticks: 40 }
+      4: { duration: 110, amplifier: 1, freeze-ticks: 80 }
+      5: { duration: 130, amplifier: 2, freeze-ticks: 160 }
 
   venom:
-    cooldown: 4000
+    cooldown: 2800
     levels:
-      1: { duration: 60, amplifier: 0, wither: false, anti-heal: 0.0 }
-      2: { duration: 80, amplifier: 0, wither: false, anti-heal: 0.0 }
-      3: { duration: 90, amplifier: 1, wither: false, anti-heal: 0.0 }
-      4: { duration: 110, amplifier: 1, wither: false, anti-heal: 0.0 }
-      5: { duration: 100, amplifier: 1, wither: true, anti-heal: 0.45 }
+      1: { duration: 100, amplifier: 0, wither: false, anti-heal: 0.0 }
+      2: { duration: 120, amplifier: 1, wither: false, anti-heal: 0.10 }
+      3: { duration: 140, amplifier: 1, wither: true, anti-heal: 0.20 }
+      4: { duration: 160, amplifier: 2, wither: true, anti-heal: 0.35 }
+      5: { duration: 180, amplifier: 2, wither: true, anti-heal: 0.60 }
 
   executioner:
     levels:
-      1: { threshold: 0.21, bonus: 0.12 }
-      2: { threshold: 0.23, bonus: 0.17 }
-      3: { threshold: 0.26, bonus: 0.22 }
-      4: { threshold: 0.29, bonus: 0.27 }
-      5: { threshold: 0.32, bonus: 0.39 }
+      1: { threshold: 0.25, bonus: 0.25 }
+      2: { threshold: 0.28, bonus: 0.31 }
+      3: { threshold: 0.31, bonus: 0.38 }
+      4: { threshold: 0.34, bonus: 0.46 }
+      5: { threshold: 0.38, bonus: 0.58 }
 
   berserker:
-    threshold: 0.40
+    threshold: 0.50
     levels:
-      1: { duration: 70, strength: 0, speed: 0, cooldown: 29000 }
-      2: { duration: 90, strength: 0, speed: 0, cooldown: 27000 }
-      3: { duration: 90, strength: 1, speed: 0, cooldown: 25000 }
-      4: { duration: 110, strength: 1, speed: 1, cooldown: 23000 }
-      5: { duration: 130, strength: 2, speed: 1, cooldown: 18000 }
+      1: { duration: 100, strength: 0, speed: 0, cooldown: 22000 }
+      2: { duration: 120, strength: 1, speed: 0, cooldown: 20000 }
+      3: { duration: 130, strength: 1, speed: 1, cooldown: 18000 }
+      4: { duration: 150, strength: 2, speed: 1, cooldown: 16000 }
+      5: { duration: 170, strength: 2, speed: 2, cooldown: 13000 }
 
   soul_harvest:
     levels:
-      1: { per-stack: 0.025, max-stacks: 3, duration: 260, heal: 1.5 }
-      2: { per-stack: 0.032, max-stacks: 3, duration: 300, heal: 1.5 }
-      3: { per-stack: 0.038, max-stacks: 4, duration: 340, heal: 2.0 }
-      4: { per-stack: 0.045, max-stacks: 4, duration: 400, heal: 2.5 }
-      5: { per-stack: 0.055, max-stacks: 5, duration: 500, heal: 2.5 }
+      1: { per-stack: 0.035, max-stacks: 4, duration: 340, heal: 2.0 }
+      2: { per-stack: 0.045, max-stacks: 5, duration: 380, heal: 2.5 }
+      3: { per-stack: 0.055, max-stacks: 5, duration: 420, heal: 3.0 }
+      4: { per-stack: 0.065, max-stacks: 6, duration: 480, heal: 3.5 }
+      5: { per-stack: 0.080, max-stacks: 7, duration: 600, heal: 4.0 }
 
   void_rend:
     levels:
-      1: { damage: 3.0, cooldown: 4600 }
-      2: { damage: 4.5, cooldown: 4300 }
-      3: { damage: 6.0, cooldown: 3900 }
-      4: { damage: 8.0, cooldown: 3300 }
-      5: { damage: 10.0, cooldown: 2800 }
+      1: { damage: 4.0, cooldown: 3800 }
+      2: { damage: 6.0, cooldown: 3500 }
+      3: { damage: 8.0, cooldown: 3200 }
+      4: { damage: 10.0, cooldown: 2800 }
+      5: { damage: 13.0, cooldown: 2400 }
 
   guardian:
     levels:
-      1: { chance: 0.14, absorption: 0, duration: 70, cooldown: 12000 }
-      2: { chance: 0.18, absorption: 0, duration: 90, cooldown: 11000 }
-      3: { chance: 0.22, absorption: 1, duration: 90, cooldown: 10000 }
-      4: { chance: 0.27, absorption: 1, duration: 110, cooldown: 9000 }
-      5: { chance: 0.34, absorption: 2, duration: 140, cooldown: 8000 }
+      1: { chance: 0.18, absorption: 1, duration: 90, cooldown: 10000 }
+      2: { chance: 0.22, absorption: 1, duration: 110, cooldown: 9000 }
+      3: { chance: 0.27, absorption: 1, duration: 120, cooldown: 8000 }
+      4: { chance: 0.32, absorption: 2, duration: 140, cooldown: 7000 }
+      5: { chance: 0.40, absorption: 3, duration: 170, cooldown: 6000 }
 
   retribution:
     levels:
-      1: { reflect: 0.15, cap: 2.0 }
-      2: { reflect: 0.20, cap: 3.0 }
-      3: { reflect: 0.27, cap: 4.5 }
-      4: { reflect: 0.35, cap: 6.0 }
-      5: { reflect: 0.50, cap: 8.0 }
+      1: { reflect: 0.20, cap: 3.0 }
+      2: { reflect: 0.26, cap: 4.0 }
+      3: { reflect: 0.34, cap: 6.0 }
+      4: { reflect: 0.44, cap: 8.0 }
+      5: { reflect: 0.60, cap: 11.0 }
 
   second_wind:
-    threshold: 0.28
+    threshold: 0.32
     levels:
-      1: { heal: 3.0, duration: 50, absorption: 0, cooldown: 58000 }
-      2: { heal: 4.0, duration: 70, absorption: 0, cooldown: 53000 }
-      3: { heal: 5.0, duration: 70, absorption: 1, cooldown: 48000 }
-      4: { heal: 7.0, duration: 90, absorption: 1, cooldown: 43000 }
-      5: { heal: 9.0, duration: 120, absorption: 2, cooldown: 36000 }
+      1: { heal: 5.0, duration: 70, absorption: 1, cooldown: 45000 }
+      2: { heal: 6.0, duration: 90, absorption: 1, cooldown: 40000 }
+      3: { heal: 8.0, duration: 100, absorption: 2, cooldown: 35000 }
+      4: { heal: 10.0, duration: 120, absorption: 2, cooldown: 30000 }
+      5: { heal: 13.0, duration: 150, absorption: 3, cooldown: 25000 }
 
   blink:
     levels:
-      1: { chance: 0.14, distance: 4, cooldown: 19000 }
-      2: { chance: 0.17, distance: 5, cooldown: 17000 }
-      3: { chance: 0.20, distance: 6, cooldown: 15000 }
-      4: { chance: 0.25, distance: 7, cooldown: 13000 }
-      5: { chance: 0.32, distance: 9, cooldown: 10000 }
+      1: { chance: 0.18, distance: 5, cooldown: 15000 }
+      2: { chance: 0.22, distance: 6, cooldown: 13000 }
+      3: { chance: 0.26, distance: 7, cooldown: 11000 }
+      4: { chance: 0.31, distance: 8, cooldown: 9000 }
+      5: { chance: 0.38, distance: 10, cooldown: 7000 }
 
   nightmare_mark:
-    max-stacks: 5
-    stack-duration: 130
-    damage: 12.0
-    cooldown: 13000
+    max-stacks: 4
+    stack-duration: 150
+    damage: 16.0
+    cooldown: 10000
 
   aegis:
     levels:
-      1: { chance: 0.14, reduction: 0.22, cooldown: 4800 }
-      2: { chance: 0.17, reduction: 0.30, cooldown: 5600 }
-      3: { chance: 0.21, reduction: 0.38, cooldown: 6400 }
-      4: { chance: 0.26, reduction: 0.46, cooldown: 7200 }
-      5: { chance: 0.32, reduction: 0.54, cooldown: 5000 }
+      1: { chance: 0.18, reduction: 0.30, cooldown: 4000 }
+      2: { chance: 0.22, reduction: 0.38, cooldown: 4500 }
+      3: { chance: 0.26, reduction: 0.46, cooldown: 5000 }
+      4: { chance: 0.31, reduction: 0.54, cooldown: 5500 }
+      5: { chance: 0.38, reduction: 0.65, cooldown: 4000 }
 
   abyssal_howl:
     strength-amplifier: 2

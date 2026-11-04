@@ -22,7 +22,7 @@ public final class VenomEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public VenomEnchant() {
-        super("venom", "Venom", 5, false, Material.MACE, Material.BOW, Material.CROSSBOW);
+        super("venom", "Venom", 5, true, Material.MACE, Material.BOW, Material.CROSSBOW);
     }
 
     @Override

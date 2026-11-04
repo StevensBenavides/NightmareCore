@@ -23,7 +23,7 @@ public final class BlinkEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public BlinkEnchant() {
-        super("blink", "Blink", 5, false,
+        super("blink", "Blink", 5, true,
                 Material.LEATHER_BOOTS,
                 Material.CHAINMAIL_BOOTS,
                 Material.IRON_BOOTS,

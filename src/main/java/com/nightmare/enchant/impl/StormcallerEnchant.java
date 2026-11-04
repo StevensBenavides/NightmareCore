@@ -22,7 +22,7 @@ public final class StormcallerEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public StormcallerEnchant() {
-        super("stormcaller", "Stormcaller", 5, false,
+        super("stormcaller", "Stormcaller", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,

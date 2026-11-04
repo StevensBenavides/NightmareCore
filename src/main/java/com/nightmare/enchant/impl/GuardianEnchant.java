@@ -20,7 +20,7 @@ public final class GuardianEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public GuardianEnchant() {
-        super("guardian", "Guardian", 5, false,
+        super("guardian", "Guardian", 5, true,
                 Material.LEATHER_HELMET,
                 Material.LEATHER_CHESTPLATE,
                 Material.LEATHER_LEGGINGS,

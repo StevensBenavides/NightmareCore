@@ -21,7 +21,7 @@ public final class RetributionEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public RetributionEnchant() {
-        super("retribution", "Retribution", 5, false,
+        super("retribution", "Retribution", 5, true,
                 Material.LEATHER_CHESTPLATE,
                 Material.LEATHER_LEGGINGS,
                 Material.CHAINMAIL_CHESTPLATE,

@@ -11,7 +11,7 @@ import com.nightmare.enchant.EnchantTrigger;
 public final class LifestealEnchant extends CustomEnchant {
 
     public LifestealEnchant() {
-        super("lifesteal", "Lifesteal", 5, false,
+        super("lifesteal", "Lifesteal", 5, true,
                 Material.MACE,
                 Material.TRIDENT,
                 Material.BOW,

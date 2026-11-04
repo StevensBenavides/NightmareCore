@@ -15,6 +15,21 @@ public class EnchantRegistryTest {
     }
 
     @Test
+    public void mobGearEnchantsArePlayerOnlyExceptNightmareMark() {
+        String[] playerOnlyIds = {
+                "lifesteal", "stormcaller", "blast_edge", "frostbite", "venom",
+                "executioner", "berserker", "soul_harvest", "void_rend", "guardian",
+                "retribution", "second_wind", "blink", "aegis"};
+
+        for (String id : playerOnlyIds) {
+            assertTrue(id + " must be playerOnly", EnchantRegistry.ENCHANTS.get(id).playerOnly);
+        }
+
+        assertTrue("nightmare_mark must not be playerOnly",
+                !EnchantRegistry.ENCHANTS.get("nightmare_mark").playerOnly);
+    }
+
+    @Test
     public void abyssalHowlIsPlayerOnlyAndLevelOne() {
         CustomEnchant enchant = EnchantRegistry.ENCHANTS.get("abyssal_howl");
         assertTrue(enchant.playerOnly);

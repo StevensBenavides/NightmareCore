@@ -22,7 +22,7 @@ public final class BerserkerEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public BerserkerEnchant() {
-        super("berserker", "Berserker", 5, false,
+        super("berserker", "Berserker", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,

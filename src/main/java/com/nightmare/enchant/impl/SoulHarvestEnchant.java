@@ -18,7 +18,7 @@ public final class SoulHarvestEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> EXPIRY = new HashMap<>();
 
     public SoulHarvestEnchant() {
-        super("soul_harvest", "Soul Harvest", 5, false,
+        super("soul_harvest", "Soul Harvest", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,

@@ -20,7 +20,7 @@ public final class SecondWindEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public SecondWindEnchant() {
-        super("second_wind", "Second Wind", 5, false,
+        super("second_wind", "Second Wind", 5, true,
                 Material.LEATHER_CHESTPLATE,
                 Material.LEATHER_LEGGINGS,
                 Material.CHAINMAIL_CHESTPLATE,

@@ -14,7 +14,7 @@ import com.nightmare.enchant.EnchantTrigger;
 public final class FrostbiteEnchant extends CustomEnchant {
 
     public FrostbiteEnchant() {
-        super("frostbite", "Frostbite", 5, false,
+        super("frostbite", "Frostbite", 5, true,
                 Material.WOODEN_SWORD,
                 Material.STONE_SWORD,
                 Material.IRON_SWORD,
