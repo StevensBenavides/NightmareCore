@@ -18,6 +18,12 @@ public final class StructureDesigns {
     private StructureDesigns() {
     }
 
+    private static org.bukkit.configuration.file.YamlConfiguration balance() {
+        return com.nightmare.Main.balance == null
+                ? new org.bukkit.configuration.file.YamlConfiguration()
+                : com.nightmare.Main.balance;
+    }
+
     public record Placed(String world, int x, int y, int z) {
         String key() {
             return world + ":" + x + "," + y + "," + z;
@@ -220,7 +226,9 @@ public final class StructureDesigns {
             }
         }
 
-        int chestCount = lootRoll < 60 ? 1 : lootRoll < 85 ? 0 : 2;
+        int oneChance = Math.max(0, balance().getInt("altars.chest-one-chance", 40));
+        int twoChance = Math.max(0, balance().getInt("altars.chest-two-chance", 30));
+        int chestCount = lootRoll < oneChance ? 1 : lootRoll < oneChance + twoChance ? 2 : 0;
         int[][] chestSpots = { { -2, 0 }, { 2, 0 } };
 
         for (int i = 0; i < chestCount; i++) {

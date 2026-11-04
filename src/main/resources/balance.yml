@@ -125,16 +125,22 @@ abyssal-core:
   area-respect-protections: true
 
 altars:
-  min-distance-from-spawn: 300
-  chance-denominator: 400
-  book-chance: 0.10
+  only-new-chunks: false
+  min-distance-from-spawn: 150
+  chance-denominator: 40
+  max-height-difference: 6
+  max-obstructed: 40
+  chest-none-chance: 30
+  chest-one-chance: 40
+  chest-two-chance: 30
+  book-chance: 0.15
   book-max-level: 2
-  ink-chance: 0.04
-  nucleus-chance: 0.02
-  common-rolls: 3
+  ink-chance: 0.10
+  nucleus-chance: 0.10
+  common-rolls: 5
   loot:
-    forge: ["IRON_INGOT:1-3", "COPPER_INGOT:1-3", "COAL:2-4", "FURNACE:1-1"]
-    soul: ["QUARTZ:1-3", "GLOWSTONE_DUST:1-3", "SOUL_LANTERN:1-1", "BONE:2-4"]
-    abyss: ["DEEPSLATE:2-4", "OBSIDIAN:1-2", "AMETHYST_SHARD:1-3", "SCULK:1-2"]
-    nightmare: ["BLACKSTONE:2-4", "WITHER_ROSE:1-2", "COAL_BLOCK:1-1", "REDSTONE:2-4"]
-    relics: ["BOOK:1-3", "PAPER:2-5", "LEATHER:1-2", "ENCHANTED_BOOK:1-1"]
+    forge: ["IRON_INGOT:2-4", "COPPER_INGOT:2-4", "COAL:4-8", "IRON_BLOCK:1-1", "ANVIL:1-1", "BLAST_FURNACE:1-1", "GRINDSTONE:1-1", "HOPPER:1-2", "CHAIN:2-4", "IRON_NUGGET:4-9", "FLINT_AND_STEEL:1-1", "TORCH:4-8"]
+    soul: ["QUARTZ:2-4", "GLOWSTONE_DUST:2-4", "SOUL_LANTERN:1-1", "BONE:2-4", "SOUL_TORCH:2-4", "SOUL_SAND:2-4", "PHANTOM_MEMBRANE:1-2", "GHAST_TEAR:1-1", "GLOWSTONE:1-1", "SPECTRAL_ARROW:4-8", "EXPERIENCE_BOTTLE:1-3", "ENDER_PEARL:1-1", "BLAZE_POWDER:1-2"]
+    abyss: ["DEEPSLATE:4-8", "OBSIDIAN:1-3", "AMETHYST_SHARD:3-6", "SCULK:2-4", "SCULK_VEIN:1-2", "ECHO_SHARD:1-1", "DARK_PRISMARINE:1-3", "PRISMARINE_SHARD:2-4", "PRISMARINE_CRYSTALS:1-3", "INK_SAC:2-4", "GLOW_INK_SAC:1-1", "NAUTILUS_SHELL:1-1", "SPONGE:1-1", "CALCITE:2-4"]
+    nightmare: ["BLACKSTONE:2-4", "WITHER_ROSE:1-2", "COAL_BLOCK:1-1", "REDSTONE:2-4", "NETHER_WART:2-4", "MAGMA_CREAM:1-2", "GUNPOWDER:2-4", "FIRE_CHARGE:1-2", "NETHER_BRICK:2-4", "CROSSBOW:1-1", "ARROW:8-16", "TNT:1-1", "SOUL_SAND:1-2"]
+    relics: ["BOOK:2-5", "PAPER:4-8", "LEATHER:2-4", "ENCHANTED_BOOK:1-1", "BOOKSHELF:1-2", "LECTERN:1-1", "ITEM_FRAME:1-2", "GLASS_BOTTLE:2-4", "COMPASS:1-1", "CLOCK:1-1", "INK_SAC:2-4", "FEATHER:1-3", "AMETHYST_SHARD:1-2"]

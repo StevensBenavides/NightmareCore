@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
@@ -59,6 +61,8 @@ public final class StructureService implements Listener {
     private static final Map<String, Altar> ALTARS = new ConcurrentHashMap<>();
     private static final Set<String> CHESTS = ConcurrentHashMap.newKeySet();
     private static final Set<String> LECTERNS = ConcurrentHashMap.newKeySet();
+    private static final Set<String> ATTEMPTED = ConcurrentHashMap.newKeySet();
+    private static final Queue<String[]> BUILD_QUEUE = new ConcurrentLinkedQueue<>();
 
     public StructureService() {
     }
@@ -164,37 +168,93 @@ public final class StructureService implements Listener {
                         3, 1.5, 1.0, 1.5, 0.01);
             }
         }, 40L, 40L);
+
+        Bukkit.getScheduler().runTaskTimer(owner, () -> {
+            for (int i = 0; i < 1; i++) {
+                String[] entry = BUILD_QUEUE.poll();
+
+                if (entry == null) {
+                    return;
+                }
+
+                try {
+                    processQueuedChunk(entry);
+                } catch (Exception exception) {
+                    owner.getLogger().warning("Could not build altar: " + exception.getMessage());
+                }
+            }
+        }, 1L, 1L);
     }
 
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
-        if (!event.isNewChunk()) {
+        World world = event.getWorld();
+
+        if (plugin == null || world.getEnvironment() != World.Environment.NORMAL) {
             return;
         }
 
-        World world = event.getWorld();
-
-        if (world.getEnvironment() != World.Environment.NORMAL) {
+        if (Main.balance.getBoolean("altars.only-new-chunks", false) && !event.isNewChunk()) {
             return;
         }
 
         int chunkX = event.getChunk().getX();
         int chunkZ = event.getChunk().getZ();
+        String key = world.getName() + ":" + chunkX + "," + chunkZ;
+
+        if (ATTEMPTED.contains(key) || hasAltarInChunk(world.getName(), chunkX, chunkZ)) {
+            return;
+        }
+
         long hash = hash(world.getSeed(), chunkX, chunkZ);
-        int denominator = Math.max(1, Main.balance.getInt("altars.chance-denominator", 400));
+        int denominator = Math.max(1, Main.balance.getInt("altars.chance-denominator", 40));
 
         if (Long.remainderUnsigned(hash, denominator) != 0) {
             return;
         }
 
+        ATTEMPTED.add(key);
+
+        BUILD_QUEUE.add(new String[] {
+                world.getName(), String.valueOf(chunkX), String.valueOf(chunkZ), String.valueOf(hash)});
+    }
+
+    private static boolean hasAltarInChunk(String worldName, int chunkX, int chunkZ) {
+        for (Altar altar : ALTARS.values()) {
+            if (altar.world().equals(worldName) && (altar.x() >> 4) == chunkX && (altar.z() >> 4) == chunkZ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void processQueuedChunk(String[] entry) {
+        World world = Bukkit.getWorld(entry[0]);
+
+        if (world == null) {
+            return;
+        }
+
+        int chunkX = Integer.parseInt(entry[1]);
+        int chunkZ = Integer.parseInt(entry[2]);
+        long hash = Long.parseLong(entry[3]);
+
+        if (!world.isChunkLoaded(chunkX, chunkZ)) {
+            ATTEMPTED.remove(world.getName() + ":" + chunkX + "," + chunkZ);
+            return;
+        }
+
+        if (hasAltarInChunk(world.getName(), chunkX, chunkZ)) {
+            return;
+        }
+
         int centerX = chunkX * 16 + 8;
         int centerZ = chunkZ * 16 + 8;
-
         Location spawn = world.getSpawnLocation();
-
         double distance = Math.hypot(centerX - spawn.getBlockX(), centerZ - spawn.getBlockZ());
 
-        if (distance < Main.balance.getInt("altars.min-distance-from-spawn", 300)) {
+        if (distance < Main.balance.getInt("altars.min-distance-from-spawn", 150)) {
             return;
         }
 
@@ -246,7 +306,10 @@ public final class StructureService implements Listener {
             }
         }
 
-        return max - min <= 3 && obstructed <= 16;
+        int maxHeightDifference = Math.max(0, Main.balance.getInt("altars.max-height-difference", 6));
+        int maxObstructed = Math.max(0, Main.balance.getInt("altars.max-obstructed", 40));
+
+        return max - min <= maxHeightDifference && obstructed <= maxObstructed;
     }
 
     public static Altar buildAt(Player player, StructureTheme theme) {
@@ -418,17 +481,35 @@ public final class StructureService implements Listener {
         Random random = new Random(seed ^ 0x9E3779B9L);
         List<String> pool = Main.balance.getStringList("altars.loot." + theme.name().toLowerCase());
 
-        int rolls = Main.balance.getInt("altars.common-rolls", 3);
+        int rolls = Main.balance.getInt("altars.common-rolls", 5);
+        Set<Material> used = new HashSet<>();
 
         for (int i = 0; i < rolls && !pool.isEmpty(); i++) {
-            ItemStack item = parseLoot(pool.get(random.nextInt(pool.size())), random);
+            String entry = null;
+
+            for (int attempt = 0; attempt < 8; attempt++) {
+                String candidate = pool.get(random.nextInt(pool.size()));
+                Material material = materialOf(candidate);
+
+                if (material != null && !used.contains(material)) {
+                    entry = candidate;
+                    break;
+                }
+            }
+
+            if (entry == null) {
+                entry = pool.get(random.nextInt(pool.size()));
+            }
+
+            ItemStack item = parseLoot(entry, random);
 
             if (item != null) {
                 inventory.addItem(item);
+                used.add(item.getType());
             }
         }
 
-        if (random.nextDouble() < Main.balance.getDouble("altars.book-chance", 0.10)) {
+        if (random.nextDouble() < Main.balance.getDouble("altars.book-chance", 0.15)) {
             ItemStack book = rollThemeBook(theme, random);
 
             if (book != null) {
@@ -436,14 +517,12 @@ public final class StructureService implements Listener {
             }
         }
 
-        if (theme == StructureTheme.ABYSS) {
-            if (random.nextDouble() < Main.balance.getDouble("altars.ink-chance", 0.04)) {
-                inventory.addItem(EnchantBookService.createAbyssalInk());
-            }
+        if (random.nextDouble() < Main.balance.getDouble("altars.ink-chance", 0.10)) {
+            inventory.addItem(EnchantBookService.createAbyssalInk());
+        }
 
-            if (random.nextDouble() < Main.balance.getDouble("altars.nucleus-chance", 0.02)) {
-                inventory.addItem(EnchantBookService.createAbyssalNucleus());
-            }
+        if (random.nextDouble() < Main.balance.getDouble("altars.nucleus-chance", 0.10)) {
+            inventory.addItem(EnchantBookService.createAbyssalNucleus());
         }
 
         StoryService.Chapter chapter = StoryService.chapter(theme.storyChapter);
@@ -453,6 +532,20 @@ public final class StructureService implements Listener {
         }
 
         chest.update();
+    }
+
+    private static Material materialOf(String entry) {
+        if (entry == null) {
+            return null;
+        }
+
+        String[] parts = entry.split(":");
+
+        if (parts.length < 2) {
+            return null;
+        }
+
+        return Material.matchMaterial(parts[0]);
     }
 
     private static ItemStack parseLoot(String entry, Random random) {
