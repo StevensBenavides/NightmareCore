@@ -241,15 +241,30 @@ public final class StructureDesigns {
         int oneChance = Math.max(0, balance().getInt("altars.chest-one-chance", 40));
         int twoChance = Math.max(0, balance().getInt("altars.chest-two-chance", 30));
         int chestCount = lootRoll < oneChance ? 1 : lootRoll < oneChance + twoChance ? 2 : 0;
-        int[][] chestSpots = { { -2, 0 }, { 2, 0 } };
 
-        for (int i = 0; i < chestCount; i++) {
-            int[] chestCell = nearestCell(footprint, chestSpots[i][0], chestSpots[i][1]);
+        List<int[]> chestCells = new ArrayList<>();
 
-            if (chestCell == null) {
+        for (String cell : footprint) {
+            String[] parts = cell.split(",");
+
+            int dx = Integer.parseInt(parts[0]);
+            int dz = Integer.parseInt(parts[1]);
+
+            if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) {
                 continue;
             }
 
+            if (lecternCell != null && dx == lecternCell[0] && dz == lecternCell[1]) {
+                continue;
+            }
+
+            chestCells.add(new int[] { dx, dz });
+        }
+
+        java.util.Collections.shuffle(chestCells, random);
+
+        for (int i = 0; i < chestCount && i < chestCells.size(); i++) {
+            int[] chestCell = chestCells.get(i);
             int[] chestRel = rotate(chestCell[0], chestCell[1], rotation);
             Block chestBlock = world.getBlockAt(baseX + chestRel[0], baseY + 1, baseZ + chestRel[1]);
 

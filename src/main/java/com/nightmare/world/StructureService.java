@@ -550,7 +550,7 @@ public final class StructureService implements Listener {
                 ItemStack item = parseLoot(entry, random);
 
                 if (item != null) {
-                    inventory.addItem(item);
+                    addAtRandomSlot(inventory, item);
                     used.add(item.getType());
                     added++;
                 }
@@ -560,25 +560,25 @@ public final class StructureService implements Listener {
                 ItemStack book = rollThemeBook(theme, random);
 
                 if (book != null) {
-                    inventory.addItem(book);
+                    addAtRandomSlot(inventory, book);
                     added++;
                 }
             }
 
             if (random.nextDouble() < Main.balance.getDouble("altars.ink-chance", 0.10)) {
-                inventory.addItem(EnchantBookService.createAbyssalInk());
+                addAtRandomSlot(inventory, EnchantBookService.createAbyssalInk());
                 added++;
             }
 
             if (random.nextDouble() < Main.balance.getDouble("altars.nucleus-chance", 0.10)) {
-                inventory.addItem(EnchantBookService.createAbyssalNucleus());
+                addAtRandomSlot(inventory, EnchantBookService.createAbyssalNucleus());
                 added++;
             }
 
             StoryService.Chapter chapter = StoryService.chapter(theme.storyChapter);
 
             if (chapter != null) {
-                inventory.addItem(loreBook(chapter));
+                addAtRandomSlot(inventory, loreBook(chapter));
                 added++;
             }
 
@@ -587,7 +587,7 @@ public final class StructureService implements Listener {
                     ItemStack item = parseLoot(fallback, random);
 
                     if (item != null) {
-                        inventory.addItem(item);
+                        addAtRandomSlot(inventory, item);
                         added++;
 
                         if (added >= 2) {
@@ -608,6 +608,27 @@ public final class StructureService implements Listener {
                     + location.getBlockZ() + " (" + theme.name().toLowerCase() + ", items=" + added + "): "
                     + exception.getMessage());
         }
+    }
+
+    private static boolean addAtRandomSlot(Inventory inventory, ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+
+        int size = inventory.getSize();
+        Random random = ThreadLocalRandom.current();
+
+        for (int attempt = 0; attempt < size * 2; attempt++) {
+            int slot = random.nextInt(size);
+            ItemStack existing = inventory.getItem(slot);
+
+            if (existing == null || existing.getType().isAir()) {
+                inventory.setItem(slot, item);
+                return true;
+            }
+        }
+
+        return inventory.addItem(item).isEmpty();
     }
 
     private static Material materialOf(String entry) {
