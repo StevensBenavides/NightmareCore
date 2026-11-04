@@ -87,11 +87,6 @@ phase-assault:
   despawn-after-ms: 300000
   despawn-radius: 64
 
-passive-aggression:
-  base-chance: 0.01
-  per-tier: 0.03
-  max-chance: 0.30
-
 abyssal-tendrils:
   range: 50
   patch-radius: 7.5

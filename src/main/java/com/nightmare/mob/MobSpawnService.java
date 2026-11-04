@@ -67,6 +67,10 @@ public final class MobSpawnService implements Listener {
             return;
         }
 
+        if (profile.category != MobCategory.HOSTILE) {
+            return;
+        }
+
         long day = mob.getWorld().getFullTime() / 24000L;
 
         String worldName = mob.getWorld().getName();
@@ -142,15 +146,6 @@ public final class MobSpawnService implements Listener {
         mob.getPersistentDataContainer().set(MobKeys.MOB_SPECIES, PersistentDataType.STRING, mob.getType().name());
 
         boolean aggressive = profile.category == MobCategory.HOSTILE;
-
-        if (!aggressive) {
-            double baseChance = Main.balance.getDouble("passive-aggression.base-chance", 0.01);
-            double perTier = Main.balance.getDouble("passive-aggression.per-tier", 0.03);
-            double maxChance = Main.balance.getDouble("passive-aggression.max-chance", 0.30);
-            double chance = Math.min(maxChance, baseChance + tier.index * perTier);
-
-            aggressive = ThreadLocalRandom.current().nextDouble() < chance;
-        }
 
         mob.getPersistentDataContainer().set(MobKeys.MOB_AGGRESSIVE, PersistentDataType.BOOLEAN, aggressive);
 

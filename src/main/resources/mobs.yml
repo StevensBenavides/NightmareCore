@@ -76,34 +76,6 @@ groups:
     powers: [VOLLEY, AURA, MOBILITY]
     types: [GUARDIAN, ELDER_GUARDIAN]
 
-  neutral_beasts:
-    category: NEUTRAL
-    max-tier: 9
-    gear: false
-    powers: [CHARGE, AURA, BUFF, SUMMON]
-    types: [WOLF, IRON_GOLEM, SNOW_GOLEM, BEE, LLAMA, TRADER_LLAMA, POLAR_BEAR, PANDA, GOAT, FOX, ARMADILLO, ALLAY, COPPER_GOLEM, BAT, CAMEL_HUSK]
-
-  ocean_passive:
-    category: PASSIVE
-    max-tier: 9
-    gear: false
-    powers: [HEAL, MOBILITY]
-    types: [NAUTILUS, ZOMBIE_NAUTILUS, DOLPHIN, SQUID, GLOW_SQUID, TURTLE, AXOLOTL, COD, SALMON, PUFFERFISH, TROPICAL_FISH, TADPOLE]
-
-  passive_farm:
-    category: PASSIVE
-    max-tier: 9
-    gear: false
-    powers: [CHARGE, BUFF, HEAL]
-    types: [COW, MOOSHROOM, SHEEP, PIG, CHICKEN, RABBIT]
-
-  passive_utility:
-    category: PASSIVE
-    max-tier: 9
-    gear: false
-    powers: [BUFF, HEAL, MOBILITY]
-    types: [HORSE, DONKEY, MULE, CAMEL, CAT, OCELOT, PARROT, VILLAGER, WANDERING_TRADER, FROG, SNIFFER, STRIDER, HAPPY_GHAST]
-
   special_hostiles:
     category: HOSTILE
     max-tier: 9
