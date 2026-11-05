@@ -289,3 +289,13 @@ items:
   nightmare_armor_lore:
     - "&8Clad in the nightmare."
     - "&7Tier %tier%"
+backpack:
+  name: "&6Backpack"
+  title: "&8Backpack"
+  lore:
+    - "&7A personal backpack."
+    - "&8Click the chest slot to open it."
+grave:
+  label: "&7R.I.P. %player%"
+  not_owner: "&cThis grave belongs to %player%."
+  protected: "&cThis grave is protected."

@@ -289,3 +289,13 @@ items:
   nightmare_armor_lore:
     - "&8Vestida de pesadilla."
     - "&7Tier %tier%"
+backpack:
+  name: "&6Mochila"
+  title: "&8Mochila"
+  lore:
+    - "&7Una mochila personal."
+    - "&8Haz clic en el slot del cofre para abrirla."
+grave:
+  label: "&7Q.E.P.D. %player%"
+  not_owner: "&cEsta lápida pertenece a %player%."
+  protected: "&cEsta lápida está protegida."

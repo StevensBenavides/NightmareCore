@@ -97,6 +97,15 @@ public class AltarPlacementTest {
         assertEquals(first, second);
     }
 
+    @Test
+    public void caveRoofIsFittedToHeadroom() {
+        assertEquals(0, StructureDesigns.fitRoof(3, true, 4));
+        assertEquals(2, StructureDesigns.fitRoof(3, true, 5));
+        assertEquals(3, StructureDesigns.fitRoof(3, true, 7));
+        assertEquals(2, StructureDesigns.fitRoof(2, true, 5));
+        assertEquals(1, StructureDesigns.fitRoof(1, false, 0));
+    }
+
     private static YamlConfiguration config(String mode, double caveChance) {
         YamlConfiguration config = new YamlConfiguration();
         config.set("altars.placement.mode", mode);

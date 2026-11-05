@@ -70,6 +70,9 @@ public final class Main extends JavaPlugin {
       com.nightmare.gui.StoryService.start(instance);
       com.nightmare.world.StructureService.load(instance);
       com.nightmare.world.StructureService.start(instance);
+      com.nightmare.player.BackpackService.start(instance);
+      com.nightmare.player.PermanentItemService.start(instance);
+      com.nightmare.player.GraveService.start(instance);
       com.nightmare.command.NightmareCommand nightmareCommand = new com.nightmare.command.NightmareCommand();
 
       getCommand("nightmare").setExecutor(nightmareCommand);
@@ -159,6 +162,8 @@ public final class Main extends JavaPlugin {
     com.nightmare.relic.WhiteExplosionEffect.dispose();
     com.nightmare.core.NightmarePackService.dispose();
     com.nightmare.world.StructureService.save();
+    com.nightmare.player.BackpackService.shutdown();
+    com.nightmare.player.GraveService.shutdown();
     com.nightmare.PlayerEffects.RANDOM_EFFECT_COOLDOWN.clear();
     DisplayStopMessage();
   }
