@@ -1,6 +1,5 @@
 package com.nightmare.mob;
 
-import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.EventHandler;
@@ -29,10 +28,6 @@ public final class MobLootService implements Listener {
             }
 
             return;
-        }
-
-        if (entity instanceof Creeper) {
-            event.getDrops().clear();
         }
 
         if (entity instanceof Mob mob) {

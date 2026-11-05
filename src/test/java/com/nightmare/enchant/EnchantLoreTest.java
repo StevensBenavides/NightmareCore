@@ -151,4 +151,35 @@ public class EnchantLoreTest {
         assertEquals("Base one", base.get(0));
     }
 
+    @Test
+    public void sanitizeBaseLoreStopsAtSpanishCustomSection() {
+        List<String> base = EnchantLoreService.sanitizeBaseLore(List.of(
+                "Base one", "§7§lEncantamientos:", "- Stormcaller I", "§8§oNightmare Core"));
+
+        assertEquals(1, base.size());
+        assertEquals("Base one", base.get(0));
+    }
+
+    @Test
+    public void sanitizeBaseLoreStopsAtFooter() {
+        List<String> base = EnchantLoreService.sanitizeBaseLore(List.of(
+                "Base one", "Base two", "§8§oNightmare Core", "extra"));
+
+        assertEquals(2, base.size());
+        assertEquals("Base one", base.get(0));
+        assertEquals("Base two", base.get(1));
+    }
+
+    @Test
+    public void sanitizeBaseLoreRemovesDuplicateCustomSections() {
+        List<String> base = EnchantLoreService.sanitizeBaseLore(List.of(
+                "Base one", "Base two",
+                "Encantamientos:", "- Stormcaller I", "Nightmare Core",
+                "Encantamientos:", "- Stormcaller I", "- Lifesteal I", "Nightmare Core"));
+
+        assertEquals(2, base.size());
+        assertEquals("Base one", base.get(0));
+        assertEquals("Base two", base.get(1));
+    }
+
 }

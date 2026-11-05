@@ -40,11 +40,8 @@ public final class CustomItemService {
             return;
         }
 
-        if (!meta.getPersistentDataContainer().has(ItemKeys.LORE_BASE, PersistentDataType.STRING)
-                && meta.getLore() != null) {
-            meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
-                    String.join("\n", EnchantLoreService.sanitizeBaseLore(meta.getLore())));
-        }
+        meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
+                String.join("\n", EnchantLoreService.sanitizeBaseLore(meta.getLore())));
 
         meta.getPersistentDataContainer().set(EnchantKeys.KEYS.get(id), PersistentDataType.INTEGER, level);
         item.setItemMeta(meta);

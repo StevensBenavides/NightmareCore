@@ -43,14 +43,30 @@ public final class EnchantMigrationService implements Listener {
             return;
         }
 
-        if (meta.getPersistentDataContainer().get(EnchantKeys.OLD_STORMBREAKER, PersistentDataType.STRING) == null) {
-            return;
+        if (meta.getPersistentDataContainer().get(EnchantKeys.OLD_STORMBREAKER,
+                PersistentDataType.STRING) != null) {
+            meta.getPersistentDataContainer().remove(EnchantKeys.OLD_STORMBREAKER);
+            item.setItemMeta(meta);
+            CustomItemService.applyEnchant(item, "stormcaller", 1);
         }
 
-        meta.getPersistentDataContainer().remove(EnchantKeys.OLD_STORMBREAKER);
-        item.setItemMeta(meta);
+        ItemMeta refreshed = item.getItemMeta();
 
-        CustomItemService.applyEnchant(item, "stormcaller", 1);
+        if (refreshed != null && hasCustomEnchant(refreshed)) {
+            EnchantLoreService.rebuildEquipmentLore(item);
+        }
+    }
+
+    private boolean hasCustomEnchant(ItemMeta meta) {
+        for (org.bukkit.NamespacedKey key : EnchantKeys.KEYS.values()) {
+            Integer level = meta.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+
+            if (level != null && level > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

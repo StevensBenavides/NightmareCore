@@ -260,10 +260,16 @@ public final class EnchantLoreService {
         String storedBase = container.get(ItemKeys.LORE_BASE, PersistentDataType.STRING);
         List<String> baseLore;
 
-        if (storedBase != null && !storedBase.isEmpty()) {
-            baseLore = sanitizeBaseLore(Arrays.asList(storedBase.split("\n")));
+        if (storedBase != null) {
+            baseLore = sanitizeBaseLore(Arrays.asList(storedBase.split("\n", -1)));
         } else {
             baseLore = sanitizeBaseLore(meta.getLore());
+        }
+
+        String sanitizedBase = String.join("\n", baseLore);
+
+        if (!sanitizedBase.equals(storedBase)) {
+            container.set(ItemKeys.LORE_BASE, PersistentDataType.STRING, sanitizedBase);
         }
 
         List<String> lore = new ArrayList<>(baseLore);
@@ -330,21 +336,40 @@ public final class EnchantLoreService {
             return base;
         }
 
-        for (String line : currentLore) {
-            String visible = line.replaceAll("§.", "");
+        String activeHeader = LangService.msg("gui.custom_enchantments", "Custom Enchantments:")
+                .replaceAll("[§&].", "")
+                .trim();
 
-            if (visible.contains("Custom Enchantments:") || visible.contains("━")) {
+        for (String line : currentLore) {
+            String visible = line.replaceAll("[§&].", "").trim();
+
+            if (isCustomLoreBoundary(visible, activeHeader)) {
                 break;
             }
 
             base.add(line);
         }
 
-        while (!base.isEmpty() && base.get(base.size() - 1).replaceAll("§.", "").isBlank()) {
+        while (!base.isEmpty() && base.get(base.size() - 1).replaceAll("[§&].", "").isBlank()) {
             base.remove(base.size() - 1);
         }
 
         return base;
+    }
+
+    private static boolean isCustomLoreBoundary(String visible, String activeHeader) {
+        if (visible.isEmpty()) {
+            return false;
+        }
+
+        if (visible.contains("━")) {
+            return true;
+        }
+
+        return visible.equalsIgnoreCase("Custom Enchantments:")
+                || visible.equalsIgnoreCase("Encantamientos:")
+                || visible.equalsIgnoreCase("Nightmare Core")
+                || (!activeHeader.isEmpty() && visible.equalsIgnoreCase(activeHeader));
     }
 
     private static List<String> buildStatLines(String id, int level) {
