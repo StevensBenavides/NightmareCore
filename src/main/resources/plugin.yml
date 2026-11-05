@@ -1,6 +1,6 @@
 name: Nightmare
 main: com.nightmare.Main
-version: 2.7.0
+version: 2.8.0
 api-version: 1.21
 softdepend: [PlaceHolderAPI]
 website: https://github.com/StevensBenavides/NightmareCore
