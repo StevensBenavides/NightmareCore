@@ -98,6 +98,62 @@ public class AltarPlacementTest {
     }
 
     @Test
+    public void rejectsPlayerPlacedAir() {
+        TestReader reader = caveReader(5, 0);
+        reader.set(1, 41, 1, AltarPlacement.Probe.AIR);
+
+        assertNull(AltarPlacement.find(reader, 0, 0, 0L, config("cave", 0.35D)));
+    }
+
+    @Test
+    public void rejectsArtificialFloor() {
+        TestReader reader = caveReader(5, 0);
+        reader.set(0, 39, 0, AltarPlacement.Probe.ARTIFICIAL);
+
+        assertNull(AltarPlacement.find(reader, 0, 0, 0L, config("cave", 0.35D)));
+    }
+
+    @Test
+    public void rejectsArtificialBlockInsideCave() {
+        TestReader reader = caveReader(5, 0);
+        reader.set(1, 41, 1, AltarPlacement.Probe.ARTIFICIAL);
+
+        assertNull(AltarPlacement.find(reader, 0, 0, 0L, config("cave", 0.35D)));
+    }
+
+    @Test
+    public void rejectsArtificialCeiling() {
+        TestReader reader = caveReader(5, 0);
+        reader.set(0, 45, 0, AltarPlacement.Probe.ARTIFICIAL);
+
+        assertNull(AltarPlacement.find(reader, 0, 0, 0L, config("cave", 0.35D)));
+    }
+
+    @Test
+    public void caveDepthUsesCenterSurfaceNotNeighbourMountain() {
+        TestReader reader = caveReader(5, 0);
+        reader.setHighest(4, 0, 120);
+
+        AltarPlacement.Site site = AltarPlacement.find(reader, 0, 0, 0L, config("cave", 0.35D));
+
+        assertNotNull(site);
+        assertEquals(AltarPlacement.Kind.CAVE, site.kind());
+        assertEquals(40, site.baseY());
+    }
+
+    @Test
+    public void artificialMaterialNamesAreRecognised() {
+        assertTrue(AltarPlacement.isArtificialName("OAK_PLANKS"));
+        assertTrue(AltarPlacement.isArtificialName("STONE_BRICKS"));
+        assertTrue(AltarPlacement.isArtificialName("RAIL"));
+        assertTrue(AltarPlacement.isArtificialName("CHISELED_DEEPSLATE"));
+        assertTrue(AltarPlacement.isArtificialName("COBBLESTONE"));
+        assertEquals(false, AltarPlacement.isArtificialName("DEEPSLATE"));
+        assertEquals(false, AltarPlacement.isArtificialName("OBSIDIAN"));
+        assertEquals(false, AltarPlacement.isArtificialName("DEEPSLATE_COPPER_ORE"));
+    }
+
+    @Test
     public void caveRoofIsFittedToHeadroom() {
         assertEquals(0, StructureDesigns.fitRoof(3, true, 4));
         assertEquals(2, StructureDesigns.fitRoof(3, true, 5));
@@ -130,16 +186,16 @@ public class AltarPlacementTest {
 
         for (int dx = -4; dx <= 4; dx++) {
             for (int dz = -4; dz <= 4; dz++) {
-                reader.set(dx, 39, dz, AltarPlacement.Probe.SOLID);
+                reader.set(dx, 39, dz, AltarPlacement.Probe.NATURAL_SOLID);
 
                 for (int dy = 0; dy < caveHeight; dy++) {
-                    reader.set(dx, 40 + dy, dz, AltarPlacement.Probe.OPEN);
+                    reader.set(dx, 40 + dy, dz, AltarPlacement.Probe.NATURAL_OPEN);
                 }
 
                 int ceiling = 40 + caveHeight + ceilingOffset;
 
                 for (int y = 40 + caveHeight; y <= SURFACE; y++) {
-                    reader.set(dx, y, dz, y >= ceiling ? AltarPlacement.Probe.SOLID : AltarPlacement.Probe.OPEN);
+                    reader.set(dx, y, dz, y >= ceiling ? AltarPlacement.Probe.NATURAL_SOLID : AltarPlacement.Probe.NATURAL_OPEN);
                 }
             }
         }
@@ -149,9 +205,14 @@ public class AltarPlacementTest {
 
     private static final class TestReader implements AltarPlacement.BlockReader {
         private final Map<String, AltarPlacement.Probe> blocks = new HashMap<>();
+        private final Map<String, Integer> heights = new HashMap<>();
 
         private void set(int x, int y, int z, AltarPlacement.Probe probe) {
             blocks.put(key(x, y, z), probe);
+        }
+
+        private void setHighest(int x, int z, int y) {
+            heights.put(x + "," + z, y);
         }
 
         @Override
@@ -162,12 +223,12 @@ public class AltarPlacementTest {
                 return probe;
             }
 
-            return y <= SURFACE ? AltarPlacement.Probe.SOLID : AltarPlacement.Probe.OPEN;
+            return y <= SURFACE ? AltarPlacement.Probe.NATURAL_SOLID : AltarPlacement.Probe.AIR;
         }
 
         @Override
         public int highestY(int x, int z) {
-            return SURFACE;
+            return heights.getOrDefault(x + "," + z, SURFACE);
         }
 
         @Override

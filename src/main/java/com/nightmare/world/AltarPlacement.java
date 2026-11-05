@@ -1,5 +1,7 @@
 package com.nightmare.world;
 
+import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -22,10 +24,17 @@ public final class AltarPlacement {
     public record Site(int centerX, int centerZ, int baseY, Kind kind, int headroom) {
     }
 
+    /**
+     * Cave naturalness is decided from block probes. Natural cave air and
+     * natural decorations are allowed; player/ordinary air and constructed
+     * blocks are not.
+     */
     public enum Probe {
-        SOLID,
-        LIQUID,
-        OPEN
+        NATURAL_SOLID,
+        ARTIFICIAL,
+        NATURAL_OPEN,
+        AIR,
+        LIQUID
     }
 
     /** Abstraction used by tests to feed synthetic terrain without a server. */
@@ -40,6 +49,25 @@ public final class AltarPlacement {
     }
 
     private static final int RADIUS = 4;
+
+    private static final Set<String> ARTIFICIAL_NAMES = Set.of(
+            "COBBLESTONE", "MOSSY_COBBLESTONE", "BRICKS", "GLASS", "GLASS_PANE",
+            "TORCH", "WALL_TORCH", "SOUL_TORCH", "SOUL_WALL_TORCH", "FIRE", "SOUL_FIRE",
+            "RAIL", "POWERED_RAIL", "DETECTOR_RAIL", "ACTIVATOR_RAIL",
+            "COBWEB", "SPAWNER", "TRIAL_SPAWNER", "VAULT",
+            "CHEST", "TRAPPED_CHEST", "BARREL", "FURNACE", "BLAST_FURNACE", "SMOKER",
+            "CRAFTING_TABLE", "CARTOGRAPHY_TABLE", "FLETCHING_TABLE", "SMITHING_TABLE",
+            "ANVIL", "CHIPPED_ANVIL", "DAMAGED_ANVIL", "GRINDSTONE", "STONECUTTER", "LOOM",
+            "BELL", "COMPOSTER", "HOPPER", "DROPPER", "DISPENSER", "OBSERVER",
+            "PISTON", "STICKY_PISTON", "PISTON_HEAD", "MOVING_PISTON",
+            "BREWING_STAND", "CAULDRON", "WATER_CAULDRON", "LAVA_CAULDRON", "POWDER_SNOW_CAULDRON",
+            "ENCHANTING_TABLE", "LECTERN", "BOOKSHELF", "CHISELED_BOOKSHELF", "JUKEBOX", "NOTE_BLOCK",
+            "REDSTONE_LAMP", "TNT", "IRON_BARS", "IRON_DOOR", "IRON_TRAPDOOR",
+            "CHAIN", "LANTERN", "SOUL_LANTERN", "END_PORTAL_FRAME", "END_PORTAL", "NETHER_PORTAL",
+            "FARMLAND", "DIRT_PATH", "DECORATED_POT", "REDSTONE_WIRE", "REDSTONE_TORCH",
+            "REDSTONE_WALL_TORCH", "REPEATER", "COMPARATOR", "DAYLIGHT_DETECTOR", "TRIPWIRE",
+            "TRIPWIRE_HOOK", "LEVER", "STONE_BUTTON", "PRISMARINE", "PRISMARINE_BRICKS",
+            "DARK_PRISMARINE", "SEA_LANTERN");
 
     private AltarPlacement() {
     }
@@ -118,6 +146,70 @@ public final class AltarPlacement {
         return bucket / 10_000.0D < chance;
     }
 
+    static boolean isArtificialName(String name) {
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
+
+        if (ARTIFICIAL_NAMES.contains(name)) {
+            return true;
+        }
+
+        return name.endsWith("_PLANKS")
+                || name.endsWith("_LOG")
+                || name.endsWith("_WOOD")
+                || name.startsWith("STRIPPED_")
+                || name.endsWith("_LEAVES")
+                || name.endsWith("_SLAB")
+                || name.endsWith("_STAIRS")
+                || name.endsWith("_WALL")
+                || name.endsWith("_FENCE")
+                || name.endsWith("_FENCE_GATE")
+                || name.endsWith("_DOOR")
+                || name.endsWith("_TRAPDOOR")
+                || name.endsWith("_BRICKS")
+                || name.endsWith("_TILES")
+                || name.endsWith("_GLASS")
+                || name.endsWith("_GLASS_PANE")
+                || name.endsWith("_PANE")
+                || name.endsWith("_WOOL")
+                || name.endsWith("_CARPET")
+                || name.endsWith("_BANNER")
+                || name.endsWith("_BED")
+                || name.endsWith("_CONCRETE")
+                || name.endsWith("_CONCRETE_POWDER")
+                || name.endsWith("_TERRACOTTA")
+                || name.endsWith("_GLAZED_TERRACOTTA")
+                || name.endsWith("_SHULKER_BOX")
+                || name.endsWith("_CANDLE")
+                || name.endsWith("_CANDLE_CAKE")
+                || name.endsWith("_SIGN")
+                || name.endsWith("_BUTTON")
+                || name.endsWith("_PRESSURE_PLATE")
+                || name.endsWith("_BARS")
+                || name.endsWith("_PILLAR")
+                || name.endsWith("_GRATE")
+                || name.endsWith("_BULB")
+                || name.startsWith("POLISHED_")
+                || name.startsWith("CHISELED_")
+                || name.startsWith("CUT_")
+                || name.startsWith("SMOOTH_")
+                || name.startsWith("WAXED_")
+                || name.startsWith("INFESTED_")
+                || (name.startsWith("COPPER_") && !name.endsWith("_ORE"))
+                || name.startsWith("QUARTZ_")
+                || (name.startsWith("RAW_") && name.endsWith("_BLOCK"))
+                || (name.endsWith("_BLOCK") && (name.startsWith("IRON")
+                        || name.startsWith("GOLD")
+                        || name.startsWith("DIAMOND")
+                        || name.startsWith("EMERALD")
+                        || name.startsWith("LAPIS")
+                        || name.startsWith("REDSTONE")
+                        || name.startsWith("COAL")
+                        || name.startsWith("COPPER")
+                        || name.startsWith("NETHERITE")));
+    }
+
     private static Site findSurface(BlockReader reader, int centerX, int centerZ, YamlConfiguration config) {
         int baseY = surfaceMax(reader, centerX, centerZ);
 
@@ -158,7 +250,9 @@ public final class AltarPlacement {
                 }
 
                 for (int y = surface + 1; y <= surface + 6; y++) {
-                    if (reader.probeAt(baseX + dx, y, baseZ + dz) == Probe.SOLID) {
+                    Probe probe = reader.probeAt(baseX + dx, y, baseZ + dz);
+
+                    if (probe == Probe.NATURAL_SOLID || probe == Probe.ARTIFICIAL) {
                         obstructed++;
                         break;
                     }
@@ -173,7 +267,7 @@ public final class AltarPlacement {
     }
 
     private static Site findCave(BlockReader reader, int centerX, int centerZ, YamlConfiguration config) {
-        int surfaceY = surfaceMax(reader, centerX, centerZ);
+        int surfaceY = reader.highestY(centerX, centerZ);
         int minDepth = Math.max(0, config.getInt("altars.cave.min-depth", 12));
         int maxDepth = Math.max(minDepth, config.getInt("altars.cave.max-depth", 64));
         int minHeight = Math.max(3, config.getInt("altars.cave.min-height", 5));
@@ -216,13 +310,19 @@ public final class AltarPlacement {
 
                 int x = centerX + dx;
                 int z = centerZ + dz;
-                Probe floor = reader.probeAt(x, baseY - 1, z);
+                int localSurface = reader.highestY(x, z);
 
-                if (floor == Probe.LIQUID) {
+                if (baseY + minHeight > localSurface) {
                     return null;
                 }
 
-                if (floor == Probe.SOLID) {
+                Probe floor = reader.probeAt(x, baseY - 1, z);
+
+                if (floor == Probe.LIQUID || floor == Probe.ARTIFICIAL) {
+                    return null;
+                }
+
+                if (floor == Probe.NATURAL_SOLID) {
                     floorCells++;
                 }
 
@@ -240,7 +340,11 @@ public final class AltarPlacement {
                         break;
                     }
 
-                    if (probe == Probe.SOLID) {
+                    if (probe == Probe.ARTIFICIAL || probe == Probe.AIR) {
+                        return null;
+                    }
+
+                    if (probe == Probe.NATURAL_SOLID) {
                         open = false;
                         break;
                     }
@@ -263,6 +367,10 @@ public final class AltarPlacement {
 
                     Probe probe = reader.probeAt(x, y, z);
 
+                    if (probe == Probe.ARTIFICIAL) {
+                        return null;
+                    }
+
                     if (probe == Probe.LIQUID) {
                         if (avoidLiquids) {
                             cellHeadroom = -1;
@@ -272,7 +380,7 @@ public final class AltarPlacement {
                         continue;
                     }
 
-                    if (probe == Probe.SOLID) {
+                    if (probe == Probe.NATURAL_SOLID) {
                         cellHeadroom = dy;
                         break;
                     }
@@ -327,13 +435,7 @@ public final class AltarPlacement {
 
         @Override
         public Probe probeAt(int x, int y, int z) {
-            Material material = world.getBlockAt(x, y, z).getType();
-
-            if (material == Material.WATER || material == Material.LAVA || material == Material.BUBBLE_COLUMN) {
-                return Probe.LIQUID;
-            }
-
-            return material.isSolid() ? Probe.SOLID : Probe.OPEN;
+            return classify(world.getBlockAt(x, y, z).getType());
         }
 
         @Override
@@ -349,6 +451,27 @@ public final class AltarPlacement {
         @Override
         public int maxY() {
             return world.getMaxHeight() - 1;
+        }
+
+        private static Probe classify(Material material) {
+            if (material == Material.WATER || material == Material.LAVA
+                    || material == Material.BUBBLE_COLUMN) {
+                return Probe.LIQUID;
+            }
+
+            if (material == Material.CAVE_AIR) {
+                return Probe.NATURAL_OPEN;
+            }
+
+            if (material.isAir()) {
+                return Probe.AIR;
+            }
+
+            if (isArtificialName(material.name())) {
+                return Probe.ARTIFICIAL;
+            }
+
+            return material.isSolid() ? Probe.NATURAL_SOLID : Probe.NATURAL_OPEN;
         }
     }
 }
