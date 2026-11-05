@@ -194,3 +194,12 @@ god-drops:
   nucleus-chance: 0.10
   lore-book-chance: 0.10
   announce: true
+
+insomnia:
+  enabled: true
+  interval-min-minutes: 20
+  interval-max-minutes: 45
+  duration-min-minutes: 2
+  duration-max-minutes: 6
+  only-at-night: true
+  announce: true

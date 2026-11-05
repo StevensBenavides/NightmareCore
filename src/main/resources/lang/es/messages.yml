@@ -308,3 +308,7 @@ god_drop:
   announce: "&7Un susurro recorre el mundo... &5Los dioses Alma y Abismo dejaron un regalo en &f%x%, %y%, %z% &7en &f%world%&7."
   soul_label: "&dRegalo del Dios Alma"
   abyss_label: "&5Regalo del Dios Abismo"
+insomnia:
+  start: "&7Esta noche el sueño no llega."
+  end: "&7Vuelves a sentir sueño."
+  denied: "&cNo puedes dormir esta noche."

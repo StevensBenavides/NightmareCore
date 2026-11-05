@@ -308,3 +308,7 @@ god_drop:
   announce: "&7A whisper drifts through the world... &5The gods of Soul and Abyss left a gift at &f%x%, %y%, %z% &7in &f%world%&7."
   soul_label: "&dSoul God's Gift"
   abyss_label: "&5Abyss God's Gift"
+insomnia:
+  start: "&7Sleep won't come tonight."
+  end: "&7You feel drowsy again."
+  denied: "&cYou can't sleep tonight."

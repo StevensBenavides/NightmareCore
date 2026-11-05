@@ -145,6 +145,7 @@ public final class Main extends JavaPlugin {
       getServer().getScheduler().runTaskTimer(instance, com.nightmare.enchant.EnchantService::tick, 20L, 20L);
       com.nightmare.mob.PhaseAssaultService phaseAssault = new com.nightmare.mob.PhaseAssaultService();
       phaseAssault.start(instance);
+      com.nightmare.core.InsomniaService.start(instance);
     }
 
   }
@@ -155,6 +156,7 @@ public final class Main extends JavaPlugin {
     com.nightmare.mob.MobTaskService.SUMMON_EXPIRY.clear();
     com.nightmare.mob.NametagService.VISIBLE_UNTIL.clear();
     com.nightmare.mob.PhaseAssaultService.cleanup();
+    com.nightmare.core.InsomniaService.shutdown();
     com.nightmare.enchant.EnchantService.PROCESSING_HIT.clear();
     com.nightmare.enchant.EnchantService.PROCESSING_DAMAGED.clear();
     com.nightmare.relic.AbyssalTendrilsService.cleanup();
