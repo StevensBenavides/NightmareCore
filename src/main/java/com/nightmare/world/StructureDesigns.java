@@ -48,14 +48,14 @@ public final class StructureDesigns {
     }
 
     public static BuildResult build(ThemeLayout theme, World world, int baseX, int baseY, int baseZ, long seed,
-            int rotation) {
+            int rotation, boolean cave, int headroom) {
         Random random = new Random(seed);
         List<Placed> placed = new ArrayList<>();
         List<Location> chests = new ArrayList<>();
         Location[] lectern = new Location[1];
 
         int shape = (int) ((seed >>> 20) & 3);
-        int roof = (int) ((seed >>> 22) & 3);
+        int roof = fitRoof((int) ((seed >>> 22) & 3), cave, headroom);
         int floorMode = (int) ((seed >>> 24) % 3);
         int lootRoll = random.nextInt(100);
 
@@ -77,19 +77,21 @@ public final class StructureDesigns {
             }
         }
 
-        for (String cell : footprint) {
-            String[] parts = cell.split(",");
+        if (!cave) {
+            for (String cell : footprint) {
+                String[] parts = cell.split(",");
 
-            int dx = Integer.parseInt(parts[0]);
-            int dz = Integer.parseInt(parts[1]);
-            int surface = world.getHighestBlockYAt(baseX + dx, baseZ + dz);
+                int dx = Integer.parseInt(parts[0]);
+                int dz = Integer.parseInt(parts[1]);
+                int surface = world.getHighestBlockYAt(baseX + dx, baseZ + dz);
 
-            if (baseY - surface > 8) {
-                continue;
-            }
+                if (baseY - surface > 8) {
+                    continue;
+                }
 
-            for (int y = surface + 1; y < baseY; y++) {
-                set(world, baseX + dx, y, baseZ + dz, theme.pillar().apply(random), placed);
+                for (int y = surface + 1; y < baseY; y++) {
+                    set(world, baseX + dx, y, baseZ + dz, theme.pillar().apply(random), placed);
+                }
             }
         }
 
@@ -144,12 +146,14 @@ public final class StructureDesigns {
             }
         }
 
+        int maxStructureHeight = cave ? Math.max(0, headroom - 1) : Integer.MAX_VALUE;
         int pillarHeight = roof == 3 ? 5 : 2 + random.nextInt(3);
         double ruin = Math.min(0.20, Math.max(0.0, theme.ruinChance));
 
         for (int[] corner : pillars) {
             int[] r = rotate(corner[0], corner[1], rotation);
             int height = roof == 3 ? pillarHeight : 2 + random.nextInt(3);
+            height = Math.min(height, maxStructureHeight);
 
             for (int y = 1; y <= height; y++) {
                 if (y > 2 && random.nextDouble() < ruin) {
@@ -166,6 +170,11 @@ public final class StructureDesigns {
                 int[] a = rotate(pillars.get(pair[0])[0], pillars.get(pair[0])[1], rotation);
                 int[] b = rotate(pillars.get(pair[1])[0], pillars.get(pair[1])[1], rotation);
                 int beamY = Math.min(pillarHeight, 4);
+
+                if (beamY > maxStructureHeight) {
+                    continue;
+                }
+
                 int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
 
                 for (int i = 1; i < steps; i++) {
@@ -204,6 +213,10 @@ public final class StructureDesigns {
         set(world, baseX, baseY + 2, baseZ, theme.centerpiece(), placed);
 
         for (int[] extra : theme.extras()) {
+            if (cave && extra[2] > maxStructureHeight) {
+                continue;
+            }
+
             int[] r = rotate(extra[0], extra[1], rotation);
 
             Material extraMaterial = Material.values()[extra[3]];
@@ -390,6 +403,22 @@ public final class StructureDesigns {
                     List.of(new int[] { -3, -3, 0, Material.CHISELED_BOOKSHELF.ordinal() },
                             new int[] { 3, 3, 0, Material.ENCHANTING_TABLE.ordinal() }));
         };
+    }
+
+    static int fitRoof(int requestedRoof, boolean cave, int headroom) {
+        if (!cave) {
+            return requestedRoof;
+        }
+
+        if (headroom < 5) {
+            return 0;
+        }
+
+        if (headroom < 7 && requestedRoof == 3) {
+            return 2;
+        }
+
+        return requestedRoof;
     }
 
     private static Material pick(Random random, Material... options) {

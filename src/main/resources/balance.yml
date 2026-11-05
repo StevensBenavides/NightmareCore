@@ -131,6 +131,18 @@ altars:
   chance-denominator: 120
   max-height-difference: 4
   max-obstructed: 20
+  placement:
+    mode: either
+    cave-chance: 0.35
+  cave:
+    min-depth: 12
+    max-depth: 64
+    min-height: 5
+    max-height: 24
+    min-open-ratio: 0.85
+    min-floor-ratio: 0.75
+    require-ceiling: true
+    avoid-liquids: true
   chest-none-chance: 30
   chest-one-chance: 40
   chest-two-chance: 30

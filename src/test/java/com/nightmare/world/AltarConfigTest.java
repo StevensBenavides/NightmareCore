@@ -29,6 +29,16 @@ public class AltarConfigTest {
         assertEquals(128, balance.getInt("altars.min-distance-between"));
         assertEquals(4, balance.getInt("altars.max-height-difference"));
         assertEquals(20, balance.getInt("altars.max-obstructed"));
+        assertEquals("either", balance.getString("altars.placement.mode"));
+        assertEquals(0.35D, balance.getDouble("altars.placement.cave-chance"), 0.0001D);
+        assertEquals(12, balance.getInt("altars.cave.min-depth"));
+        assertEquals(64, balance.getInt("altars.cave.max-depth"));
+        assertEquals(5, balance.getInt("altars.cave.min-height"));
+        assertEquals(24, balance.getInt("altars.cave.max-height"));
+        assertEquals(0.85D, balance.getDouble("altars.cave.min-open-ratio"), 0.0001D);
+        assertEquals(0.75D, balance.getDouble("altars.cave.min-floor-ratio"), 0.0001D);
+        assertTrue(balance.getBoolean("altars.cave.require-ceiling"));
+        assertTrue(balance.getBoolean("altars.cave.avoid-liquids"));
     }
 
     @Test

@@ -52,7 +52,7 @@ import com.nightmare.gui.StoryService;
 
 public final class StructureService implements Listener {
 
-    public record Altar(String id, String world, int x, int y, int z, String theme, long seed,
+    public record Altar(String id, String world, int x, int y, int z, String theme, String placement, long seed,
             boolean looted, List<String> blocks, List<String> chests, List<String> texts,
             String interaction, String lectern) {
     }
@@ -101,6 +101,7 @@ public final class StructureService implements Listener {
                     String.valueOf(raw.get("world")),
                     number(raw.get("x")), number(raw.get("y")), number(raw.get("z")),
                     String.valueOf(raw.get("theme")),
+                    raw.get("placement") == null ? "SURFACE" : String.valueOf(raw.get("placement")),
                     raw.get("seed") instanceof Number number ? number.longValue() : 0L,
                     Boolean.TRUE.equals(raw.get("looted")),
                     strings(raw.get("blocks")), strings(raw.get("chests")), strings(raw.get("texts")),
@@ -127,6 +128,7 @@ public final class StructureService implements Listener {
             raw.put("y", altar.y());
             raw.put("z", altar.z());
             raw.put("theme", altar.theme());
+            raw.put("placement", altar.placement());
             raw.put("seed", altar.seed());
             raw.put("looted", altar.looted());
             raw.put("blocks", List.copyOf(altar.blocks()));
@@ -279,27 +281,15 @@ public final class StructureService implements Listener {
             }
         }
 
-        int baseY = surfaceMax(world, centerX, centerZ);
+        AltarPlacement.Site site = AltarPlacement.find(world, centerX, centerZ, hash, Main.balance);
 
-        if (!suitable(world, centerX, baseY, centerZ)) {
+        if (site == null) {
             return;
         }
 
         StructureTheme theme = StructureTheme.values()[(int) Long.remainderUnsigned(hash >>> 8, 5)];
 
-        build(world, centerX, baseY, centerZ, theme, hash, false);
-    }
-
-    private static int surfaceMax(World world, int centerX, int centerZ) {
-        int max = Integer.MIN_VALUE;
-
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
-                max = Math.max(max, world.getHighestBlockYAt(centerX + dx, centerZ + dz));
-            }
-        }
-
-        return max == Integer.MIN_VALUE ? world.getHighestBlockYAt(centerX, centerZ) : max;
+        build(world, site, theme, hash);
     }
 
     private static long hash(long seed, int chunkX, int chunkZ) {
@@ -312,39 +302,6 @@ public final class StructureService implements Listener {
         return hash;
     }
 
-    private static boolean suitable(World world, int baseX, int baseY, int baseZ) {
-        int min = Integer.MAX_VALUE;
-        int max = Integer.MIN_VALUE;
-        int obstructed = 0;
-
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
-                int surface = world.getHighestBlockYAt(baseX + dx, baseZ + dz);
-
-                min = Math.min(min, surface);
-                max = Math.max(max, surface);
-
-                Material top = world.getBlockAt(baseX + dx, surface, baseZ + dz).getType();
-
-                if (top == Material.WATER || top == Material.LAVA || top == Material.BUBBLE_COLUMN) {
-                    return false;
-                }
-
-                for (int y = surface + 1; y <= surface + 6; y++) {
-                    if (world.getBlockAt(baseX + dx, y, baseZ + dz).getType().isSolid()) {
-                        obstructed++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        int maxHeightDifference = Math.max(0, Main.balance.getInt("altars.max-height-difference", 4));
-        int maxObstructed = Math.max(0, Main.balance.getInt("altars.max-obstructed", 20));
-
-        return max - min <= maxHeightDifference && obstructed <= maxObstructed;
-    }
-
     public static Altar buildAt(Player player, StructureTheme theme) {
         Block ground = player.getLocation().getBlock();
 
@@ -352,48 +309,92 @@ public final class StructureService implements Listener {
             ground = ground.getRelative(0, -1, 0);
         }
 
-        return build(player.getWorld(), ground.getX(), ground.getY(), ground.getZ(), theme,
-                ThreadLocalRandom.current().nextLong(), true);
+        World world = player.getWorld();
+        int baseY = ground.getY();
+        int headroom = headroom(world, ground.getX(), baseY, ground.getZ());
+        boolean cave = baseY + 6 < world.getHighestBlockYAt(ground.getX(), ground.getZ());
+        AltarPlacement.Site site = new AltarPlacement.Site(ground.getX(), ground.getZ(), baseY,
+                cave ? AltarPlacement.Kind.CAVE : AltarPlacement.Kind.SURFACE,
+                cave ? Math.max(5, headroom) : Math.max(0, world.getMaxHeight() - baseY));
+
+        return build(world, site, theme, ThreadLocalRandom.current().nextLong());
     }
 
-    private static Altar build(World world, int baseX, int baseY, int baseZ, StructureTheme theme, long seed,
-            boolean manual
-    ) {
+    private static int headroom(World world, int x, int y, int z) {
+        int max = world.getMaxHeight();
+
+        for (int check = y + 1; check < max; check++) {
+            if (world.getBlockAt(x, check, z).getType().isSolid()) {
+                return check - y;
+            }
+        }
+
+        return Math.max(0, max - y);
+    }
+
+    private static Altar build(World world, AltarPlacement.Site site, StructureTheme theme, long seed) {
+        int baseX = site.centerX();
+        int baseY = site.baseY();
+        int baseZ = site.centerZ();
+        boolean cave = site.kind() == AltarPlacement.Kind.CAVE;
+        int headroom = cave ? Math.max(3, site.headroom()) : Math.max(0, world.getMaxHeight() - baseY);
         String id = theme.name().toLowerCase() + "@" + world.getName() + ":" + baseX + "," + baseY + "," + baseZ;
 
         int rotation = (int) ((seed >>> 16) & 3);
 
         StructureDesigns.BuildResult result = StructureDesigns.build(
-                StructureDesigns.layout(theme), world, baseX, baseY, baseZ, seed, rotation);
+                StructureDesigns.layout(theme), world, baseX, baseY, baseZ, seed, rotation, cave, headroom);
 
         List<String> texts = new ArrayList<>();
         StoryService.Chapter chapter = StoryService.chapter(theme.storyChapter);
 
         if (chapter != null) {
-            int clearTop = baseY;
-
-            for (int dx = -5; dx <= 5; dx++) {
-
-                for (int dz = -5; dz <= 5; dz++) {
-                    clearTop = Math.max(clearTop, world.getHighestBlockYAt(baseX + dx, baseZ + dz));
-                }
-
-            }
             Location titleAt = result.center().clone();
-
-            titleAt.setY(clearTop + 4.4);
-            texts.add(spawnText(world, titleAt, chapter.title(), 220, true));
-
-            List<String> preview = chapter.lines().subList(0, Math.min(3, chapter.lines().size()));
             Location loreAt = result.center().clone();
 
-            loreAt.setY(clearTop + 2.9);
-            texts.add(spawnText(world, loreAt, String.join("\n", preview), 220, false));
+            if (cave) {
+                double titleY = baseY + Math.min(6.4D, Math.max(3.5D, headroom - 0.5D));
+                double previewY = titleY - 1.5D;
 
-            int touchGround = world.getHighestBlockYAt(baseX + 6, baseZ);
+                titleAt.setY(titleY);
+                texts.add(spawnText(world, titleAt, chapter.title(), 220, true));
 
-            Location interAt = new Location(world, baseX + 6.5, touchGround + 1.0, baseZ + 0.5);
-            Location hintAt = new Location(world, baseX + 6.5, touchGround + 3.4, baseZ + 0.5);
+                if (previewY >= baseY + 3.0D) {
+                    List<String> preview = chapter.lines().subList(0, Math.min(3, chapter.lines().size()));
+                    loreAt.setY(previewY);
+                    texts.add(spawnText(world, loreAt, String.join("\n", preview), 220, false));
+                }
+            } else {
+                int clearTop = baseY;
+
+                for (int dx = -5; dx <= 5; dx++) {
+
+                    for (int dz = -5; dz <= 5; dz++) {
+                        clearTop = Math.max(clearTop, world.getHighestBlockYAt(baseX + dx, baseZ + dz));
+                    }
+
+                }
+
+                titleAt.setY(clearTop + 4.4);
+                texts.add(spawnText(world, titleAt, chapter.title(), 220, true));
+
+                List<String> preview = chapter.lines().subList(0, Math.min(3, chapter.lines().size()));
+                loreAt.setY(clearTop + 2.9);
+                texts.add(spawnText(world, loreAt, String.join("\n", preview), 220, false));
+            }
+
+            Location interAt;
+            Location hintAt;
+
+            if (cave) {
+                interAt = interactionAnchor(world, result, baseX, baseY, baseZ);
+                hintAt = interAt.clone().add(0.0D, 2.2D, 0.0D);
+            } else {
+                int touchGround = world.getHighestBlockYAt(baseX + 6, baseZ);
+
+                interAt = new Location(world, baseX + 6.5, touchGround + 1.0, baseZ + 0.5);
+                hintAt = new Location(world, baseX + 6.5, touchGround + 3.4, baseZ + 0.5);
+            }
 
             texts.add(spawnText(world, hintAt, com.nightmare.lang.LangService.msg("structures.hint_tale",
                     "§eClick here to read the tale"), 160, false));
@@ -406,7 +407,8 @@ public final class StructureService implements Listener {
                         new NamespacedKey(Main.getInstance(), "structure"), PersistentDataType.STRING, id);
             });
 
-            Altar altar = new Altar(id, world.getName(), baseX, baseY, baseZ, theme.name(), seed, false,
+            Altar altar = new Altar(id, world.getName(), baseX, baseY, baseZ, theme.name(),
+                    site.kind().name(), seed, false,
                     result.blocks().stream().map(StructureDesigns.Placed::key).toList(),
                     result.chests().stream().map(StructureService::blockKey).toList(),
                     texts, interaction.getUniqueId().toString(),
@@ -429,7 +431,8 @@ public final class StructureService implements Listener {
             return altar;
         }
 
-        Altar altar = new Altar(id, world.getName(), baseX, baseY, baseZ, theme.name(), seed, false,
+        Altar altar = new Altar(id, world.getName(), baseX, baseY, baseZ, theme.name(), site.kind().name(),
+                seed, false,
                 result.blocks().stream().map(StructureDesigns.Placed::key).toList(),
                 result.chests().stream().map(StructureService::blockKey).toList(),
                 List.of(), null, result.lectern() == null ? null : blockKey(result.lectern()));
@@ -444,6 +447,43 @@ public final class StructureService implements Listener {
         save();
 
         return altar;
+    }
+
+    private static Location interactionAnchor(World world, StructureDesigns.BuildResult result, int baseX, int baseY,
+            int baseZ) {
+        Set<String> occupied = new HashSet<>();
+
+        for (StructureDesigns.Placed placed : result.blocks()) {
+            occupied.add(placed.x() + "," + placed.y() + "," + placed.z());
+        }
+
+        for (int radius = 2; radius <= 4; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
+
+                    int x = baseX + dx;
+                    int z = baseZ + dz;
+                    String key = x + "," + (baseY + 1) + "," + z;
+
+                    if (occupied.contains(key)) {
+                        continue;
+                    }
+
+                    Material floor = world.getBlockAt(x, baseY, z).getType();
+                    Material feet = world.getBlockAt(x, baseY + 1, z).getType();
+                    Material head = world.getBlockAt(x, baseY + 2, z).getType();
+
+                    if (floor.isSolid() && !feet.isSolid() && !head.isSolid()) {
+                        return new Location(world, x + 0.5D, baseY + 1.0D, z + 0.5D);
+                    }
+                }
+            }
+        }
+
+        return new Location(world, baseX + 0.5D, baseY + 1.0D, baseZ + 0.5D);
     }
 
     private static String spawnText(World world, Location location, String text, int width, boolean title) {
@@ -813,8 +853,8 @@ public final class StructureService implements Listener {
             }
 
             ALTARS.put(altar.id(), new Altar(altar.id(), altar.world(), altar.x(), altar.y(), altar.z(),
-                    altar.theme(), altar.seed(), true, altar.blocks(), altar.chests(), altar.texts(),
-                    altar.interaction(), altar.lectern()));
+                    altar.theme(), altar.placement(), altar.seed(), true, altar.blocks(), altar.chests(),
+                    altar.texts(), altar.interaction(), altar.lectern()));
 
             save();
 
