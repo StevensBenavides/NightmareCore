@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -101,7 +102,7 @@ public final class PhaseAssaultService {
         }
 
         for (Player player : world.getPlayers()) {
-            if (!MobTargetingService.isTargetable(player) || !isOnSurface(player.getLocation())) {
+            if (!MobTargetingService.isTargetable(player)) {
                 continue;
             }
 
@@ -132,35 +133,32 @@ public final class PhaseAssaultService {
     }
 
     private void spawnWave(Player player, MobTier tier, int size) {
-        if (size <= 0 || !player.isOnline() || !MobTargetingService.isTargetable(player)
-                || !isOnSurface(player.getLocation())) {
+        if (size <= 0 || !player.isOnline() || !MobTargetingService.isTargetable(player)) {
             return;
         }
 
-        World playerWorld = player.getWorld();
+        World world = player.getWorld();
         int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 300));
 
-        if (liveRaidMobs(playerWorld) >= cap) {
+        if (liveRaidMobs(world) >= cap) {
             return;
         }
 
-        Location center = raidCenter(player);
+        boolean surface = isOnSurface(player.getLocation());
+        Location center = surface ? raidCenter(player) : player.getLocation();
+        List<Location> artificial = surface ? collectArtificial(world, center) : List.of();
+        Location pack = surface
+                ? findSurfacePackCenter(world, center, artificial)
+                : findUndergroundPackCenter(world, player);
 
-        if (center == null) {
-            center = player.getLocation();
-        }
-
-        World world = center.getWorld();
-
-        if (world == null) {
+        if (pack == null) {
             return;
         }
-
-        int minRadius = Main.balance.getInt("phase-assault.spawn-radius-min", 24);
-        int maxRadius = Math.max(minRadius, Main.balance.getInt("phase-assault.spawn-radius-max", 40));
 
         for (int index = 0; index < size; index++) {
-            Location spawn = findSpawn(world, center, minRadius, maxRadius);
+            Location spawn = surface
+                    ? findSurfacePackSpawn(world, pack, artificial)
+                    : findUndergroundPackSpawn(world, pack);
 
             if (spawn == null) {
                 continue;
@@ -201,23 +199,101 @@ public final class PhaseAssaultService {
     }
 
     private Location raidCenter(Player player) {
-        Location respawn = player.getRespawnLocation();
-        int radius = Main.balance.getInt("phase-assault.bed-raid-radius", 50);
+        Location base = baseCenter(player);
+
+        return base == null ? player.getLocation() : base;
+    }
+
+    private Location baseCenter(Player player) {
+        World world = player.getWorld();
+        int radius = Math.max(8, Main.balance.getInt("phase-assault.base-detection-radius",
+                Main.balance.getInt("phase-assault.bed-raid-radius", 32)));
+        Location respawn = player.getBedSpawnLocation();
 
         if (respawn != null && respawn.getWorld() != null
-                && respawn.getWorld().equals(player.getWorld())
-                && respawn.distanceSquared(player.getLocation()) <= radius * radius
-                && respawn.getWorld().isChunkLoaded(respawn.getBlockX() >> 4, respawn.getBlockZ() >> 4)
+                && respawn.getWorld().equals(world)
+                && respawn.distanceSquared(player.getLocation()) <= (double) radius * radius
+                && world.isChunkLoaded(respawn.getBlockX() >> 4, respawn.getBlockZ() >> 4)
                 && isOnSurface(respawn)) {
             return respawn;
         }
 
-        return player.getLocation();
+        Location best = null;
+        double bestDistance = (double) radius * radius;
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                for (int dy = -4; dy <= 4; dy++) {
+                    Location at = player.getLocation().clone().add(dx, dy, dz);
+
+                    if (!isBed(at.getBlock().getType())) {
+                        continue;
+                    }
+
+                    if (!world.isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) {
+                        continue;
+                    }
+
+                    double distance = at.distanceSquared(player.getLocation());
+
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        best = at;
+                    }
+                }
+            }
+        }
+
+        return best;
     }
 
-    private Location findSpawn(World world, Location center, int minRadius, int maxRadius) {
-        for (int attempt = 0; attempt < 30; attempt++) {
-            double angle = ThreadLocalRandom.current().nextDouble() * Math.PI * 2.0;
+    private boolean isBed(Material material) {
+        String name = material.name();
+        return name.equals("BED") || name.endsWith("_BED");
+    }
+
+    private List<Location> collectArtificial(World world, Location center) {
+        int radius = Math.max(8, Main.balance.getInt("phase-assault.artificial-scan-radius", 32));
+        int minY = Math.max(world.getMinHeight(), center.getBlockY() - 8);
+        int maxY = Math.min(world.getMaxHeight() - 1, center.getBlockY() + 16);
+        List<Location> result = new ArrayList<>();
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                int x = center.getBlockX() + dx;
+                int z = center.getBlockZ() + dz;
+
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+                    continue;
+                }
+
+                for (int y = minY; y <= maxY; y++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    Material type = block.getType();
+
+                    if (type.isAir() || block.isLiquid()) {
+                        continue;
+                    }
+
+                    if (com.nightmare.world.AltarPlacement.isArtificialName(type.name())) {
+                        result.add(block.getLocation());
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Location findSurfacePackCenter(World world, Location center, List<Location> artificial) {
+        int minRadius = Math.max(1, Main.balance.getInt("phase-assault.surface-spawn-min-radius",
+                Main.balance.getInt("phase-assault.spawn-radius-min", 12)));
+        int maxRadius = Math.max(minRadius,
+                Main.balance.getInt("phase-assault.surface-spawn-max-radius",
+                        Main.balance.getInt("phase-assault.spawn-radius-max", 32)));
+
+        for (int attempt = 0; attempt < 60; attempt++) {
+            double angle = ThreadLocalRandom.current().nextDouble() * Math.PI * 2.0D;
             double distance = minRadius + ThreadLocalRandom.current().nextDouble() * (maxRadius - minRadius);
             int x = center.getBlockX() + (int) Math.round(Math.cos(angle) * distance);
             int z = center.getBlockZ() + (int) Math.round(Math.sin(angle) * distance);
@@ -226,17 +302,9 @@ public final class PhaseAssaultService {
                 continue;
             }
 
-            int y = world.getHighestBlockYAt(x, z);
+            Location spawn = safeSurface(world, x, z);
 
-            Block ground = world.getBlockAt(x, y, z);
-
-            if (!ground.getType().isSolid() || ground.isLiquid()) {
-                continue;
-            }
-
-            Location spawn = new Location(world, x + 0.5, y + 1.0, z + 0.5);
-
-            if (!spawn.getBlock().getType().isAir() || !spawn.clone().add(0, 1, 0).getBlock().getType().isAir()) {
+            if (spawn == null || !isDarkEnough(spawn) || !artificialDistanceOk(spawn, artificial)) {
                 continue;
             }
 
@@ -244,6 +312,153 @@ public final class PhaseAssaultService {
         }
 
         return null;
+    }
+
+    private Location findSurfacePackSpawn(World world, Location pack, List<Location> artificial) {
+        int radius = Math.max(1, Main.balance.getInt("phase-assault.pack-radius", 4));
+
+        for (int attempt = 0; attempt < 24; attempt++) {
+            int x = pack.getBlockX() + ThreadLocalRandom.current().nextInt(radius * 2 + 1) - radius;
+            int z = pack.getBlockZ() + ThreadLocalRandom.current().nextInt(radius * 2 + 1) - radius;
+
+            if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+                continue;
+            }
+
+            Location spawn = safeSurface(world, x, z);
+
+            if (spawn == null || !isDarkEnough(spawn) || !artificialDistanceOk(spawn, artificial)) {
+                continue;
+            }
+
+            return spawn;
+        }
+
+        return null;
+    }
+
+    private Location findUndergroundPackCenter(World world, Player player) {
+        int minRadius = Math.max(1, Main.balance.getInt("phase-assault.underground-spawn-min-radius", 6));
+        int maxRadius = Math.max(minRadius,
+                Main.balance.getInt("phase-assault.underground-spawn-max-radius", 16));
+        Location origin = player.getLocation();
+
+        for (int attempt = 0; attempt < 60; attempt++) {
+            double angle = ThreadLocalRandom.current().nextDouble() * Math.PI * 2.0D;
+            double distance = minRadius + ThreadLocalRandom.current().nextDouble() * (maxRadius - minRadius);
+            int x = origin.getBlockX() + (int) Math.round(Math.cos(angle) * distance);
+            int z = origin.getBlockZ() + (int) Math.round(Math.sin(angle) * distance);
+            int y = origin.getBlockY() + ThreadLocalRandom.current().nextInt(13) - 6;
+
+            if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+                continue;
+            }
+
+            Location spawn = safeUnderground(world, x, y, z);
+
+            if (spawn != null && isDarkEnough(spawn)) {
+                return spawn;
+            }
+        }
+
+        return null;
+    }
+
+    private Location findUndergroundPackSpawn(World world, Location pack) {
+        int radius = Math.max(1, Main.balance.getInt("phase-assault.pack-radius", 4));
+
+        for (int attempt = 0; attempt < 24; attempt++) {
+            int x = pack.getBlockX() + ThreadLocalRandom.current().nextInt(radius * 2 + 1) - radius;
+            int z = pack.getBlockZ() + ThreadLocalRandom.current().nextInt(radius * 2 + 1) - radius;
+            int y = pack.getBlockY() + ThreadLocalRandom.current().nextInt(5) - 2;
+
+            if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+                continue;
+            }
+
+            Location spawn = safeUnderground(world, x, y, z);
+
+            if (spawn != null && isDarkEnough(spawn)) {
+                return spawn;
+            }
+        }
+
+        return null;
+    }
+
+    private Location safeSurface(World world, int x, int z) {
+        int top = world.getHighestBlockYAt(x, z);
+
+        for (int y = top; y >= Math.max(world.getMinHeight() + 1, top - 8); y--) {
+            Block ground = world.getBlockAt(x, y, z);
+
+            if (!ground.getType().isSolid() || ground.isLiquid()) {
+                continue;
+            }
+
+            Block feet = world.getBlockAt(x, y + 1, z);
+            Block head = world.getBlockAt(x, y + 2, z);
+
+            if (isOpen(feet) && isOpen(head)) {
+                return new Location(world, x + 0.5D, y + 1.0D, z + 0.5D);
+            }
+        }
+
+        return null;
+    }
+
+    private Location safeUnderground(World world, int x, int y, int z) {
+        if (y <= world.getMinHeight() || y + 2 >= world.getMaxHeight()) {
+            return null;
+        }
+
+        if (world.getHighestBlockYAt(x, z) <= y + 2) {
+            return null;
+        }
+
+        Block ground = world.getBlockAt(x, y - 1, z);
+        Block feet = world.getBlockAt(x, y, z);
+        Block head = world.getBlockAt(x, y + 1, z);
+
+        if (!ground.getType().isSolid() || ground.isLiquid() || !isOpen(feet) || !isOpen(head)) {
+            return null;
+        }
+
+        return new Location(world, x + 0.5D, y, z + 0.5D);
+    }
+
+    private boolean isOpen(Block block) {
+        return !block.getType().isSolid() && !block.isLiquid();
+    }
+
+    private boolean isDarkEnough(Location location) {
+        int max = Main.balance == null ? 7
+                : Main.balance.getInt("phase-assault.max-light-level",
+                        Main.balance.getInt("mob-spawn.max-light-level", 7));
+        Block feet = location.getBlock();
+        Block head = location.getWorld().getBlockAt(
+                location.getBlockX(), location.getBlockY() + 1, location.getBlockZ());
+
+        return feet.getLightLevel() <= max && head.getLightLevel() <= max;
+    }
+
+    private boolean artificialDistanceOk(Location candidate, List<Location> artificial) {
+        if (artificial.isEmpty()) {
+            return true;
+        }
+
+        double min = Math.max(0, Main.balance.getInt("phase-assault.artificial-spawn-min-distance", 10));
+        double max = Math.max(min, Main.balance.getInt("phase-assault.artificial-spawn-max-distance", 20));
+        double nearest = Double.MAX_VALUE;
+
+        for (Location block : artificial) {
+            double dx = block.getBlockX() + 0.5D - candidate.getX();
+            double dy = block.getBlockY() + 0.5D - candidate.getY();
+            double dz = block.getBlockZ() + 0.5D - candidate.getZ();
+            nearest = Math.min(nearest, dx * dx + dy * dy + dz * dz);
+        }
+
+        return nearest >= min * min && nearest <= max * max;
     }
 
     private EntityType randomHordeType(MobTier tier) {

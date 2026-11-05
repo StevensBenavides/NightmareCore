@@ -45,7 +45,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
     private static final List<String> ROOT = List.of("help", "reload", "time", "creator", "system", "story");
     private static final List<String> RELOAD_TARGETS = List.of(
             "messages.yml", "settings.yml", "language", "time", "enchants.yml", "balance.yml", "mobs.yml", "enchant-lore.yml", "story.yml", "structures.yml", "all");
-    private static final List<String> SYSTEM = List.of("day", "enchant", "item", "relic", "cooldown", "reload", "altar", "revive");
+    private static final List<String> SYSTEM = List.of("day", "enchant", "item", "relic", "cooldown", "reload", "altar", "revive", "airdrop");
     private static final List<String> ITEM_IDS = List.of(
             "soul_heart", "abyssal_tendrils", "abyssal_ink", "abyssal_nucleus", "abyssal_howl", "abyssal_core");
     private static final List<String> TIME = List.of("add", "remove");
@@ -324,7 +324,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 2) {
-            sendUsage(sender, "/nightmare system <day|enchant|item|relic|cooldown|reload|altar|revive>");
+            sendUsage(sender, "/nightmare system <day|enchant|item|relic|cooldown|reload|altar|revive|airdrop>");
             return;
         }
 
@@ -692,8 +692,44 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
             case "revive" -> handleRevive(sender, args);
 
+            case "airdrop" -> {
+                if (args.length != 2) {
+                    sendUsage(sender, "/nightmare system airdrop");
+                    return;
+                }
+
+                handleAirdrop(sender);
+            }
+
             default -> send(sender, LangService.format("commands.system.unknown_command",
                 "&cUnknown system subcommand '&f%input%&c'.", "%input%", args[1]));
+        }
+    }
+
+    private void handleAirdrop(CommandSender sender) {
+        org.bukkit.World world;
+
+        if (sender instanceof Player player) {
+            world = player.getWorld();
+        } else {
+            world = Bukkit.getWorlds().stream()
+                    .filter(candidate -> candidate.getEnvironment() == org.bukkit.World.Environment.NORMAL)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (world == null) {
+            send(sender, LangService.msg("commands.system.airdrop_no_world",
+                    "&cNo normal world is available for the god drop."));
+            return;
+        }
+
+        if (com.nightmare.world.GodDropService.triggerNow(world)) {
+            send(sender, LangService.format("commands.system.airdrop_started",
+                    "&aGod drop created in &f%world%&a.", "%world%", world.getName()));
+        } else {
+            send(sender, LangService.msg("commands.system.airdrop_failed",
+                    "&cCould not create the god drop. Check the console for details."));
         }
     }
 

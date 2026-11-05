@@ -64,6 +64,9 @@ commands:
     not_banned: "&7%player% no está baneado."
     revived_one: "&aRevivido &f%player%&a."
     revived_many: "&aRevividos &f%count%&a jugadores."
+    airdrop_started: "&aRegalo de los dioses creado en &f%world%&a."
+    airdrop_failed: "&cNo se pudo crear el regalo de los dioses. Revisa la consola."
+    airdrop_no_world: "&cNo hay ningún mundo normal disponible para el regalo."
   relic_state:
     active: "activa"
     in_inventory: "en el inventario"
@@ -94,6 +97,7 @@ commands:
       - "&7/nightmare system reload [target] &8- &fRecarga configuraciones."
       - "&7/nightmare system altar <place|list|teleport|remove> &8- &fGestiona altares del lore."
       - "&7/nightmare system revive <player|@s|@a> &8- &fPerdona el death-ban."
+      - "&7/nightmare system airdrop &8- &fInvoca un regalo de los dioses."
     command_help:
       - "&c&lNightmare Core &7| &fReferencia de comandos"
       - "&f/nightmare help &7- Abre la guía."
@@ -111,6 +115,7 @@ commands:
       - "&f/nightmare system reload [target]"
       - "&f/nightmare system altar <place|list|teleport|remove> [theme|id]"
       - "&f/nightmare system revive <player|@s|@a>"
+      - "&f/nightmare system airdrop"
 guide:
   header: "&c&lGuía Nightmare &7| &fComandos útiles:"
   help: "Abre el menú principal de la guía."
@@ -299,3 +304,7 @@ grave:
   label: "&7Q.E.P.D. %player%"
   not_owner: "&cEsta lápida pertenece a %player%."
   protected: "&cEsta lápida está protegida."
+god_drop:
+  announce: "&7Un susurro recorre el mundo... &5Los dioses Alma y Abismo dejaron un regalo en &f%x%, %y%, %z% &7en &f%world%&7."
+  soul_label: "&dRegalo del Dios Alma"
+  abyss_label: "&5Regalo del Dios Abismo"

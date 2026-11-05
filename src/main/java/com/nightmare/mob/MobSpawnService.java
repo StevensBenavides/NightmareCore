@@ -71,6 +71,11 @@ public final class MobSpawnService implements Listener {
             return;
         }
 
+        if (isTooBright(mob)) {
+            event.setCancelled(true);
+            return;
+        }
+
         long day = mob.getWorld().getFullTime() / 24000L;
 
         String worldName = mob.getWorld().getName();
@@ -239,6 +244,14 @@ public final class MobSpawnService implements Listener {
 
         MobTaskService.ACTIVE.put(mob.getUniqueId(),
                 new MobState(mob.getUniqueId(), tier, profile, mob.getWorld().getName(), aggressive));
+    }
+
+    private static boolean isTooBright(Mob mob) {
+        int max = Main.balance == null ? 7 : Main.balance.getInt("mob-spawn.max-light-level", 7);
+        org.bukkit.block.Block feet = mob.getLocation().getBlock();
+        org.bukkit.block.Block head = feet.getRelative(org.bukkit.block.BlockFace.UP);
+
+        return feet.getLightLevel() > max || head.getLightLevel() > max;
     }
 
     private static MobTier forcedTier(Mob mob) {

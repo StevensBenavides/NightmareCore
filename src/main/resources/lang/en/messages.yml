@@ -64,6 +64,9 @@ commands:
     not_banned: "&7%player% is not banned."
     revived_one: "&aRevived &f%player%&a."
     revived_many: "&aRevived &f%count%&a players."
+    airdrop_started: "&aGod drop created in &f%world%&a."
+    airdrop_failed: "&cCould not create the god drop. Check the console for details."
+    airdrop_no_world: "&cNo normal world is available for the god drop."
   relic_state:
     active: "active"
     in_inventory: "in inventory"
@@ -94,6 +97,7 @@ commands:
       - "&7/nightmare system reload [target] &8- &fReload configs."
       - "&7/nightmare system altar <place|list|teleport|remove> &8- &fManage lore altars."
       - "&7/nightmare system revive <player|@s|@a> &8- &fPardon the death-ban."
+      - "&7/nightmare system airdrop &8- &fSummon a gift from the gods."
     command_help:
       - "&c&lNightmare Core &7| &fCommand Reference"
       - "&f/nightmare help &7- Open the guide GUI."
@@ -111,6 +115,7 @@ commands:
       - "&f/nightmare system reload [target]"
       - "&f/nightmare system altar <place|list|teleport|remove> [theme|id]"
       - "&f/nightmare system revive <player|@s|@a>"
+      - "&f/nightmare system airdrop"
 guide:
   header: "&c&lNightmare Guide &7| &fUseful commands:"
   help: "Open the main guide menu."
@@ -299,3 +304,7 @@ grave:
   label: "&7R.I.P. %player%"
   not_owner: "&cThis grave belongs to %player%."
   protected: "&cThis grave is protected."
+god_drop:
+  announce: "&7A whisper drifts through the world... &5The gods of Soul and Abyss left a gift at &f%x%, %y%, %z% &7in &f%world%&7."
+  soul_label: "&dSoul God's Gift"
+  abyss_label: "&5Abyss God's Gift"

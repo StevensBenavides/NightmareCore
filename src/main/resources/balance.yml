@@ -11,6 +11,9 @@ tiers:
   J: { health: 3.20, damage: 1.50, armor: 18, speed: 1.14, enchant-level: 4, weight: 12 }
   K: { health: 5.00, damage: 1.70, armor: 20, speed: 1.18, enchant-level: 5, weight: 6 }
 
+mob-spawn:
+  max-light-level: 7
+
 caps:
   max-k-per-world: 5
   max-k-per-species: 1
@@ -86,6 +89,16 @@ phase-assault:
   surface-depth-tolerance: 6
   despawn-after-ms: 300000
   despawn-radius: 64
+  base-detection-radius: 32
+  artificial-scan-radius: 32
+  artificial-spawn-min-distance: 10
+  artificial-spawn-max-distance: 20
+  surface-spawn-min-radius: 12
+  surface-spawn-max-radius: 32
+  underground-spawn-min-radius: 6
+  underground-spawn-max-radius: 16
+  pack-radius: 4
+  max-light-level: 7
 
 abyssal-tendrils:
   range: 50
@@ -166,3 +179,18 @@ player-items:
   grave:
     owner-only: true
     protect: false
+
+god-drops:
+  enabled: true
+  every-days: 9
+  max-day: 90
+  max-distance-from-spawn: 3000
+  border-margin: 100
+  common-rolls: 2
+  book-rolls: 2
+  extra-book-chance: 0.35
+  book-max-level: 3
+  ink-chance: 0.10
+  nucleus-chance: 0.10
+  lore-book-chance: 0.10
+  announce: true

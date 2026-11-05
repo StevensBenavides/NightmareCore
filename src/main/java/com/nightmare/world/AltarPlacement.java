@@ -146,7 +146,7 @@ public final class AltarPlacement {
         return bucket / 10_000.0D < chance;
     }
 
-    static boolean isArtificialName(String name) {
+    public static boolean isArtificialName(String name) {
         if (name == null || name.isEmpty()) {
             return false;
         }
