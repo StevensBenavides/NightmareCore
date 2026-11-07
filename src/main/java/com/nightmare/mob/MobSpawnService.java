@@ -146,7 +146,10 @@ public final class MobSpawnService implements Listener {
             K_PITY.put(worldName, 250);
         }
 
+        boolean miner = isMinerRoll(mob);
+
         mob.getPersistentDataContainer().set(MobKeys.MOB_TIER, PersistentDataType.STRING, tier.name());
+        mob.getPersistentDataContainer().set(MobKeys.MOB_MINER, PersistentDataType.BOOLEAN, miner);
         mob.getPersistentDataContainer().set(MobKeys.MOB_ELITE, PersistentDataType.BOOLEAN, tier.elite);
         mob.getPersistentDataContainer().set(MobKeys.MOB_SPECIES, PersistentDataType.STRING, mob.getType().name());
 
@@ -182,6 +185,12 @@ public final class MobSpawnService implements Listener {
             attackDamage.setBaseValue(Math.min(2048.0, attackDamage.getBaseValue() * damageMultiplier));
         }
 
+        if (miner && attackDamage != null) {
+            double minerDamage = Main.balance == null ? 2.0
+                    : Math.max(0.5, Main.balance.getDouble("miner.damage", 2.0));
+            attackDamage.setBaseValue(minerDamage);
+        }
+
         AttributeInstance armor = mob.getAttribute(Attribute.ARMOR);
 
         if (armor != null) {
@@ -197,7 +206,13 @@ public final class MobSpawnService implements Listener {
         AttributeInstance followRange = mob.getAttribute(Attribute.FOLLOW_RANGE);
 
         if (followRange != null) {
-            followRange.setBaseValue(Math.max(followRange.getBaseValue(), 24.0 + tier.index * 2.0));
+            if (miner) {
+                double minerFollow = Main.balance == null ? 16.0
+                        : Math.max(4.0, Main.balance.getDouble("miner.follow-range", 16.0));
+                followRange.setBaseValue(Math.min(followRange.getBaseValue(), minerFollow));
+            } else {
+                followRange.setBaseValue(Math.max(followRange.getBaseValue(), 24.0 + tier.index * 2.0));
+            }
         }
 
         AttributeInstance knockback = mob.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
@@ -220,11 +235,13 @@ public final class MobSpawnService implements Listener {
             if (equipment != null) {
                 if ((mob instanceof AbstractSkeleton && !(mob instanceof WitherSkeleton)) || mob instanceof Pillager) {
                     equipment.setItemInMainHand(CustomItemService.createBow(tier, tier.elite));
+                } else if (miner) {
+                    equipment.setItemInMainHand(CustomItemService.createPickaxe(ThreadLocalRandom.current()));
                 } else {
                     equipment.setItemInMainHand(CustomItemService.createMeleeWeapon(tier, tier.elite));
                 }
 
-                double pieceChance = 0.30 + 0.06 * tier.index;
+                double pieceChance = miner ? 0.0 : 0.30 + 0.06 * tier.index;
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 
                 if (random.nextDouble() < pieceChance) {
@@ -251,7 +268,29 @@ public final class MobSpawnService implements Listener {
         }
 
         MobTaskService.ACTIVE.put(mob.getUniqueId(),
-                new MobState(mob.getUniqueId(), tier, profile, mob.getWorld().getName(), aggressive));
+                new MobState(mob.getUniqueId(), tier, profile, mob.getWorld().getName(), aggressive, miner));
+    }
+
+    private static boolean isMinerRoll(Mob mob) {
+        if (mob.getType() != org.bukkit.entity.EntityType.ZOMBIE) {
+            return false;
+        }
+
+        if (Main.balance != null && !Main.balance.getBoolean("miner.enabled", true)) {
+            return false;
+        }
+
+        double chance = Main.balance == null ? 0.15 : Main.balance.getDouble("miner.chance", 0.15);
+
+        if (chance <= 0.0) {
+            return false;
+        }
+
+        if (chance >= 1.0) {
+            return true;
+        }
+
+        return ThreadLocalRandom.current().nextDouble() < chance;
     }
 
     private static boolean isTooBright(Mob mob) {

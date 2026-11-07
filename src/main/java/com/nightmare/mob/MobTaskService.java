@@ -35,7 +35,7 @@ public final class MobTaskService {
     public static final Map<UUID, Long> SUMMON_EXPIRY = new ConcurrentHashMap<>();
 
     private static final Set<String> OFFENSIVE_POWERS = Set.of(
-            "AURA", "SUMMON", "MOBILITY", "VOLLEY", "CHARGE", "LIGHTNING", "EXPLOSION", "DEBUFF");
+            "AURA", "SUMMON", "MOBILITY", "VOLLEY", "CHARGE", "LIGHTNING", "EXPLOSION", "DEBUFF", "DIG");
 
     private static final Set<EntityType> VOLLEY_TYPES = EnumSet.of(
             EntityType.SKELETON, EntityType.STRAY, EntityType.BOGGED, EntityType.PARCHED,
@@ -79,6 +79,10 @@ public final class MobTaskService {
                         powers.add(elitePower);
                     }
                 }
+            }
+
+            if (state.miner && !powers.contains("DIG")) {
+                powers.add("DIG");
             }
 
             boolean canAttack = state.profile.category == MobCategory.HOSTILE || state.aggressive;
@@ -308,10 +312,131 @@ public final class MobTaskService {
 
                         state.cooldowns.put(power, now + 20000L);
                     }
+                    case "DIG" -> {
+                        if (!(target instanceof Player targetPlayer)
+                                || !MobTargetingService.isTargetable(targetPlayer)) {
+                            continue;
+                        }
+
+                        double range = Math.max(1.0, Main.balance == null ? 6.0
+                                : Main.balance.getDouble("miner.dig-range", 6.0));
+
+                        if (mob.getLocation().distanceSquared(target.getLocation()) > range * range) {
+                            continue;
+                        }
+
+                        if (mob.hasLineOfSight(target)) {
+                            continue;
+                        }
+
+                        if (digTowardTarget(mob, state, target, power, now)) {
+                            mob.swingMainHand();
+                            mob.getWorld().playSound(mob.getLocation(), Sound.BLOCK_STONE_BREAK, 0.9F, 0.9F);
+                        }
+                    }
                     default -> state.cooldowns.put(power, now + 10000L);
                 }
             }
         }
     }
 
+    private static boolean digTowardTarget(Mob mob, MobState state, LivingEntity target, String power, long now) {
+        Location origin = mob.getLocation();
+        Vector step = target.getLocation().toVector().subtract(origin.toVector());
+        step.setY(0.0);
+
+        if (step.lengthSquared() < 0.01) {
+            return false;
+        }
+
+        step.normalize();
+
+        boolean onlyNatural = Main.balance == null
+                || Main.balance.getBoolean("miner.only-natural-blocks", true);
+        boolean dug = false;
+
+        for (int forward = 1; forward <= 2 && !dug; forward++) {
+            int x = origin.getBlockX() + (int) Math.round(step.getX() * forward);
+            int z = origin.getBlockZ() + (int) Math.round(step.getZ() * forward);
+
+            for (int dy = 0; dy <= 1; dy++) {
+                org.bukkit.block.Block block = mob.getWorld().getBlockAt(x, origin.getBlockY() + dy, z);
+
+                if (!isDiggable(block, onlyNatural)) {
+                    continue;
+                }
+
+                org.bukkit.block.data.BlockData cracked = block.getBlockData();
+                org.bukkit.Location brokenAt = block.getLocation().add(0.5, 0.5, 0.5);
+                block.setType(org.bukkit.Material.AIR, false);
+                mob.getWorld().spawnParticle(Particle.BLOCK, brokenAt, 14, 0.3, 0.3, 0.3, 0.05, cracked);
+                dug = true;
+            }
+        }
+
+        if (!dug) {
+            state.cooldowns.put(power, now + 2000L);
+            return false;
+        }
+
+        state.cooldowns.put(power, now + digCooldownMs(mob));
+        return true;
+    }
+
+    private static boolean isDiggable(org.bukkit.block.Block block, boolean onlyNatural) {
+        org.bukkit.Material type = block.getType();
+
+        if (type.isAir() || block.isLiquid()) {
+            return false;
+        }
+
+        if (type.getHardness() < 0.0F) {
+            return false;
+        }
+
+        switch (type) {
+            case OBSIDIAN:
+            case CRYING_OBSIDIAN:
+            case REINFORCED_DEEPSLATE:
+            case END_PORTAL:
+            case END_PORTAL_FRAME:
+            case END_GATEWAY:
+            case SPAWNER:
+            case TRIAL_SPAWNER:
+            case VAULT:
+            case BEDROCK:
+            case BARRIER:
+            case COMMAND_BLOCK:
+            case CHAIN_COMMAND_BLOCK:
+            case REPEATING_COMMAND_BLOCK:
+            case STRUCTURE_BLOCK:
+            case JIGSAW:
+                return false;
+            default:
+                break;
+        }
+
+        return !onlyNatural || !com.nightmare.world.AltarPlacement.isArtificialName(type.name());
+    }
+
+    private static long digCooldownMs(Mob mob) {
+        org.bukkit.Material held = mob.getEquipment() == null
+                ? org.bukkit.Material.AIR
+                : mob.getEquipment().getItemInMainHand().getType();
+        String key;
+        long fallback;
+
+        if (held == org.bukkit.Material.IRON_PICKAXE) {
+            key = "miner.dig-cooldown-iron-ms";
+            fallback = 4000L;
+        } else if (held == org.bukkit.Material.STONE_PICKAXE) {
+            key = "miner.dig-cooldown-stone-ms";
+            fallback = 6000L;
+        } else {
+            key = "miner.dig-cooldown-wood-ms";
+            fallback = 8000L;
+        }
+
+        return Math.max(1000L, Main.balance == null ? fallback : Main.balance.getLong(key, fallback));
+    }
 }

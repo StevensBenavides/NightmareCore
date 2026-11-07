@@ -47,9 +47,11 @@ public final class MobChunkService implements Listener {
             }
 
             Boolean aggressive = mob.getPersistentDataContainer().get(MobKeys.MOB_AGGRESSIVE, PersistentDataType.BOOLEAN);
+            Boolean miner = mob.getPersistentDataContainer().get(MobKeys.MOB_MINER, PersistentDataType.BOOLEAN);
             MobTaskService.ACTIVE.put(mob.getUniqueId(),
                     new MobState(mob.getUniqueId(), tier, profile, mob.getWorld().getName(),
-                            aggressive != null ? aggressive : profile.category == MobCategory.HOSTILE));
+                            aggressive != null ? aggressive : profile.category == MobCategory.HOSTILE,
+                            miner != null && miner));
             NametagService.reset(mob);
         }
     }

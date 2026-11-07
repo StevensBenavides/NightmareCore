@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.ChatColor;
@@ -52,6 +53,30 @@ public final class CustomItemService {
         }
 
         EnchantLoreService.rebuildEquipmentLore(item);
+    }
+
+    public static ItemStack createPickaxe(Random random) {
+        int wood = Math.max(0, Main.balance == null ? 50
+                : Main.balance.getInt("miner.pickaxe-weights.wood", 50));
+        int stone = Math.max(0, Main.balance == null ? 35
+                : Main.balance.getInt("miner.pickaxe-weights.stone", 35));
+        int iron = Math.max(0, Main.balance == null ? 15
+                : Main.balance.getInt("miner.pickaxe-weights.iron", 15));
+        int total = wood + stone + iron;
+
+        Material material = Material.WOODEN_PICKAXE;
+
+        if (total > 0) {
+            int roll = random.nextInt(total);
+
+            if (roll < iron) {
+                material = Material.IRON_PICKAXE;
+            } else if (roll < iron + stone) {
+                material = Material.STONE_PICKAXE;
+            }
+        }
+
+        return new ItemStack(material);
     }
 
     public static ItemStack createMeleeWeapon(MobTier tier, boolean legendary) {

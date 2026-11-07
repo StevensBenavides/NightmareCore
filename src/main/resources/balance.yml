@@ -203,3 +203,18 @@ insomnia:
   duration-max-minutes: 6
   only-at-night: true
   announce: true
+
+miner:
+  enabled: true
+  chance: 0.15
+  pickaxe-weights:
+    wood: 50
+    stone: 35
+    iron: 15
+  damage: 2.0
+  follow-range: 16.0
+  dig-range: 6.0
+  dig-cooldown-wood-ms: 8000
+  dig-cooldown-stone-ms: 6000
+  dig-cooldown-iron-ms: 4000
+  only-natural-blocks: true
