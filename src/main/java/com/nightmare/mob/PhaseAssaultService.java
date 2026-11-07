@@ -119,9 +119,12 @@ public final class PhaseAssaultService {
         int maxSize = Math.max(1, Main.balance.getInt("phase-assault.horde-max-size", 30));
         int total = Math.min(maxSize, baseSize + tier.index * perTier);
 
-        player.sendTitle(ChatColor.DARK_RED + "" + ChatColor.BOLD + "PHASE " + tier.name(),
-                ChatColor.RED + com.nightmare.lang.LangService.msg("assault.subtitle",
-                        "The nightmare is coming for you."), 10, 50, 10);
+        player.sendTitle(ChatColor.translateAlternateColorCodes('&', com.nightmare.lang.LangService.format(
+                        "assault.title", "&4&lPHASE %tier%", "%tier%", tier.name())),
+                ChatColor.translateAlternateColorCodes('&', com.nightmare.lang.LangService.format(
+                        "assault.subtitle", "&cThe nightmare is coming for you.", "%tier%", tier.name(),
+                        "%player%", player.getName())),
+                10, 50, 10);
         player.playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.8F, 0.6F);
 
         for (int wave = 0; wave < waves; wave++) {

@@ -154,6 +154,16 @@ public final class MobSpawnService implements Listener {
 
         mob.getPersistentDataContainer().set(MobKeys.MOB_AGGRESSIVE, PersistentDataType.BOOLEAN, aggressive);
 
+        String settingKey = "config.mobs." + tier.name().toLowerCase() + "_tier";
+        String format = Main.settings.getString(settingKey,
+                "&c&lNightmare %mob% &4☠ Tier " + tier.name());
+
+        if (!format.contains("%mob%")) {
+            Main.getInstance().getLogger().warning("[mobs] setting '" + settingKey
+                    + "' is missing %mob%; appending it to the mob name.");
+            format = format + " %mob%";
+        }
+
         String tierPath = "tiers." + tier.name() + ".";
         double healthMultiplier = Main.balance.getDouble(tierPath + "health", tier.healthMultiplier);
         double damageMultiplier = Main.balance.getDouble(tierPath + "damage", tier.damageMultiplier);
@@ -198,8 +208,6 @@ public final class MobSpawnService implements Listener {
 
         mob.setHealth(mob.getMaxHealth());
 
-        String format = Main.settings.getString("config.mobs." + tier.name().toLowerCase() + "_tier",
-                "&c&lNightmare %mob% &4☠ Tier " + tier.name());
         String mobName = mob.getType().name().toLowerCase().replace('_', ' ');
         mob.setCustomName(ChatColor.translateAlternateColorCodes('&', format.replace("%mob%", mobName)));
         mob.setCustomNameVisible(tier == MobTier.K);

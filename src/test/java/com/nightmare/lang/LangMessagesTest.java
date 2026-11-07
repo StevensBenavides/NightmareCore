@@ -42,7 +42,7 @@ public class LangMessagesTest {
 
         for (String key : keys) {
             assertEquals("placeholder mismatch at " + key,
-                    placeholders(en.getString(key)), placeholders(es.getString(key)));
+                    placeholders(textOf(en, key)), placeholders(textOf(es, key)));
         }
     }
 
@@ -57,6 +57,34 @@ public class LangMessagesTest {
         for (String key : keys) {
             assertTrue("missing en key " + key, en.contains(key));
             assertTrue("missing es key " + key, es.contains(key));
+        }
+    }
+
+    @Test
+    public void localizedDisplayKeysArePresent() {
+        String[] keys = {
+                "assault.title", "cooldown.wait",
+                "structures.book_title", "structures.book_author",
+                "story.soul_god", "story.abyss_god", "story.foe",
+                "relics.soul_heart.name", "relics.abyssal_tendrils.name",
+                "gui.title_main", "gui.title_enchants", "gui.title_recipe",
+                "gui.title_abyssal_chain", "gui.title_relics", "gui.title_story",
+                "gui.title_soul_recipe", "gui.title_tendrils_recipe",
+                "gui.enchants_button", "gui.relics_button", "gui.info_relic_soul",
+                "gui.origin_label", "gui.recipe_crafting", "gui.recipe_tier",
+                "gui.recipe_catalyst", "gui.recipe_book", "gui.recipe_ink",
+                "gui.recipe_nucleus", "gui.recipe_howl", "gui.recipe_core",
+                "gui.recipe_tendrils", "gui.recipe_soul",
+                "stats.hits", "stats.anti_heal", "stats.distance", "stats.reduction",
+                "stats.blocks", "stats.blocks_diameter", "stats.permanent", "stats.hold",
+                "stats.sneak_left", "stats.sneak_right",
+                "stats.abyssal_burst", "stats.abyssal_cataclysm"};
+
+        for (String key : keys) {
+            assertTrue("missing en key " + key, en.contains(key));
+            assertTrue("missing es key " + key, es.contains(key));
+            assertEquals("placeholder mismatch at " + key,
+                    placeholders(textOf(en, key)), placeholders(textOf(es, key)));
         }
     }
 
@@ -87,6 +115,16 @@ public class LangMessagesTest {
                 out.put(path, section.get(key));
             }
         }
+    }
+
+    private static String textOf(YamlConfiguration messages, String key) {
+        String value = messages.getString(key);
+
+        if (value != null) {
+            return value;
+        }
+
+        return String.join("\n", messages.getStringList(key));
     }
 
     private static Set<String> placeholders(String text) {

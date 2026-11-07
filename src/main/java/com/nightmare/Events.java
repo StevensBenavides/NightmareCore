@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.nightmare.FastBoard.FastBoard;
 
@@ -59,7 +57,9 @@ public final class Events implements Listener {
 
                 FastBoard board = new FastBoard(event.getPlayer());
 
-                board.updateTitle(ChatColor.translateAlternateColorCodes('&', config.getString("scoreboard.name", "")));
+                board.updateTitle(ChatColor.translateAlternateColorCodes('&',
+                        PlaceholderAPI.setPlaceholders(event.getPlayer(),
+                                config.getString("scoreboard.name", ""))));
 
                 NightmareScoreboard.boards.put(event.getPlayer().getUniqueId(), board);
 
@@ -67,13 +67,10 @@ public final class Events implements Listener {
 
             if (config.getBoolean("join_and_leave.enable")) {
 
-                String message = config.getString("prefix") + config.getString("join_and_leave.join");
+                String message = config.getString("prefix", "")
+                        + config.getString("join_and_leave.join", "");
 
-                Pattern pattern = Pattern.compile("%.+?%");
-                Matcher matcher = pattern.matcher(message);
-
-                if (matcher.find()) 
-                    message = message.replace(matcher.group(), PlaceholderAPI.setPlaceholders(event.getPlayer(), matcher.group()));
+                message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
 
                 event.setJoinMessage(ChatColor.translateAlternateColorCodes('&', message));
 
@@ -84,24 +81,21 @@ public final class Events implements Listener {
                 ArrayList<String> tempLines = new ArrayList<String>();
 
                 for (String line : config.getStringList("message_join.lines")) {
-
-                    Pattern pattern = Pattern.compile("%.+?%");
-                    Matcher matcher = pattern.matcher(line);
-
-                    if (matcher.find()) {
-                        tempLines.add(ChatColor.translateAlternateColorCodes('&', line.replace(matcher.group(), PlaceholderAPI.setPlaceholders(event.getPlayer(), matcher.group()))));
-                        continue;
-                    }    
-
-                    tempLines.add(ChatColor.translateAlternateColorCodes('&', line));    
-
+                    tempLines.add(ChatColor.translateAlternateColorCodes('&',
+                            PlaceholderAPI.setPlaceholders(event.getPlayer(), line)));
                 }
 
                 for (String line : tempLines) {
                     event.getPlayer().sendMessage(line);
                 }
 
-                event.getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', config.getString("message_join.title", "")), null, 20, 20, 10);
+                String joinTitle = ChatColor.translateAlternateColorCodes('&',
+                        PlaceholderAPI.setPlaceholders(event.getPlayer(),
+                                config.getString("message_join.title", "")));
+
+                if (!joinTitle.isBlank()) {
+                    event.getPlayer().sendTitle(joinTitle, null, 20, 20, 10);
+                }
                 event.getPlayer().getWorld().playSound(event.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.8F, 1.0F);
 
             }
@@ -216,13 +210,10 @@ public final class Events implements Listener {
             
             if (config.getBoolean("join_and_leave.enable")) {
 
-                String message = config.getString("prefix") + config.getString("join_and_leave.leave");
+                String message = config.getString("prefix", "")
+                        + config.getString("join_and_leave.leave", "");
 
-                Pattern pattern = Pattern.compile("%.+?%");
-                Matcher matcher = pattern.matcher(message);
-
-                if (matcher.find())
-                    message = message.replace(matcher.group(), PlaceholderAPI.setPlaceholders(event.getPlayer(), matcher.group()));
+                message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
 
                 event.setQuitMessage(ChatColor.translateAlternateColorCodes('&', message));
 
@@ -339,13 +330,13 @@ public final class Events implements Listener {
 
             if (config.getBoolean("motd.enable")) {
 
-                StringBuilder strMotd = new StringBuilder();
+                java.util.List<String> motdLines = new java.util.ArrayList<>();
 
                 for (String line : config.getStringList("motd.lines")) {
-                    strMotd.append(ChatColor.translateAlternateColorCodes('&', line) + "\n");
+                    motdLines.add(ChatColor.translateAlternateColorCodes('&', line));
                 }
 
-                event.setMotd(strMotd.toString());
+                event.setMotd(String.join("\n", motdLines));
 
             }
 
@@ -382,38 +373,22 @@ public final class Events implements Listener {
                     final boolean isDeathMessageEnabled = config.getBoolean("message_death.enable");
     
                     if (isDeathMessageEnabled) {
-                        String titleMessage = config.getString("message_death.title", "");
-                        String subtitleMessage = config.getString("message_death.subtitle", "");
-                        
-                        titleMessage = titleMessage.replace("%player_killed%", player.getName());
-                        subtitleMessage = subtitleMessage.replace("%player_killed%", player.getName());
-                        
+                        String baseTitle = config.getString("message_death.title", "")
+                                .replace("%player_killed%", player.getName());
+                        String baseSubtitle = config.getString("message_death.subtitle", "")
+                                .replace("%player_killed%", player.getName());
+
                         for (Player outSidePlayer : player.getServer().getOnlinePlayers()) {
                             if (outSidePlayer == null) {
                                 continue;
                             }
 
-                            {
-                                Pattern pattern = Pattern.compile("%.+?%");
-                                Matcher matcher = pattern.matcher(titleMessage);
-        
-                                if (matcher.find()) {
-                                    titleMessage = ChatColor.translateAlternateColorCodes('&', titleMessage.replace(matcher.group(), PlaceholderAPI.setPlaceholders(outSidePlayer, matcher.group())));
-                                }
-                    
-                            }
+                            String titleMessage = ChatColor.translateAlternateColorCodes('&',
+                                    PlaceholderAPI.setPlaceholders(outSidePlayer, baseTitle));
+                            String subtitleMessage = ChatColor.translateAlternateColorCodes('&',
+                                    PlaceholderAPI.setPlaceholders(outSidePlayer, baseSubtitle));
 
-                            {
-                                Pattern pattern = Pattern.compile("%.+?%");
-                                Matcher matcher = pattern.matcher(subtitleMessage);
-        
-                                if (matcher.find()) {
-                                    subtitleMessage = ChatColor.translateAlternateColorCodes('&', subtitleMessage.replace(matcher.group(), PlaceholderAPI.setPlaceholders(outSidePlayer, matcher.group())));
-                                }
-                    
-                            }
-    
-                            outSidePlayer.sendTitle(ChatColor.translateAlternateColorCodes('&', titleMessage), ChatColor.translateAlternateColorCodes('&', subtitleMessage), 10, 40, 10);
+                            outSidePlayer.sendTitle(titleMessage, subtitleMessage, 10, 40, 10);
     
                             outSidePlayer.playSound(
                                 outSidePlayer.getLocation(), 
@@ -454,8 +429,10 @@ public final class Events implements Listener {
                         Date expirationDate = new Date(System.currentTimeMillis() + minutes * 60L * 1000L);
 
                         if (!player.hasPermission("nightmare.bypass.deathban")) {
-                            player.ban(com.nightmare.lang.LangService.msg("death.ban_reason",
-                                    "You fall into the nightmare."), expirationDate, "NightmareCore", true);
+                            player.ban(ChatColor.translateAlternateColorCodes('&',
+                                    com.nightmare.lang.LangService.msg("death.ban_reason",
+                                            "You fall into the nightmare.")),
+                                    expirationDate, "NightmareCore", true);
                         }
                     }
                                     }

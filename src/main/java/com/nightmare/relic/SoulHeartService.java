@@ -101,7 +101,10 @@ public final class SoulHeartService implements Listener {
 
         long now = System.currentTimeMillis();
 
-        if (DIVINE_COOLDOWNS.getOrDefault(player.getUniqueId(), 0L) > now) {
+        long remainingCooldown = DIVINE_COOLDOWNS.getOrDefault(player.getUniqueId(), 0L);
+
+        if (remainingCooldown > now) {
+            sendCooldownDenial(player, remainingCooldown - now);
             player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.8F, 0.8F);
             return;
         }
@@ -244,6 +247,16 @@ public final class SoulHeartService implements Listener {
         player.updateInventory();
         
         return true;
+    }
+
+
+    private static void sendCooldownDenial(org.bukkit.entity.Player player, long remainingMs) {
+        long seconds = Math.max(1L, (remainingMs + 999L) / 1000L);
+        String message = org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                com.nightmare.lang.LangService.format("cooldown.wait", "&cWait %seconds%s.", "%seconds%",
+                        String.valueOf(seconds)));
+        player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                new net.md_5.bungee.api.chat.TextComponent(message));
     }
 
     public static void resetCooldowns(UUID uuid) {

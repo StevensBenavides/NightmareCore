@@ -224,7 +224,7 @@ enchants:
       When the body is close to breaking, the nightmare pulls it back with a
       sudden reserve of life.
     mechanics: >-
-      Activates when your health drops to 28% or less. It heals you and
+      Activates when your health drops to 32% or less. It heals you and
       protects you for a few seconds so you can escape or keep fighting.
       It can activate again once its cooldown ends.
     motto: Not yet. Not today.
@@ -268,18 +268,18 @@ enchants:
     mechanics: >-
       Your hits mark your target, and a fully marked target suffers extra
       damage while being blinded and slowed. Marks fade if you stop hitting.
-    motto: Five marks. One grave.
+    motto: Four marks. One grave.
     lore:
       1: >-
         This brand was cut from the Nightmare god's rusted thinking. Each hit adds one.
       2: >-
         The marks grow heavy. The foe feels them burn.
       3: >-
-        It counts to five. Then the Nightmare god wakes inside the mark.
+        It counts to four. Then the Nightmare god wakes inside the mark.
       4: >-
         The marks glow like coals. The air bends around the foe.
       5: >-
-        Five marks, one name. Then black fire eats the body.
+        Four marks, one name. Then black fire eats the body.
 
   aegis:
     effect: >-

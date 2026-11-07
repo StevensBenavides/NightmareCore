@@ -21,7 +21,7 @@ public final class AegisEnchant extends CustomEnchant {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     public AegisEnchant() {
-        super("aegis", "Shelter", 5, true,
+        super("aegis", "Aegis", 5, true,
                 Material.LEATHER_HELMET,
                 Material.LEATHER_CHESTPLATE,
                 Material.CHAINMAIL_HELMET,

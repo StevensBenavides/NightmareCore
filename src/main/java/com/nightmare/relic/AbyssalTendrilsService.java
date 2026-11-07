@@ -75,8 +75,11 @@ public final class AbyssalTendrilsService implements Listener {
 
         long now = System.currentTimeMillis();
 
-        if (COOLDOWNS.getOrDefault(player.getUniqueId(), 0L) > now) {
+        long remainingCooldown = COOLDOWNS.getOrDefault(player.getUniqueId(), 0L);
+
+        if (remainingCooldown > now) {
             event.setCancelled(true);
+            sendCooldownDenial(player, remainingCooldown - now);
 
             player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.8F, 0.8F);
 
@@ -739,6 +742,16 @@ public final class AbyssalTendrilsService implements Listener {
         RelicInputs.clearAll();
     }
 
+
+
+    private static void sendCooldownDenial(org.bukkit.entity.Player player, long remainingMs) {
+        long seconds = Math.max(1L, (remainingMs + 999L) / 1000L);
+        String message = org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                com.nightmare.lang.LangService.format("cooldown.wait", "&cWait %seconds%s.", "%seconds%",
+                        String.valueOf(seconds)));
+        player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                new net.md_5.bungee.api.chat.TextComponent(message));
+    }
 
     public static void resetCooldowns(java.util.UUID uuid) {
         COOLDOWNS.remove(uuid);

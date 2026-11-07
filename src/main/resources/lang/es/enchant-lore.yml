@@ -222,7 +222,7 @@ enchants:
       Cuando el cuerpo está por romperse, la pesadilla lo rescata con una
       súbita reserva de vida.
     mechanics: >-
-      Se activa cuando tu salud baja al 28% o menos. Te cura y te protege unos
+      Se activa cuando tu salud baja al 32% o menos. Te cura y te protege unos
       segundos para que puedas escapar o seguir peleando. Puede activarse de
       nuevo cuando termine su cooldown.
     motto: Aún no. Hoy no.
@@ -266,18 +266,18 @@ enchants:
     mechanics: >-
       Tus golpes marcan a tu objetivo, y uno totalmente marcado sufre daño extra
       mientras queda cegado y frenado. Las marcas se desvanecen si dejas de golpear.
-    motto: Cinco marcas. Una tumba.
+    motto: Cuatro marcas. Una tumba.
     lore:
       1: >-
         Esta marca fue cortada del oxidado pensar del dios Pesadilla. Cada golpe suma una.
       2: >-
         Las marcas pesan. El enemigo las siente arder.
       3: >-
-        Cuenta hasta cinco. Entonces el dios Pesadilla despierta dentro de la marca.
+        Cuenta hasta cuatro. Entonces el dios Pesadilla despierta dentro de la marca.
       4: >-
         Las marcas brillan como brasas. El aire se dobla alrededor del enemigo.
       5: >-
-        Cinco marcas, un nombre. Luego el fuego negro devora el cuerpo.
+        Cuatro marcas, un nombre. Luego el fuego negro devora el cuerpo.
 
   aegis:
     effect: >-

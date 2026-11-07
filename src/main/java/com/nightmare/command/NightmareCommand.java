@@ -104,7 +104,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.YELLOW + LangService.msg("commands.generic.gui_only_players",
+            send(sender, LangService.msg("commands.generic.gui_only_players",
                     "The Nightmare help GUI is only available to players."));
             sendHelpText(sender);
             return;
@@ -165,7 +165,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         } catch (Exception exception) {
             send(sender, LangService.format("commands.reload.failed",
                     "&cCould not reload &f%target%&c: %error%", "%target%", target,
-                    "%error%", String.valueOf(exception.getMessage())));
+                    "%error%", (exception.getMessage() != null ? exception.getMessage() : "unknown")));
         }
     }
 
@@ -534,10 +534,10 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                     send(sender, "&f" + target.getName() + "&7:");
                     send(sender, LangService.format("commands.system.relic_state",
                             "&7%label%: &f%state%",
-                            "%label%", "Soul Heart", "%state%", relicState(target, true)));
+                            "%label%", relicName("soul_heart"), "%state%", relicState(target, true)));
                     send(sender, LangService.format("commands.system.relic_state",
                             "&7%label%: &f%state%",
-                            "%label%", "Abyssal Tendrils", "%state%", relicState(target, false)));
+                            "%label%", relicName("abyssal_tendrils"), "%state%", relicState(target, false)));
                     return;
                 }
 
@@ -559,7 +559,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                         if (com.nightmare.relic.SoulHeartService.hasHeart(target)) {
                             send(sender, LangService.format("commands.system.already_has",
                                     "&c%player% already has %relic% equipped.",
-                                    "%player%", target.getName(), "%relic%", "Soul Heart"));
+                                    "%player%", target.getName(), "%relic%", relicName("soul_heart")));
                             return;
                         }
 
@@ -568,7 +568,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                         if (AbyssalTendrilsItem.isTendrils(target.getInventory().getItem(17))) {
                             send(sender, LangService.format("commands.system.already_has",
                                     "&c%player% already has %relic% equipped.",
-                                    "%player%", target.getName(), "%relic%", "Abyssal Tendrils"));
+                                    "%player%", target.getName(), "%relic%", relicName("abyssal_tendrils")));
                             return;
                         }
 
@@ -606,7 +606,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                         if (!com.nightmare.relic.SoulHeartService.hasHeart(target)) {
                             send(sender, LangService.format("commands.system.not_in_inventory",
                                     "&c%relic% is not in %player%'s inventory.",
-                                    "%relic%", "Soul Heart", "%player%", target.getName()));
+                                    "%relic%", relicName("soul_heart"), "%player%", target.getName()));
                             return;
                         }
                     } else {
@@ -615,7 +615,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                         if (!AbyssalTendrilsItem.isTendrils(target.getInventory().getItem(17))) {
                             send(sender, LangService.format("commands.system.not_in_inventory",
                                     "&c%relic% is not in %player%'s inventory.",
-                                    "%relic%", "Abyssal Tendrils", "%player%", target.getName()));
+                                    "%relic%", relicName("abyssal_tendrils"), "%player%", target.getName()));
                             return;
                         }
                     }
@@ -985,7 +985,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
             TextComponent github = new TextComponent("Github 🔱  ");
 
             github.setBold(true);
-            github.setColor(net.md_5.bungee.api.ChatColor.BLACK);
+            github.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
             github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/StevensBenavides/NightmareCore"));
             github.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                     new Text(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.github_hover",
@@ -1003,7 +1003,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix));
             player.sendMessage("");
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.support",
-                    "&7Support the creator through &0Github &7or &bDiscord&7.")));
+                    "&7Support the creator through &8Github &7or &bDiscord&7.")));
             player.sendMessage("");
             player.spigot().sendMessage(github, discord);
             player.sendMessage("");
@@ -1016,9 +1016,9 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix));
         sender.sendMessage("");
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.support",
-                "&7Support the creator through &0Github &7or &bDiscord&7.")));
+                "&7Support the creator through &8Github &7or &bDiscord&7.")));
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.github_line",
-                "&0&lGithub: &7https://github.com/StevensBenavides/NightmareCore")));
+                "&8&lGithub: &7https://github.com/StevensBenavides/NightmareCore")));
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.discord_line",
                 "&b&lDiscord: &7https://discord.com/invite/DWfuQRsxwb")));
         sender.sendMessage("");
@@ -1084,7 +1084,9 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
     }
 
     private static String relicName(String id) {
-        return id.equals("soul_heart") ? "Soul Heart" : "Abyssal Tendrils";
+        return id.equals("soul_heart")
+                ? ChatColor.translateAlternateColorCodes('&', LangService.msg("relics.soul_heart.name", "❖ Soul Heart"))
+                : ChatColor.translateAlternateColorCodes('&', LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"));
     }
 
     private static String relicState(Player player, boolean soulHeart) {

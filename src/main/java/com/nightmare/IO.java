@@ -129,6 +129,7 @@ public final class IO {
             # Nightmare's placeholders:
 
             # %player% = player name 
+            # %day% = world day
             # %online% = online players
             # %location% = player location
 

@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -45,41 +43,41 @@ public final class NightmareScoreboard {
 
         List<String> lines = config.getStringList("scoreboard.lines");
 
-        if (lines.size() >= 14) return;
+        if (lines.size() > 15) {
+            lines = lines.subList(0, 15);
+        }
 
         ArrayList<String> newLines = new ArrayList<>();
 
         for (String line : lines) {
-            
+
             if (line.contains("%player%")) {
-                newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%player%", PlaceholderAPI.setPlaceholders(board.getPlayer(), "%player_name%"))));
-                continue;
-            } else if (line.contains("%day%")) {
-                Optional<WorldTime> currentWorldDay = TimeManagement.getSpecificWorldTime(board.getPlayer().getWorld().getName());
-
-                if (currentWorldDay.isPresent()) {
-                    WorldTime worldTime = currentWorldDay.get();
-                    newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%day%", String.valueOf(worldTime.getDay()))));
-                    continue; 
-                } 
-            } else if (line.contains("%online%")) { 
-                newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%online%", String.valueOf(plugin.getServer().getOnlinePlayers().size()) + " / " + plugin.getServer().getMaxPlayers())));
-                continue;
-            } else if (line.contains("%location%")) {
-                newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace("%location%", String.format("%d %d %d", Math.round(board.getPlayer().getLocation().getX()), Math.round(board.getPlayer().getLocation().getY()), Math.round(board.getPlayer().getLocation().getZ())))));
-                continue;
-            } 
-
-            Pattern pattern = Pattern.compile("%.+?%");
-            Matcher matcher = pattern.matcher(line);
-
-            if (matcher.find()) {
-                newLines.add(ChatColor.translateAlternateColorCodes('&', line.replace(matcher.group(), PlaceholderAPI.setPlaceholders(board.getPlayer(), matcher.group()))));
-                continue;
-
+                line = line.replace("%player%",
+                        PlaceholderAPI.setPlaceholders(board.getPlayer(), "%player_name%"));
             }
-            
-            newLines.add(ChatColor.translateAlternateColorCodes('&', line));
+
+            if (line.contains("%day%")) {
+                Optional<WorldTime> currentWorldDay = TimeManagement
+                        .getSpecificWorldTime(board.getPlayer().getWorld().getName());
+                String day = currentWorldDay.map(worldTime -> String.valueOf(worldTime.getDay()))
+                        .orElse("?");
+                line = line.replace("%day%", day);
+            }
+
+            if (line.contains("%online%")) {
+                line = line.replace("%online%", String.valueOf(plugin.getServer().getOnlinePlayers().size())
+                        + " / " + plugin.getServer().getMaxPlayers());
+            }
+
+            if (line.contains("%location%")) {
+                line = line.replace("%location%", String.format("%d %d %d",
+                        Math.round(board.getPlayer().getLocation().getX()),
+                        Math.round(board.getPlayer().getLocation().getY()),
+                        Math.round(board.getPlayer().getLocation().getZ())));
+            }
+
+            newLines.add(ChatColor.translateAlternateColorCodes('&',
+                    PlaceholderAPI.setPlaceholders(board.getPlayer(), line)));
 
         }
 

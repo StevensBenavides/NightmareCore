@@ -177,7 +177,11 @@ public final class StoryService implements Listener {
         }
 
         int revealed = Math.min(current.lines().size(), frame / 2 + 1);
-        List<String> lore = new ArrayList<>(current.lines().subList(0, revealed));
+        List<String> lore = new ArrayList<>();
+
+        for (String raw : current.lines().subList(0, revealed)) {
+            lore.addAll(com.nightmare.enchant.EnchantLoreService.wrap(raw, ChatColor.RESET, false));
+        }
 
         if (revealed < current.lines().size()) {
             lore.add("§8§o(…)");
@@ -200,7 +204,7 @@ public final class StoryService implements Listener {
 
         inventory.setItem(4, GuiItemFactory.item(Material.PAPER,
                 current.title() + " §8[" + (chapterIndex + 1) + "/" + CHAPTERS.size() + "]",
-                List.of("§7Nightmare Origin")));
+                List.of("§7" + LangService.msg("gui.origin_label", "Nightmare Origin"))));
 
         if (current.battle()) {
             battleFrame(inventory, current, frame);
@@ -228,19 +232,19 @@ public final class StoryService implements Listener {
 
         ItemStack clash = GuiItemFactory.item(Material.NETHER_STAR, "§c§l" + LangService.msg("story.clash", "CLASH!"),
                 List.of("§7" + LangService.msg("story.clash_desc", "Soul and Abyss strike as one.")));
-        ItemStack foe = GuiItemFactory.item(Material.WITHER_SKELETON_SKULL, "§8Nightmare",
+        ItemStack foe = GuiItemFactory.item(Material.WITHER_SKELETON_SKULL, "§8" + LangService.msg("story.foe", "Nightmare"),
                 List.of("§7" + LangService.msg("story.foe_desc", "answered with rusted dreams.")));
-        ItemStack soul = GuiItemFactory.item(current.left(), "§fSoul God", List.of());
-        ItemStack abyss = GuiItemFactory.item(current.right(), "§5Abyss God", List.of());
+        ItemStack soul = GuiItemFactory.item(current.left(), "§f" + LangService.msg("story.soul_god", "Soul God"), List.of());
+        ItemStack abyss = GuiItemFactory.item(current.right(), "§5" + LangService.msg("story.abyss_god", "Abyss God"), List.of());
         ItemStack spark = GuiItemFactory.item(Material.FIRE_CHARGE, "§6" + LangService.msg("story.impact", "Impact"), List.of());
 
         inventory.setItem(13, new ItemStack(Material.AIR));
         inventory.setItem(31, new ItemStack(Material.AIR));
 
         if (phase == 1) {
-            inventory.setItem(20, GuiItemFactory.item(current.left(), "§fSoul God", List.of("§7" + LangService.msg("story.strikes", "strikes!"))));
+            inventory.setItem(20, GuiItemFactory.item(current.left(), "§f" + LangService.msg("story.soul_god", "Soul God"), List.of("§7" + LangService.msg("story.strikes", "strikes!"))));
             inventory.setItem(22, clash);
-            inventory.setItem(24, GuiItemFactory.item(current.right(), "§5Abyss God", List.of("§7" + LangService.msg("story.strikes", "strikes!"))));
+            inventory.setItem(24, GuiItemFactory.item(current.right(), "§5" + LangService.msg("story.abyss_god", "Abyss God"), List.of("§7" + LangService.msg("story.strikes", "strikes!"))));
             inventory.setItem(13, spark);
             inventory.setItem(31, spark);
         } else if (phase == 3) {
@@ -249,7 +253,7 @@ public final class StoryService implements Listener {
             inventory.setItem(25, abyss);
         } else {
             inventory.setItem(20, soul);
-            inventory.setItem(22, GuiItemFactory.item(Material.WITHER_SKELETON_SKULL, "§8Nightmare",
+            inventory.setItem(22, GuiItemFactory.item(Material.WITHER_SKELETON_SKULL, "§8" + LangService.msg("story.foe", "Nightmare"),
                     List.of("§7" + LangService.msg("story.looms", "looms."))));
             inventory.setItem(24, abyss);
         }

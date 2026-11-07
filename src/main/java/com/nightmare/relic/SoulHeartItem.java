@@ -34,7 +34,8 @@ public final class SoulHeartItem {
             return item;
         }
 
-        meta.setItemName(ChatColor.WHITE + "" + ChatColor.BOLD + "❖ Soul Heart");
+        meta.setItemName(ChatColor.WHITE + "" + ChatColor.BOLD
+                + com.nightmare.lang.LangService.msg("relics.soul_heart.name", "❖ Soul Heart"));
         meta.setLore(buildLore());
         meta.setMaxStackSize(1);
         meta.addEnchant(Enchantment.UNBREAKING, 1, true);

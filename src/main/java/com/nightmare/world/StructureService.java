@@ -518,14 +518,14 @@ public final class StructureService implements Listener {
             return book;
         }
 
-        meta.setTitle("Nightmare Origin");
-        meta.setAuthor("The Three Gods");
+        meta.setTitle(com.nightmare.lang.LangService.msg("structures.book_title", "Nightmare Origin"));
+        meta.setAuthor(com.nightmare.lang.LangService.msg("structures.book_author", "The Three Gods"));
 
-        StringBuilder page = new StringBuilder(chapter.title().replace("§", "")).append("\n\n");
+        StringBuilder page = new StringBuilder(ChatColor.stripColor(chapter.title())).append("\n\n");
         List<String> pages = new ArrayList<>();
 
         for (String line : chapter.lines()) {
-            String clean = line.replace("§", "");
+            String clean = ChatColor.stripColor(line);
 
             if (page.length() + clean.length() > 200) {
                 pages.add(page.toString());
@@ -875,8 +875,9 @@ public final class StructureService implements Listener {
         String key = blockKey(event.getClickedBlock().getLocation());
 
         if (LECTERNS.contains(key)) {
-            event.getPlayer().sendMessage(com.nightmare.lang.LangService.msg("structures.lectern_msg",
-                    "§7Nightmare Origin &8- §fuse §6/nightmare story §fto read the full tale."));
+            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    com.nightmare.lang.LangService.msg("structures.lectern_msg",
+                            "&7Nightmare Origin &8- &fuse &6/nightmare story &fto read the full tale.")));
         }
     }
 

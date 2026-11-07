@@ -41,7 +41,8 @@ public final class CustomItemService {
         }
 
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
-                String.join("\n", EnchantLoreService.sanitizeBaseLore(meta.getLore())));
+                meta.getLore() == null ? ""
+                        : String.join("\n", EnchantLoreService.sanitizeBaseLore(meta.getLore())));
 
         meta.getPersistentDataContainer().set(EnchantKeys.KEYS.get(id), PersistentDataType.INTEGER, level);
         item.setItemMeta(meta);
@@ -73,7 +74,7 @@ public final class CustomItemService {
             return item;
         }
 
-        meta.setItemName(ChatColor.DARK_RED + "Nightmare Blade " + ChatColor.GRAY + tier.name());
+        meta.setItemName(ChatColor.DARK_RED + com.nightmare.lang.LangService.msg("items.nightmare_blade_name", "Nightmare Blade") + " " + ChatColor.GRAY + tier.name());
         meta.setLore(com.nightmare.lang.LangService.loreLines("items.nightmare_blade_lore",
                 "%tier%", tier.name()));
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
@@ -135,7 +136,7 @@ public final class CustomItemService {
             return item;
         }
 
-        meta.setItemName(ChatColor.DARK_RED + "Nightmare Bow " + ChatColor.GRAY + tier.name());
+        meta.setItemName(ChatColor.DARK_RED + com.nightmare.lang.LangService.msg("items.nightmare_bow_name", "Nightmare Bow") + " " + ChatColor.GRAY + tier.name());
         meta.setLore(com.nightmare.lang.LangService.loreLines("items.nightmare_bow_lore",
                 "%tier%", tier.name()));
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,
@@ -252,7 +253,7 @@ public final class CustomItemService {
             return item;
         }
 
-        meta.setItemName(ChatColor.DARK_RED + "Nightmare Armor " + ChatColor.GRAY + tier.name());
+        meta.setItemName(ChatColor.DARK_RED + com.nightmare.lang.LangService.msg("items.nightmare_armor_name", "Nightmare Armor") + " " + ChatColor.GRAY + tier.name());
         meta.setLore(com.nightmare.lang.LangService.loreLines("items.nightmare_armor_lore",
                 "%tier%", tier.name()));
         meta.getPersistentDataContainer().set(ItemKeys.LORE_BASE, PersistentDataType.STRING,

@@ -46,8 +46,17 @@ public final class GuiItemFactory {
             return item;
         }
 
-        meta.setItemName(name);
-        meta.setLore(lore == null ? List.of() : lore);
+        meta.setItemName(ChatColor.translateAlternateColorCodes('&', name));
+
+        List<String> translated = new ArrayList<>();
+
+        if (lore != null) {
+            for (String line : lore) {
+                translated.add(ChatColor.translateAlternateColorCodes('&', line));
+            }
+        }
+
+        meta.setLore(translated);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
         return item;
@@ -100,8 +109,10 @@ public final class GuiItemFactory {
         }
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + LangService.msg("gui.amount", "Amount") + ": " + ChatColor.WHITE + ingredient.amount());
-        lore.add(ChatColor.DARK_GRAY + ingredient.label());
+        lore.add(ChatColor.translateAlternateColorCodes('&',
+                ChatColor.GRAY + LangService.msg("gui.amount", "Amount") + ": " + ChatColor.WHITE
+                        + ingredient.amount()));
+        lore.add(ChatColor.translateAlternateColorCodes('&', ChatColor.DARK_GRAY + ingredient.label()));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

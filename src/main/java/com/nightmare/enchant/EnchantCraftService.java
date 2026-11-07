@@ -73,8 +73,9 @@ public final class EnchantCraftService implements Listener {
         event.getInventory().setResult(null);
 
         if (event.getView().getPlayer() instanceof Player player) {
-            player.sendMessage(ChatColor.RED + com.nightmare.lang.LangService.format("craft.unlock_day",
-                    "This enchantment unlocks on day %day%.", "%day%", String.valueOf(requiredDay)));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    com.nightmare.lang.LangService.format("craft.unlock_day",
+                            "This enchantment unlocks on day %day%.", "%day%", String.valueOf(requiredDay))));
         }
     }
 

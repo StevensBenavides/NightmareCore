@@ -23,6 +23,7 @@ public final class EnchantLoreService {
 
     private static final String FOOTER = ChatColor.DARK_GRAY + "" + ChatColor.ITALIC + "Nightmare Core";
     private static final int MAX_WIDTH = 30;
+    private static final int WRAP_WIDTH = 36;
 
     private static final List<String> CATEGORY_ORDER = List.of(
             "Swords",
@@ -207,7 +208,7 @@ public final class EnchantLoreService {
 
     }
 
-    private static List<String> wrap(String text, ChatColor color, boolean italic) {
+    public static List<String> wrap(String text, ChatColor color, boolean italic) {
         List<String> lines = new ArrayList<>();
 
         if (text == null || text.isBlank()) {
@@ -223,7 +224,7 @@ public final class EnchantLoreService {
         for (String word : words) {
             int extra = width == 0 ? word.length() : word.length() + 1;
 
-            if (width > 0 && width + extra > 36) {
+            if (width > 0 && width + extra > WRAP_WIDTH) {
                 lines.add(current.toString());
                 current = new StringBuilder(prefix);
                 width = 0;
@@ -289,7 +290,7 @@ public final class EnchantLoreService {
             }
 
             ChatColor color = COLORS.getOrDefault(entry.getKey(), ChatColor.GOLD);
-            String levelText = entry.getKey().equals("abyssal_howl")
+            String levelText = entry.getKey().equals("abyssal_howl") || entry.getKey().equals("abyssal_core")
                     ? ""
                     : " " + ROMAN[Math.min(Math.max(level, 1), ROMAN.length) - 1];
 
@@ -304,7 +305,7 @@ public final class EnchantLoreService {
             lore.add(FOOTER);
         }
 
-        meta.setLore(lore);
+        meta.setLore(lore.isEmpty() ? null : lore);
         item.setItemMeta(meta);
     }
 
@@ -404,16 +405,14 @@ public final class EnchantLoreService {
                 double radius = Main.enchants.getDouble("enchants.blast_edge.levels." + level + ".radius", 2.0);
                 long cooldown = Main.enchants.getLong("enchants.blast_edge.cooldown", 3000L);
 
-                lines.add(ChatColor.GRAY + "Hits: " + ChatColor.YELLOW + "4");
+                lines.add(ChatColor.GRAY + stat("hits", "Hits") + " " + ChatColor.YELLOW + "4");
                 lines.add(ChatColor.GRAY + stat("damage", "Damage") + " " + ChatColor.GREEN + number(damage) + " HP");
                 lines.add(ChatColor.GRAY + stat("radius", "Radius") + " " + ChatColor.GREEN + number(radius));
                 lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(cooldown / 1000.0) + "s");
             }
             case "frostbite" -> {
                 int duration = Main.enchants.getInt("enchants.frostbite.levels." + level + ".duration", 30);
-                long cooldown = Main.enchants.getLong("enchants.frostbite.cooldown", 2000L);
                 lines.add(ChatColor.GRAY + stat("duration", "Duration") + " " + ChatColor.AQUA + seconds(duration / 20.0) + "s");
-                lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(cooldown / 1000.0) + "s");
             }
             case "venom" -> {
                 int duration = Main.enchants.getInt("enchants.venom.levels." + level + ".duration", 40);
@@ -423,7 +422,7 @@ public final class EnchantLoreService {
                 lines.add(ChatColor.GRAY + stat("duration", "Duration") + " " + ChatColor.GREEN + seconds(duration / 20.0) + "s");
 
                 if (antiHeal > 0.0) {
-                    lines.add(ChatColor.GRAY + "Anti-heal: " + ChatColor.GREEN + percent(antiHeal));
+                    lines.add(ChatColor.GRAY + stat("anti_heal", "Anti-heal") + " " + ChatColor.GREEN + percent(antiHeal));
                 }
 
                 lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(cooldown / 1000.0) + "s");
@@ -485,7 +484,8 @@ public final class EnchantLoreService {
                 int distance = Main.enchants.getInt("enchants.blink.levels." + level + ".distance", 3);
                 long cooldown = Main.enchants.getLong("enchants.blink.levels." + level + ".cooldown", 20000L);
                 lines.add(ChatColor.GRAY + stat("chance", "Chance") + " " + ChatColor.GREEN + percent(chance));
-                lines.add(ChatColor.GRAY + "Distance: " + ChatColor.GREEN + distance + " blocks");
+                lines.add(ChatColor.GRAY + stat("distance", "Distance") + " " + ChatColor.GREEN + distance + " "
+                        + LangService.msg("stats.blocks", "blocks"));
                 lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(cooldown / 1000.0) + "s");
             }
             case "nightmare_mark" -> {
@@ -502,12 +502,14 @@ public final class EnchantLoreService {
                 double reduction = Main.enchants.getDouble("enchants.aegis.levels." + level + ".reduction", 0.20);
                 long cooldown = Main.enchants.getLong("enchants.aegis.levels." + level + ".cooldown", 5000L);
                 lines.add(ChatColor.GRAY + stat("chance", "Chance") + " " + ChatColor.GREEN + percent(chance));
-                lines.add(ChatColor.GRAY + "Reduction: " + ChatColor.GREEN + percent(reduction));
+                lines.add(ChatColor.GRAY + stat("reduction", "Reduction") + " " + ChatColor.GREEN + percent(reduction));
                 lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(cooldown / 1000.0) + "s");
             }
             case "abyssal_howl" -> {
-                lines.add(ChatColor.GRAY + stat("duration", "Duration") + " " + ChatColor.WHITE + "Permanent");
-                lines.add(ChatColor.GRAY + stat("activation", "Activation") + " " + ChatColor.WHITE + "Hold");
+                lines.add(ChatColor.GRAY + stat("duration", "Duration") + " " + ChatColor.WHITE
+                        + LangService.msg("stats.permanent", "Permanent"));
+                lines.add(ChatColor.GRAY + stat("activation", "Activation") + " " + ChatColor.WHITE
+                        + LangService.msg("stats.hold", "Hold"));
             }
             case "abyssal_core" -> {
                 int range = Main.balance.getInt("abyssal-core.burst-range", 50);
@@ -518,17 +520,21 @@ public final class EnchantLoreService {
                 double areaDamage = Main.balance.getDouble("abyssal-core.area-damage", 150.0);
                 long areaCooldown = Main.balance.getLong("abyssal-core.area-cooldown-ms", 120000L);
 
-                lines.add(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Burst");
-                lines.add(ChatColor.GRAY + stat("activation", "Activation") + " " + ChatColor.WHITE + "Sneak + Left Click (any time)");
-                lines.add(ChatColor.GRAY + stat("range", "Range") + " " + ChatColor.WHITE + range + " blocks");
+                lines.add(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + LangService.msg("stats.abyssal_burst", "Abyssal Burst"));
+                lines.add(ChatColor.GRAY + stat("activation", "Activation") + " " + ChatColor.WHITE
+                        + LangService.msg("stats.sneak_left", "Sneak + Left Click (any time)"));
+                lines.add(ChatColor.GRAY + stat("range", "Range") + " " + ChatColor.WHITE + range + " "
+                        + LangService.msg("stats.blocks", "blocks"));
                 lines.add(ChatColor.GRAY + stat("beam", "Beam") + " " + ChatColor.WHITE + number(burstRadius * 2.0)
-                        + "x" + number(burstRadius * 2.0) + " blocks");
+                        + "x" + number(burstRadius * 2.0) + " " + LangService.msg("stats.blocks", "blocks"));
                 lines.add(ChatColor.GRAY + stat("damage", "Damage") + " " + ChatColor.WHITE + number(burstDamage) + " HP");
                 lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(burstCooldown / 1000.0) + "s");
                 lines.add(ChatColor.RESET.toString());
-                lines.add(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Cataclysm");
-                lines.add(ChatColor.GRAY + stat("activation", "Activation") + " " + ChatColor.WHITE + "Sneak + Right Click");
-                lines.add(ChatColor.GRAY + stat("area", "Area") + " " + ChatColor.WHITE + number(radius * 2.0) + " blocks diameter");
+                lines.add(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + LangService.msg("stats.abyssal_cataclysm", "Abyssal Cataclysm"));
+                lines.add(ChatColor.GRAY + stat("activation", "Activation") + " " + ChatColor.WHITE
+                        + LangService.msg("stats.sneak_right", "Sneak + Right Click"));
+                lines.add(ChatColor.GRAY + stat("area", "Area") + " " + ChatColor.WHITE + number(radius * 2.0)
+                        + " " + LangService.msg("stats.blocks_diameter", "blocks diameter"));
                 lines.add(ChatColor.GRAY + stat("damage", "Damage") + " " + ChatColor.WHITE + number(areaDamage) + " HP");
                 lines.add(ChatColor.GRAY + stat("cooldown", "Cooldown") + " " + ChatColor.YELLOW + seconds(areaCooldown / 1000.0) + "s");
             }

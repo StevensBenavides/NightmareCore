@@ -34,7 +34,8 @@ public final class AbyssalTendrilsItem {
             return item;
         }
 
-        meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "❖ Abyssal Tendrils");
+        meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + com.nightmare.lang.LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"));
         meta.setLore(buildLore());
         meta.setMaxStackSize(1);
         meta.addEnchant(Enchantment.UNBREAKING, 1, true);

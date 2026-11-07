@@ -98,9 +98,8 @@ public final class InsomniaService implements Listener {
             if (announce()) {
                 player.sendMessage(colored(LangService.msg("insomnia.start",
                         "&7Sleep won't come tonight.")));
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.4F, 0.6F);
             }
-
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.4F, 0.6F);
         }
 
         if (plugin != null) {
@@ -112,8 +111,17 @@ public final class InsomniaService implements Listener {
         activeUntil = 0L;
 
         if (announce()) {
-            Bukkit.broadcastMessage(colored(LangService.msg("insomnia.end",
-                    "&7You feel drowsy again.")));
+            String message = colored(LangService.msg("insomnia.end",
+                    "&7You feel drowsy again."));
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+                    continue;
+                }
+
+                player.sendMessage(message);
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.4F, 0.8F);
+            }
         }
 
         if (plugin != null) {

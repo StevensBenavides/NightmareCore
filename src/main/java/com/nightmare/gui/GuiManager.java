@@ -1,5 +1,6 @@
 package com.nightmare.gui;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -37,11 +38,11 @@ public final class GuiManager {
 
     public static void openMain(Player player) {
         NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.MAIN, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 27, "§8Nightmare Guide");
+        Inventory inventory = create(holder, 27, "§8" + LangService.msg("gui.title_main", "Nightmare Guide"));
 
-        inventory.setItem(12, GuiItemFactory.item(Material.ENCHANTED_BOOK, "§6§l✦ Enchantments",
+        inventory.setItem(12, GuiItemFactory.item(Material.ENCHANTED_BOOK, "§6§l" + LangService.msg("gui.enchants_button", "✦ Enchantments"),
                 List.of("§e" + LangService.msg("gui.browse_enchants", "Click to browse enchantments, levels and recipes."))));
-        inventory.setItem(14, GuiItemFactory.item(Material.ENDER_EYE, "§5§l✦ Relics",
+        inventory.setItem(14, GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("gui.relics_button", "✦ Relics"),
                 List.of("§e" + LangService.msg("gui.browse_relics", "Click to view the relic and recipe."))));
 
         player.openInventory(inventory);
@@ -49,7 +50,7 @@ public final class GuiManager {
 
     public static void openEnchantList(Player player) {
         NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.ENCHANTS, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8Enchantments");
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_enchants", "Enchantments"));
 
         for (int index = 0; index < EnchantRegistry.ALL.size(); index++) {
             CustomEnchant enchant = EnchantRegistry.ALL.get(index);
@@ -121,8 +122,8 @@ public final class GuiManager {
                 false, safeStep);
 
         String title = abyssal
-                ? "§8Abyssal Chain " + safeStep + "/" + steps.size()
-                : "§8Recipe: " + enchant.displayName + (core ? "" : " " + roman(level));
+                ? "§8" + LangService.msg("gui.title_abyssal_chain", "Abyssal Chain ") + safeStep + "/" + steps.size()
+                : "§8" + LangService.msg("gui.title_recipe", "Recipe: ") + enchant.displayName + (core ? "" : " " + roman(level));
 
         Inventory inventory = create(holder, 54, title);
 
@@ -138,7 +139,7 @@ public final class GuiManager {
         inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
-                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), recipe.summary()));
+                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), summaryLore(recipe.summary())));
 
         if (abyssal) {
             inventory.setItem(4, GuiItemFactory.item(Material.PAPER,
@@ -152,7 +153,7 @@ public final class GuiManager {
 
     public static void openStory(Player player, int chapter) {
         NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.STORY, null, 0, chapter, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8Nightmare Origin");
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_story", "Nightmare Origin"));
 
         StoryService.render(player, inventory, chapter, 0);
         player.openInventory(inventory);
@@ -160,15 +161,15 @@ public final class GuiManager {
 
     public static void openRelics(Player player) {
         NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.RELICS, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8Relics");
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_relics", "Relics"));
 
         for (int slot = 0; slot < inventory.getSize(); slot++) {
             inventory.setItem(slot, GuiItemFactory.border());
         }
 
-        inventory.setItem(20, ItemModels.apply(GuiItemFactory.item(Material.HEART_OF_THE_SEA, "§f§l❖ Soul Heart",
+        inventory.setItem(20, ItemModels.apply(GuiItemFactory.item(Material.HEART_OF_THE_SEA, "§f§l" + LangService.msg("relics.soul_heart.name", "❖ Soul Heart"),
                 LangService.loreLines("gui.relic_soul_heart")), "soul_heart"));
-        inventory.setItem(24, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l❖ Abyssal Tendrils",
+        inventory.setItem(24, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"),
                 LangService.loreLines("gui.relic_tendrils")), "abyssal_tendrils"));
 
         applyNavigation(inventory, false, false);
@@ -177,7 +178,7 @@ public final class GuiManager {
 
     public static void openTendrilsRecipe(Player player) {
         NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.TENDRILS_RECIPE, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8Abyssal Tendrils Recipe");
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_tendrils_recipe", "Abyssal Tendrils Recipe"));
         RecipeStep recipe = RecipeCatalog.abyssalTendrilsRecipe();
 
         for (int slot = 0; slot < inventory.getSize(); slot++) {
@@ -189,19 +190,19 @@ public final class GuiManager {
             inventory.setItem(guiSlot, GuiItemFactory.recipeIngredient(ingredient));
         }
 
-        inventory.setItem(4, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l❖ Abyssal Tendrils",
+        inventory.setItem(4, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"),
                 LangService.loreLines("gui.recipe_tendrils_book")), "abyssal_tendrils"));
         inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
-                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), recipe.summary()));
+                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), summaryLore(recipe.summary())));
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);
     }
 
     public static void openSoulHeartRecipe(Player player) {
         NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.SOUL_HEART_RECIPE, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8Soul Heart Recipe");
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_soul_recipe", "Soul Heart Recipe"));
         RecipeStep recipe = RecipeCatalog.soulHeartRecipe();
 
         for (int slot = 0; slot < inventory.getSize(); slot++) {
@@ -213,12 +214,12 @@ public final class GuiManager {
             inventory.setItem(guiSlot, GuiItemFactory.recipeIngredient(ingredient));
         }
 
-        inventory.setItem(4, GuiItemFactory.item(Material.PAPER, "§fRelic: Soul Heart",
+        inventory.setItem(4, GuiItemFactory.item(Material.PAPER, "§f" + LangService.msg("gui.info_relic_soul", "Relic: Soul Heart"),
                 LangService.loreLines("gui.recipe_soul_heart_book")));
         inventory.setItem(23, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.craft", "Craft"), List.of()));
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
-                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), recipe.summary()));
+                "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), summaryLore(recipe.summary())));
 
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);
@@ -233,6 +234,16 @@ public final class GuiManager {
         }
 
         return inventory;
+    }
+
+    private static List<String> summaryLore(List<String> summary) {
+        List<String> lore = new ArrayList<>(summary.size());
+
+        for (String line : summary) {
+            lore.add("§7" + ChatColor.translateAlternateColorCodes('&', line));
+        }
+
+        return lore;
     }
 
     private static void applyNavigation(Inventory inventory, boolean previousPage, boolean nextPage) {
