@@ -218,3 +218,6 @@ miner:
   dig-cooldown-stone-ms: 6000
   dig-cooldown-iron-ms: 4000
   only-natural-blocks: true
+
+starter-kit:
+  enabled: true

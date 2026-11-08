@@ -53,6 +53,8 @@ public final class Events implements Listener {
 
         try {
 
+            com.nightmare.player.StarterKitService.give(event.getPlayer());
+
             if (config.getBoolean("scoreboard.enable")) {
 
                 FastBoard board = new FastBoard(event.getPlayer());
