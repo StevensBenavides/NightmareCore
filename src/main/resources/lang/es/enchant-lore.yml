@@ -281,9 +281,9 @@ enchants:
 
   aegis:
     effect: >-
-      El sello desvía los proyectiles entrantes y suaviza su impacto.
+      El sello desvía los proyectiles entrantes y los golpes cuerpo a cuerpo, suavizando su impacto.
     mechanics: >-
-      Cuando un proyectil te golpea, a veces te duele menos. Necesita un corto
+      Cuando un proyectil te golpea o un enemigo te ataca en melee, a veces te duele menos. Necesita un corto
       cooldown entre bloqueos.
     motto: El cielo no puede tocarte.
     lore:

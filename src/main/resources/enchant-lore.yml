@@ -283,9 +283,9 @@ enchants:
 
   aegis:
     effect: >-
-      The seal turns aside incoming projectiles and blunts their impact.
+      The seal turns aside incoming projectiles and melee strikes, blunting their impact.
     mechanics: >-
-      When a projectile hits you, it sometimes hurts you less. Needs a short
+      When a projectile hits you or an enemy strikes you in melee, it sometimes hurts you less. Needs a short
       cooldown between blocks.
     motto: The sky cannot touch you.
     lore:

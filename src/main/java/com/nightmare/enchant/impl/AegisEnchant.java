@@ -43,7 +43,8 @@ public final class AegisEnchant extends CustomEnchant {
             return;
         }
 
-        if (context.event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE) {
+        if (context.event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE
+                && context.event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
             return;
         }
 
