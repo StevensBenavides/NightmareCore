@@ -70,7 +70,7 @@ def draw_rounded_rect(d, x0, y0, x1, y1, radius, fill, outline=None, width=1):
 # ------------------------------------------------------------------
 # Precise symbol shapes
 # ------------------------------------------------------------------
-def draw_pixel_heart(d, cx, cy, w, h, fill, edge, notch_depth=0, tip_sharpness=0):
+def draw_pixel_heart(d, cx, cy, w, h, fill, edge, notch_depth=0, tip_sharpness=0, tip_length=1):
     xs = range(int(cx - w // 2), int(cx + w // 2) + 1)
     ys = range(int(cy - h // 2), int(cy + h // 2) + 1)
     inside = set()
@@ -86,7 +86,9 @@ def draw_pixel_heart(d, cx, cy, w, h, fill, edge, notch_depth=0, tip_sharpness=0
         for depth in range(1, notch_depth + 1):
             half_width = max(0, notch_depth - depth)
             for dx in range(-half_width, half_width + 1):
-                inside.discard((int(cx + dx), top + depth))
+                carved = (int(cx + dx), top + depth)
+                inside.discard(carved)
+                d.point(carved, fill=(0, 0, 0, 0))
     if tip_sharpness > 0:
         bottom = int(cy + h // 2)
         for y in range(int(cy + h * 0.15), bottom + 1):
@@ -94,8 +96,10 @@ def draw_pixel_heart(d, cx, cy, w, h, fill, edge, notch_depth=0, tip_sharpness=0
             if len(row) > 2 * tip_sharpness + 1:
                 for x in row[:tip_sharpness] + row[-tip_sharpness:]:
                     inside.discard((x, y))
-        inside.add((int(cx), bottom + 1))
-        d.point((int(cx), bottom + 1), fill=fill)
+                    d.point((x, y), fill=(0, 0, 0, 0))
+        for extra in range(1, tip_length + 1):
+            inside.add((int(cx), bottom + extra))
+            d.point((int(cx), bottom + extra), fill=fill)
     for (x, y) in inside:
         if any((x + dx, y + dy) not in inside for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
             d.point((x, y), fill=edge)
@@ -330,9 +334,36 @@ def build_texture(id):
     if id == "soul_heart":
         img = make_canvas()
         d = ImageDraw.Draw(img)
-        draw_pixel_heart(d, 16, 15, 22, 20, WHITE, BLACK, notch_depth=2, tip_sharpness=1)
-        draw_line(d, [(15, 6), (16, 8)], BLACK, 1)
-        draw_line(d, [(17, 6), (16, 8)], BLACK, 1)
+        draw_pixel_heart(d, 16, 14, 20, 22, WHITE, BLACK, notch_depth=4, tip_sharpness=2,
+                         tip_length=0)
+        # Clean notch: remove every dark pixel inside the V so the dip reads
+        # as transparency instead of an outline. White lobes are untouched.
+        for y, x0, x1 in [(3, 13, 19), (4, 13, 19), (5, 14, 18),
+                          (6, 14, 18), (7, 15, 17), (8, 16, 16)]:
+            for x in range(x0, x1 + 1):
+                if max(img.getpixel((x, y))[:3]) < 100:
+                    d.point((x, y), fill=(0, 0, 0, 0))
+        # Remove any dark stalk below the lowest light pixel of the point.
+        column = range(13, 20)
+        light_rows = [y for y in range(SIZE) for x in column
+                      if img.getpixel((x, y))[3] > 0 and min(img.getpixel((x, y))[:3]) > 200]
+        if light_rows:
+            for y in range(max(light_rows) + 1, SIZE):
+                for x in column:
+                    pixel = img.getpixel((x, y))
+                    if pixel[3] > 0 and max(pixel[:3]) < 100:
+                        d.point((x, y), fill=(0, 0, 0, 0))
+        # Taper the very bottom: on the lowest row that still holds light,
+        # drop dark pixels sticking out sideways beyond the light pixels, so
+        # the tip ends clean instead of sprouting a dark nub.
+        if light_rows:
+            bottom = max(light_rows)
+            widest = max(abs(x - 16) for y in [bottom] for x in column
+                         if img.getpixel((x, y))[3] > 0 and min(img.getpixel((x, y))[:3]) > 200)
+            for x in column:
+                pixel = img.getpixel((x, bottom))
+                if pixel[3] > 0 and max(pixel[:3]) < 100 and abs(x - 16) > widest:
+                    d.point((x, bottom), fill=(0, 0, 0, 0))
         draw_line(d, [(11, 10), (13, 10)], color('#D9D9D9'), 2)
         draw_line(d, [(19, 12), (19, 17)], color('#EDEDED'), 1)
         return img
