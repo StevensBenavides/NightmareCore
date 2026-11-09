@@ -17,7 +17,7 @@ mob-spawn:
 caps:
   max-k-per-world: 5
   max-k-per-species: 1
-  max-monsters: 300
+  max-monsters: 90
   max-summons-per-k: 4
   summon-lifetime-ticks: 300
   summon-cooldown-ticks: 400

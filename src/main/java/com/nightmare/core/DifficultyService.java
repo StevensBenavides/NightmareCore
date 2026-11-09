@@ -21,7 +21,7 @@ public final class DifficultyService implements Listener {
 
     public static void apply(World world) {
         long day = world.getFullTime() / 24000L;
-        int maxMonsters = Main.balance.getInt("caps.max-monsters", 300);
+        int maxMonsters = Main.balance.getInt("caps.max-monsters", 90);
 
         world.setDifficulty(Difficulty.HARD);
         world.setPVP(day >= 9);
@@ -36,49 +36,20 @@ public final class DifficultyService implements Listener {
             world.setTime(18000L);
         }
 
+        int monsters;
         if (day < 9) {
-            world.setSpawnLimit(SpawnCategory.MONSTER, 50);
-            return;
+            monsters = 50;
+        } else if (day < 27) {
+            monsters = 60;
+        } else if (day < 54) {
+            monsters = 70;
+        } else if (day < 81) {
+            monsters = 80;
+        } else {
+            monsters = maxMonsters;
         }
 
-        if (day < 27) {
-            world.setSpawnLimit(SpawnCategory.MONSTER, 100);
-            world.setSpawnLimit(SpawnCategory.ANIMAL, 100);
-            world.setSpawnLimit(SpawnCategory.AMBIENT, 100);
-            world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 100);
-            world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 100);
-            world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 100);
-
-            return;
-        }
-
-        if (day < 54) {
-            world.setSpawnLimit(SpawnCategory.MONSTER, 200);
-            world.setSpawnLimit(SpawnCategory.ANIMAL, 60);
-            world.setSpawnLimit(SpawnCategory.AMBIENT, 60);
-            world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 60);
-            world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 60);
-            world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 60);
-
-            return;
-        }
-
-        if (day < 81) {
-            world.setSpawnLimit(SpawnCategory.MONSTER, 250);
-            world.setSpawnLimit(SpawnCategory.ANIMAL, 40);
-            world.setSpawnLimit(SpawnCategory.AMBIENT, 40);
-            world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 40);
-            world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 40);
-            world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 40);
-            return;
-        }
-
-        world.setSpawnLimit(SpawnCategory.MONSTER, maxMonsters);
-        world.setSpawnLimit(SpawnCategory.ANIMAL, 20);
-        world.setSpawnLimit(SpawnCategory.AMBIENT, 20);
-        world.setSpawnLimit(SpawnCategory.WATER_AMBIENT, 20);
-        world.setSpawnLimit(SpawnCategory.WATER_ANIMAL, 20);
-        world.setSpawnLimit(SpawnCategory.WATER_UNDERGROUND_CREATURE, 20);
+        world.setSpawnLimit(SpawnCategory.MONSTER, monsters);
     }
 
 }

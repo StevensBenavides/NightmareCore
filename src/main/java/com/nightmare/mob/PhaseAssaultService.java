@@ -95,7 +95,7 @@ public final class PhaseAssaultService {
     }
 
     private void trigger(World world, MobTier tier) {
-        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 300));
+        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 90));
 
         if (liveRaidMobs(world) >= cap) {
             return;
@@ -141,7 +141,7 @@ public final class PhaseAssaultService {
         }
 
         World world = player.getWorld();
-        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 300));
+        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 90));
 
         if (liveRaidMobs(world) >= cap) {
             return;
