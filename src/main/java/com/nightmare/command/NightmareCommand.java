@@ -787,21 +787,16 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
         Player online = Bukkit.getPlayerExact(query);
 
-        String targetName = online != null ? online.getName() : null;
+        String targetName = online != null ? online.getName() : query;
 
-        if (targetName == null) {
+        if (online == null) {
 
             org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(query);
 
-            if (!offline.hasPlayedBefore() && !offline.isOnline()) {
+            if (offline.getName() != null) {
 
-                send(sender, LangService.format("commands.generic.never_joined",
-                        "&cPlayer '&f%player%&c' has never joined this server.", "%player%", query));
-
-                return;
+                targetName = offline.getName();
             }
-
-            targetName = offline.getName() != null ? offline.getName() : query;
         }
 
         if (!Bukkit.getBanList(org.bukkit.BanList.Type.NAME).isBanned(targetName)) {
