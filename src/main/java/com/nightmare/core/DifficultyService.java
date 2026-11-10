@@ -26,13 +26,9 @@ public final class DifficultyService implements Listener {
         world.setDifficulty(Difficulty.HARD);
         world.setPVP(day >= 9);
 
-        try {
-            World.class.getMethod("setGameRuleValue", String.class, String.class)
-                    .invoke(world, "doDaylightCycle", String.valueOf(day < 81));
-        } catch (ReflectiveOperationException ignored) {
-        }
+        world.setGameRule(org.bukkit.GameRule.ADVANCE_TIME, day < 81);
 
-        if (day >= 81) {
+        if (day >= 81 && world.getTime() != 18000L) {
             world.setTime(18000L);
         }
 

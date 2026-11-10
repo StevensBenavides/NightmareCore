@@ -1,6 +1,8 @@
 package com.nightmare.mob;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -29,10 +34,16 @@ import com.nightmare.Main;
 import com.nightmare.tier.MobTier;
 import com.nightmare.tier.TierSchedule;
 
-public final class PhaseAssaultService {
+public final class PhaseAssaultService implements Listener {
+
+    private static final long MAX_RAID_LIFETIME_MS = 30L * 60L * 1000L;
 
     private static final Map<String, Integer> LAST_PHASE = new ConcurrentHashMap<>();
+    private static final Map<String, Deque<MobTier>> PENDING = new ConcurrentHashMap<>();
+    private static final Map<String, Long> NEXT_PENDING_AT = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> RAID_MOBS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> RAID_SPAWNED = new ConcurrentHashMap<>();
+
     private static final Set<EntityType> EXCLUDED_TYPES = EnumSet.of(
             EntityType.WARDEN, EntityType.CREAKING, EntityType.BREEZE);
 
@@ -41,7 +52,10 @@ public final class PhaseAssaultService {
     public void start(Plugin plugin) {
         this.plugin = plugin;
         LAST_PHASE.clear();
+        PENDING.clear();
+        NEXT_PENDING_AT.clear();
         RAID_MOBS.clear();
+        RAID_SPAWNED.clear();
 
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
@@ -54,27 +68,44 @@ public final class PhaseAssaultService {
                 continue;
             }
 
-            MobTier newest = TierSchedule.newestUnlocked(world.getFullTime() / 24000L);
-
-            if (newest != null) {
-                LAST_PHASE.put(world.getName(), newest.index);
-            }
+            MobTier newest = TierSchedule.newestUnlocked(day(world));
+            LAST_PHASE.put(world.getName(), newest == null ? -1 : newest.index);
         }
 
+        Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
     }
 
-    private void tick() {
-        if (!Main.balance.getBoolean("phase-assault.enabled", true)) {
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent event) {
+        World world = event.getWorld();
+
+        if (world.getEnvironment() != World.Environment.NORMAL) {
             return;
         }
+
+        if (!LAST_PHASE.containsKey(world.getName())) {
+            MobTier newest = TierSchedule.newestUnlocked(day(world));
+            LAST_PHASE.put(world.getName(), newest == null ? -1 : newest.index);
+        }
+    }
+
+    private void tick() {
+        cleanupRaidMobs();
+
+        if (!enabled()) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
 
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() != World.Environment.NORMAL) {
                 continue;
             }
 
-            MobTier newest = TierSchedule.newestUnlocked(world.getFullTime() / 24000L);
+            long day = day(world);
+            MobTier newest = TierSchedule.newestUnlocked(day);
 
             if (newest == null) {
                 continue;
@@ -84,22 +115,84 @@ public final class PhaseAssaultService {
 
             if (newest.index > last) {
                 LAST_PHASE.put(world.getName(), newest.index);
+                Deque<MobTier> queue = PENDING.computeIfAbsent(world.getName(),
+                        key -> new ArrayDeque<>());
 
-                trigger(world, newest);
-            } else if (newest.index < last) {
-                LAST_PHASE.put(world.getName(), newest.index);
+                for (MobTier tier : PhaseAssaultSchedule.tiersToQueue(day, last)) {
+                    queue.addLast(tier);
+                }
             }
-        }
 
-        cleanupRaidMobs();
+            processPending(world, now);
+        }
     }
 
-    private void trigger(World world, MobTier tier) {
+    private void processPending(World world, long now) {
+        Deque<MobTier> queue = PENDING.get(world.getName());
+
+        if (queue == null || queue.isEmpty()) {
+            return;
+        }
+
+        if (now < NEXT_PENDING_AT.getOrDefault(world.getName(), 0L)) {
+            return;
+        }
+
+        if (!canAssaultNow(world)) {
+            return;
+        }
+
         int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 90));
 
         if (liveRaidMobs(world) >= cap) {
             return;
         }
+
+        MobTier tier = queue.peekFirst();
+
+        if (tier == null || !trigger(world, tier)) {
+            return;
+        }
+
+        queue.pollFirst();
+        NEXT_PENDING_AT.put(world.getName(),
+                now + Math.max(30000L, Math.max(0, Main.balance.getInt("phase-assault.warning-seconds", 60)) * 1000L));
+
+        if (queue.isEmpty()) {
+            PENDING.remove(world.getName());
+        }
+    }
+
+    private boolean canAssaultNow(World world) {
+        boolean any = false;
+
+        for (Player player : world.getPlayers()) {
+            if (!MobTargetingService.isTargetable(player)) {
+                continue;
+            }
+
+            any = true;
+
+            if (isOnSurface(player.getLocation()) && !isNight(world)) {
+                return false;
+            }
+        }
+
+        return any;
+    }
+
+    private boolean isNight(World world) {
+        return PhaseAssaultSchedule.isNightTime(world.getTime());
+    }
+
+    private boolean trigger(World world, MobTier tier) {
+        int cap = Math.max(1, Main.balance.getInt("caps.max-monsters", 90));
+
+        if (liveRaidMobs(world) >= cap) {
+            return false;
+        }
+
+        boolean warned = false;
 
         for (Player player : world.getPlayers()) {
             if (!MobTargetingService.isTargetable(player)) {
@@ -107,7 +200,10 @@ public final class PhaseAssaultService {
             }
 
             warnAndSchedule(player, tier);
+            warned = true;
         }
+
+        return warned;
     }
 
     private void warnAndSchedule(Player player, MobTier tier) {
@@ -118,6 +214,7 @@ public final class PhaseAssaultService {
         int perTier = Math.max(0, Main.balance.getInt("phase-assault.horde-per-tier", 2));
         int maxSize = Math.max(1, Main.balance.getInt("phase-assault.horde-max-size", 30));
         int total = Math.min(maxSize, baseSize + tier.index * perTier);
+        World expectedWorld = player.getWorld();
 
         player.sendTitle(ChatColor.translateAlternateColorCodes('&', com.nightmare.lang.LangService.format(
                         "assault.title", "&4&lPHASE %tier%", "%tier%", tier.name())),
@@ -131,12 +228,16 @@ public final class PhaseAssaultService {
             int waveSize = total / waves + (wave < total % waves ? 1 : 0);
             long delay = warningSeconds * 20L + (long) wave * waveDelaySeconds * 20L;
 
-            Bukkit.getScheduler().runTaskLater(plugin, () -> spawnWave(player, tier, waveSize), delay);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> spawnWave(player, tier, waveSize, expectedWorld),
+                    delay);
         }
     }
 
-    private void spawnWave(Player player, MobTier tier, int size) {
-        if (size <= 0 || !player.isOnline() || !MobTargetingService.isTargetable(player)) {
+    private void spawnWave(Player player, MobTier tier, int size, World expectedWorld) {
+        if (size <= 0 || !player.isOnline() || player.isDead()
+                || !MobTargetingService.isTargetable(player)
+                || expectedWorld.getEnvironment() != World.Environment.NORMAL
+                || !player.getWorld().equals(expectedWorld)) {
             return;
         }
 
@@ -159,6 +260,10 @@ public final class PhaseAssaultService {
         }
 
         for (int index = 0; index < size; index++) {
+            if (liveRaidMobs(world) >= cap) {
+                break;
+            }
+
             Location spawn = surface
                     ? findSurfacePackSpawn(world, pack, artificial)
                     : findUndergroundPackSpawn(world, pack);
@@ -187,7 +292,11 @@ public final class PhaseAssaultService {
                 continue;
             }
 
-            spawned.setPersistent(true);
+            if (spawned == null || !spawned.isValid()) {
+                continue;
+            }
+
+            spawned.setPersistent(false);
 
             if (spawned instanceof Mob mob) {
                 mob.setRemoveWhenFarAway(false);
@@ -197,7 +306,9 @@ public final class PhaseAssaultService {
                 }
             }
 
-            RAID_MOBS.put(spawned.getUniqueId(), System.currentTimeMillis());
+            long now = System.currentTimeMillis();
+            RAID_MOBS.put(spawned.getUniqueId(), now);
+            RAID_SPAWNED.put(spawned.getUniqueId(), now);
         }
     }
 
@@ -229,11 +340,11 @@ public final class PhaseAssaultService {
                 for (int dy = -4; dy <= 4; dy++) {
                     Location at = player.getLocation().clone().add(dx, dy, dz);
 
-                    if (!isBed(at.getBlock().getType())) {
+                    if (!world.isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) {
                         continue;
                     }
 
-                    if (!world.isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) {
+                    if (!isBed(at.getBlock().getType()) || !isOnSurface(at)) {
                         continue;
                     }
 
@@ -251,8 +362,7 @@ public final class PhaseAssaultService {
     }
 
     private boolean isBed(Material material) {
-        String name = material.name();
-        return name.equals("BED") || name.endsWith("_BED");
+        return material.name().endsWith("_BED");
     }
 
     private List<Location> collectArtificial(World world, Location center) {
@@ -399,10 +509,7 @@ public final class PhaseAssaultService {
                 continue;
             }
 
-            Block feet = world.getBlockAt(x, y + 1, z);
-            Block head = world.getBlockAt(x, y + 2, z);
-
-            if (isOpen(feet) && isOpen(head)) {
+            if (hasClearance(world, x, y + 1, z)) {
                 return new Location(world, x + 0.5D, y + 1.0D, z + 0.5D);
             }
         }
@@ -411,23 +518,27 @@ public final class PhaseAssaultService {
     }
 
     private Location safeUnderground(World world, int x, int y, int z) {
-        if (y <= world.getMinHeight() || y + 2 >= world.getMaxHeight()) {
+        if (y <= world.getMinHeight() || y + 3 >= world.getMaxHeight()) {
             return null;
         }
 
-        if (world.getHighestBlockYAt(x, z) <= y + 2) {
+        if (world.getHighestBlockYAt(x, z) <= y + 3) {
             return null;
         }
 
         Block ground = world.getBlockAt(x, y - 1, z);
-        Block feet = world.getBlockAt(x, y, z);
-        Block head = world.getBlockAt(x, y + 1, z);
 
-        if (!ground.getType().isSolid() || ground.isLiquid() || !isOpen(feet) || !isOpen(head)) {
+        if (!ground.getType().isSolid() || ground.isLiquid() || !hasClearance(world, x, y, z)) {
             return null;
         }
 
         return new Location(world, x + 0.5D, y, z + 0.5D);
+    }
+
+    private boolean hasClearance(World world, int x, int y, int z) {
+        return isOpen(world.getBlockAt(x, y, z))
+                && isOpen(world.getBlockAt(x, y + 1, z))
+                && isOpen(world.getBlockAt(x, y + 2, z));
     }
 
     private boolean isOpen(Block block) {
@@ -435,9 +546,10 @@ public final class PhaseAssaultService {
     }
 
     private boolean isDarkEnough(Location location) {
-        int max = Main.balance == null ? 7
-                : Main.balance.getInt("phase-assault.max-light-level",
-                        Main.balance.getInt("mob-spawn.max-light-level", 7));
+        int global = Main.balance == null ? 7 : Main.balance.getInt("mob-spawn.max-light-level", 7);
+        int phase = Main.balance == null ? global
+                : Main.balance.getInt("phase-assault.max-light-level", global);
+        int max = Math.min(global, phase);
         Block feet = location.getBlock();
         Block head = location.getWorld().getBlockAt(
                 location.getBlockX(), location.getBlockY() + 1, location.getBlockZ());
@@ -490,7 +602,7 @@ public final class PhaseAssaultService {
         }
 
         int tolerance = Math.max(0, Main.balance.getInt("phase-assault.surface-depth-tolerance", 6));
-        
+
         return location.getY() >= world.getHighestBlockYAt(location) - tolerance;
     }
 
@@ -519,6 +631,16 @@ public final class PhaseAssaultService {
 
             if (!(entity instanceof LivingEntity living) || entity.isDead() || !entity.isValid()) {
                 RAID_MOBS.remove(uuid);
+                RAID_SPAWNED.remove(uuid);
+                continue;
+            }
+
+            long spawnedAt = RAID_SPAWNED.getOrDefault(uuid, now);
+
+            if (now - spawnedAt >= MAX_RAID_LIFETIME_MS) {
+                living.remove();
+                RAID_MOBS.remove(uuid);
+                RAID_SPAWNED.remove(uuid);
                 continue;
             }
 
@@ -540,8 +662,17 @@ public final class PhaseAssaultService {
             if (now - RAID_MOBS.getOrDefault(uuid, now) >= despawnAfter) {
                 entity.remove();
                 RAID_MOBS.remove(uuid);
+                RAID_SPAWNED.remove(uuid);
             }
         }
+    }
+
+    private static boolean enabled() {
+        return Main.balance == null || Main.balance.getBoolean("phase-assault.enabled", true);
+    }
+
+    private static long day(World world) {
+        return world.getFullTime() / 24000L;
     }
 
     public static void cleanup() {
@@ -554,7 +685,10 @@ public final class PhaseAssaultService {
         }
 
         RAID_MOBS.clear();
+        RAID_SPAWNED.clear();
         LAST_PHASE.clear();
+        PENDING.clear();
+        NEXT_PENDING_AT.clear();
     }
 
 }

@@ -124,7 +124,7 @@ public final class MobSpawnService implements Listener {
             tier = MobTier.J;
         }
 
-        if (tier == MobTier.K) {
+        if (forcedTier == null && tier == MobTier.K) {
             int maxK = Main.balance.getInt("caps.max-k-per-world", 5);
             int maxPerSpecies = Main.balance.getInt("caps.max-k-per-species", 1);
             long sameSpecies = MobTaskService.ACTIVE.values().stream()
@@ -140,10 +140,12 @@ public final class MobSpawnService implements Listener {
             }
         }
 
-        if (tier == MobTier.K) {
-            K_PITY.put(worldName, 0);
-        } else if (pityTriggered) {
-            K_PITY.put(worldName, 250);
+        if (forcedTier == null) {
+            if (tier == MobTier.K) {
+                K_PITY.put(worldName, 0);
+            } else if (pityTriggered) {
+                K_PITY.put(worldName, 250);
+            }
         }
 
         boolean miner = isMinerRoll(mob, tier);
@@ -221,6 +223,12 @@ public final class MobSpawnService implements Listener {
 
         if (knockback != null) {
             knockback.setBaseValue(Math.min(1.0, knockback.getBaseValue() + tier.index * 0.03));
+        }
+
+        if (mob.getType() == EntityType.GUARDIAN || mob.getType() == EntityType.ELDER_GUARDIAN) {
+            if (maxHealth != null) {
+                maxHealth.setBaseValue(mob.getType() == EntityType.ELDER_GUARDIAN ? 8.0 : 4.0);
+            }
         }
 
         mob.setHealth(mob.getMaxHealth());
