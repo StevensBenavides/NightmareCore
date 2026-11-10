@@ -206,7 +206,9 @@ insomnia:
 
 miner:
   enabled: true
-  chance: 0.15
+  chance: 0.18
+  chance-per-tier: 0.01
+  chance-max: 0.30
   pickaxe-weights:
     wood: 50
     stone: 35
@@ -214,10 +216,12 @@ miner:
   damage: 2.0
   follow-range: 16.0
   dig-range: 6.0
+  dig-charges-min: 2
+  dig-charges-max: 6
   dig-cooldown-wood-ms: 8000
   dig-cooldown-stone-ms: 6000
   dig-cooldown-iron-ms: 4000
-  only-natural-blocks: true
+  only-natural-blocks: false
 
 starter-kit:
   enabled: true

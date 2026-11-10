@@ -87,6 +87,10 @@ public final class MobTaskService {
 
             boolean canAttack = state.profile.category == MobCategory.HOSTILE || state.aggressive;
 
+            if (state.miner) {
+                updateMinerTarget(mob);
+            }
+
             for (String power : powers) {
                 long next = state.cooldowns.getOrDefault(power, 0L);
 
@@ -313,8 +317,7 @@ public final class MobTaskService {
                         state.cooldowns.put(power, now + 20000L);
                     }
                     case "DIG" -> {
-                        if (!(target instanceof Player targetPlayer)
-                                || !MobTargetingService.isTargetable(targetPlayer)) {
+                        if (!(target instanceof LivingEntity living) || !isValidMinerTarget(living)) {
                             continue;
                         }
 
@@ -325,13 +328,20 @@ public final class MobTaskService {
                             continue;
                         }
 
-                        if (mob.hasLineOfSight(target)) {
+                        if (state.digCharges <= 0) {
+                            breakPickaxe(mob, state);
                             continue;
                         }
 
-                        if (digTowardTarget(mob, state, target, power, now)) {
+                        int broken = digTowardTarget(mob, state, living, power, now);
+
+                        if (broken > 0) {
                             mob.swingMainHand();
                             mob.getWorld().playSound(mob.getLocation(), Sound.BLOCK_STONE_BREAK, 0.9F, 0.9F);
+
+                            if (state.digCharges <= 0) {
+                                breakPickaxe(mob, state);
+                            }
                         }
                     }
                     default -> state.cooldowns.put(power, now + 10000L);
@@ -340,47 +350,154 @@ public final class MobTaskService {
         }
     }
 
-    private static boolean digTowardTarget(Mob mob, MobState state, LivingEntity target, String power, long now) {
-        Location origin = mob.getLocation();
-        Vector step = target.getLocation().toVector().subtract(origin.toVector());
-        step.setY(0.0);
+    private static void updateMinerTarget(Mob mob) {
+        double range = Math.max(1.0, Main.balance == null ? 16.0
+                : Main.balance.getDouble("miner.follow-range", 16.0));
+        double rangeSq = range * range;
+        Player bestPlayer = null;
+        double bestPlayerDist = Double.MAX_VALUE;
+        LivingEntity bestPrey = null;
+        double bestPreyDist = Double.MAX_VALUE;
 
-        if (step.lengthSquared() < 0.01) {
-            return false;
-        }
+        for (Entity nearby : mob.getNearbyEntities(range, range, range)) {
+            if (!(nearby instanceof LivingEntity living) || living.equals(mob)
+                    || living.isDead() || !living.isValid()) {
+                continue;
+            }
 
-        step.normalize();
+            double distance = mob.getLocation().distanceSquared(living.getLocation());
 
-        boolean onlyNatural = Main.balance == null
-                || Main.balance.getBoolean("miner.only-natural-blocks", true);
-        boolean dug = false;
+            if (distance > rangeSq) {
+                continue;
+            }
 
-        for (int forward = 1; forward <= 2 && !dug; forward++) {
-            int x = origin.getBlockX() + (int) Math.round(step.getX() * forward);
-            int z = origin.getBlockZ() + (int) Math.round(step.getZ() * forward);
-
-            for (int dy = 0; dy <= 1; dy++) {
-                org.bukkit.block.Block block = mob.getWorld().getBlockAt(x, origin.getBlockY() + dy, z);
-
-                if (!isDiggable(block, onlyNatural)) {
-                    continue;
+            if (living instanceof Player player) {
+                if (MobTargetingService.isTargetable(player) && distance < bestPlayerDist) {
+                    bestPlayer = player;
+                    bestPlayerDist = distance;
                 }
-
-                org.bukkit.block.data.BlockData cracked = block.getBlockData();
-                org.bukkit.Location brokenAt = block.getLocation().add(0.5, 0.5, 0.5);
-                block.setType(org.bukkit.Material.AIR, false);
-                mob.getWorld().spawnParticle(Particle.BLOCK, brokenAt, 14, 0.3, 0.3, 0.3, 0.05, cracked);
-                dug = true;
+            } else if (isMinerPrey(living) && distance < bestPreyDist) {
+                bestPrey = living;
+                bestPreyDist = distance;
             }
         }
 
-        if (!dug) {
-            state.cooldowns.put(power, now + 2000L);
-            return false;
+        LivingEntity chosen = bestPlayer != null ? bestPlayer : bestPrey;
+
+        if (chosen != null) {
+            if (mob.getTarget() == null || !mob.getTarget().equals(chosen)) {
+                mob.setTarget(chosen);
+            }
+
+            return;
         }
 
+        LivingEntity current = mob.getTarget();
+
+        if (current == null) {
+            return;
+        }
+
+        if (current.isDead() || !current.isValid()
+                || mob.getLocation().distanceSquared(current.getLocation()) > rangeSq
+                || (current instanceof Player player && !MobTargetingService.isTargetable(player))) {
+            mob.setTarget(null);
+        }
+    }
+
+    private static boolean isMinerPrey(LivingEntity entity) {
+        return entity instanceof org.bukkit.entity.AbstractVillager
+                || entity instanceof org.bukkit.entity.IronGolem
+                || entity instanceof org.bukkit.entity.Snowman;
+    }
+
+    private static boolean isValidMinerTarget(LivingEntity target) {
+        if (target instanceof Player player) {
+            return MobTargetingService.isTargetable(player);
+        }
+
+        return isMinerPrey(target);
+    }
+
+    private static int digTowardTarget(Mob mob, MobState state, LivingEntity target, String power, long now) {
+        if (state.digCharges <= 0) {
+            return 0;
+        }
+
+        boolean onlyNatural = Main.balance != null
+                && Main.balance.getBoolean("miner.only-natural-blocks", false);
+        double range = Math.max(1.0, Main.balance == null ? 6.0
+                : Main.balance.getDouble("miner.dig-range", 6.0));
+        Location from = mob.getLocation();
+        Location to = target.getLocation();
+        MinerDig.BlockPos hit = MinerDig.find(
+                from.getX(), from.getY() + 0.5D, from.getZ(),
+                to.getX(), to.getY() + 0.5D, to.getZ(),
+                range,
+                (x, y, z) -> {
+                    org.bukkit.block.Block candidate = mob.getWorld().getBlockAt(x, y, z);
+                    return candidate.getType().isSolid() && !candidate.isLiquid();
+                });
+
+        if (hit == null) {
+            state.cooldowns.put(power, now + 2000L);
+            return 0;
+        }
+
+        if (!isDiggable(mob.getWorld().getBlockAt(hit.x(), hit.y(), hit.z()), onlyNatural)) {
+            state.cooldowns.put(power, now + 2000L);
+            return 0;
+        }
+
+        int baseY = Math.min(hit.y(), from.getBlockY());
+        int broken = 0;
+
+        for (int dy = 0; dy <= 1 && state.digCharges > 0; dy++) {
+            org.bukkit.block.Block block = mob.getWorld().getBlockAt(hit.x(), baseY + dy, hit.z());
+
+            if (!isDiggable(block, onlyNatural)) {
+                continue;
+            }
+
+            org.bukkit.block.data.BlockData data = block.getBlockData();
+            Location brokenAt = block.getLocation().add(0.5D, 0.5D, 0.5D);
+            block.setType(org.bukkit.Material.AIR, false);
+            mob.getWorld().spawnParticle(Particle.BLOCK, brokenAt, 14, 0.3D, 0.3D, 0.3D, 0.05D, data);
+            state.digCharges--;
+            broken++;
+        }
+
+        if (broken == 0) {
+            state.cooldowns.put(power, now + 2000L);
+            return 0;
+        }
+
+        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER,
+                state.digCharges);
         state.cooldowns.put(power, now + digCooldownMs(mob));
-        return true;
+        return broken;
+    }
+
+    private static void breakPickaxe(Mob mob, MobState state) {
+        state.digCharges = 0;
+        org.bukkit.inventory.EntityEquipment equipment = mob.getEquipment();
+
+        if (equipment == null) {
+            return;
+        }
+
+        org.bukkit.inventory.ItemStack held = equipment.getItemInMainHand();
+
+        if (held == null || held.getType().isAir()) {
+            return;
+        }
+
+        org.bukkit.Material brokenType = held.getType();
+        equipment.setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.AIR));
+        mob.getWorld().spawnParticle(Particle.ITEM, mob.getLocation().add(0.0D, 1.0D, 0.0D),
+                12, 0.3D, 0.3D, 0.3D, 0.05D, new org.bukkit.inventory.ItemStack(brokenType));
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.8F, 0.8F);
+        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER, 0);
     }
 
     private static boolean isDiggable(org.bukkit.block.Block block, boolean onlyNatural) {

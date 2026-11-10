@@ -19,9 +19,11 @@ public class MinerConfigTest {
     }
 
     @Test
-    public void minerSpawnsAreEnabledButNotTooCommon() {
+    public void minerSpawnsScaleWithTier() {
         assertTrue(balance.getBoolean("miner.enabled"));
-        assertEquals(0.15D, balance.getDouble("miner.chance"), 0.0001D);
+        assertEquals(0.18D, balance.getDouble("miner.chance"), 0.0001D);
+        assertEquals(0.01D, balance.getDouble("miner.chance-per-tier"), 0.0001D);
+        assertEquals(0.30D, balance.getDouble("miner.chance-max"), 0.0001D);
     }
 
     @Test
@@ -36,7 +38,9 @@ public class MinerConfigTest {
         assertEquals(8000, balance.getInt("miner.dig-cooldown-wood-ms"));
         assertEquals(6000, balance.getInt("miner.dig-cooldown-stone-ms"));
         assertEquals(4000, balance.getInt("miner.dig-cooldown-iron-ms"));
-        assertTrue(balance.getBoolean("miner.only-natural-blocks"));
+        assertEquals(2, balance.getInt("miner.dig-charges-min"));
+        assertEquals(6, balance.getInt("miner.dig-charges-max"));
+        assertEquals(false, balance.getBoolean("miner.only-natural-blocks"));
     }
 
     @Test

@@ -146,10 +146,12 @@ public final class MobSpawnService implements Listener {
             K_PITY.put(worldName, 250);
         }
 
-        boolean miner = isMinerRoll(mob);
+        boolean miner = isMinerRoll(mob, tier);
+        int digCharges = miner ? rollDigCharges() : 0;
 
         mob.getPersistentDataContainer().set(MobKeys.MOB_TIER, PersistentDataType.STRING, tier.name());
         mob.getPersistentDataContainer().set(MobKeys.MOB_MINER, PersistentDataType.BOOLEAN, miner);
+        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER, digCharges);
         mob.getPersistentDataContainer().set(MobKeys.MOB_ELITE, PersistentDataType.BOOLEAN, tier.elite);
         mob.getPersistentDataContainer().set(MobKeys.MOB_SPECIES, PersistentDataType.STRING, mob.getType().name());
 
@@ -268,10 +270,11 @@ public final class MobSpawnService implements Listener {
         }
 
         MobTaskService.ACTIVE.put(mob.getUniqueId(),
-                new MobState(mob.getUniqueId(), tier, profile, mob.getWorld().getName(), aggressive, miner));
+                new MobState(mob.getUniqueId(), tier, profile, mob.getWorld().getName(), aggressive, miner,
+                        digCharges));
     }
 
-    private static boolean isMinerRoll(Mob mob) {
+    private static boolean isMinerRoll(Mob mob, MobTier tier) {
         if (mob.getType() != org.bukkit.entity.EntityType.ZOMBIE) {
             return false;
         }
@@ -280,7 +283,11 @@ public final class MobSpawnService implements Listener {
             return false;
         }
 
-        double chance = Main.balance == null ? 0.15 : Main.balance.getDouble("miner.chance", 0.15);
+        double base = Main.balance == null ? 0.18 : Main.balance.getDouble("miner.chance", 0.18);
+        double perTier = Main.balance == null ? 0.01
+                : Main.balance.getDouble("miner.chance-per-tier", 0.01);
+        double max = Main.balance == null ? 0.30 : Main.balance.getDouble("miner.chance-max", 0.30);
+        double chance = Math.min(max, base + perTier * tier.index);
 
         if (chance <= 0.0) {
             return false;
@@ -291,6 +298,13 @@ public final class MobSpawnService implements Listener {
         }
 
         return ThreadLocalRandom.current().nextDouble() < chance;
+    }
+
+    private static int rollDigCharges() {
+        int min = Main.balance == null ? 2 : Math.max(0, Main.balance.getInt("miner.dig-charges-min", 2));
+        int max = Main.balance == null ? 6 : Math.max(min, Main.balance.getInt("miner.dig-charges-max", 6));
+
+        return min == max ? min : min + ThreadLocalRandom.current().nextInt(max - min + 1);
     }
 
     private static boolean isTooBright(Mob mob) {
