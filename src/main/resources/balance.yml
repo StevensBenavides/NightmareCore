@@ -1,15 +1,15 @@
 tiers:
   A: { health: 1.00, damage: 1.00, armor: 0, speed: 1.00, enchant-level: 0, weight: 100 }
-  B: { health: 1.15, damage: 1.05, armor: 2, speed: 1.00, enchant-level: 0, weight: 80 }
-  C: { health: 1.30, damage: 1.10, armor: 4, speed: 1.00, enchant-level: 0, weight: 65 }
-  D: { health: 1.50, damage: 1.15, armor: 6, speed: 1.02, enchant-level: 1, weight: 50 }
-  E: { health: 1.70, damage: 1.20, armor: 8, speed: 1.04, enchant-level: 1, weight: 40 }
-  F: { health: 1.90, damage: 1.25, armor: 10, speed: 1.06, enchant-level: 1, weight: 32 }
-  G: { health: 2.20, damage: 1.30, armor: 12, speed: 1.08, enchant-level: 2, weight: 25 }
-  H: { health: 2.50, damage: 1.35, armor: 14, speed: 1.10, enchant-level: 2, weight: 20 }
-  I: { health: 2.80, damage: 1.40, armor: 16, speed: 1.12, enchant-level: 3, weight: 16 }
-  J: { health: 3.20, damage: 1.50, armor: 18, speed: 1.14, enchant-level: 4, weight: 12 }
-  K: { health: 5.00, damage: 1.70, armor: 20, speed: 1.18, enchant-level: 5, weight: 6 }
+  B: { health: 1.15, damage: 1.20, armor: 2, speed: 1.00, enchant-level: 0, weight: 80 }
+  C: { health: 1.30, damage: 1.25, armor: 4, speed: 1.00, enchant-level: 0, weight: 65 }
+  D: { health: 1.50, damage: 1.30, armor: 6, speed: 1.02, enchant-level: 1, weight: 50 }
+  E: { health: 1.70, damage: 1.35, armor: 8, speed: 1.04, enchant-level: 1, weight: 40 }
+  F: { health: 1.90, damage: 1.40, armor: 10, speed: 1.06, enchant-level: 1, weight: 32 }
+  G: { health: 2.20, damage: 1.45, armor: 12, speed: 1.08, enchant-level: 2, weight: 25 }
+  H: { health: 2.50, damage: 1.90, armor: 14, speed: 1.10, enchant-level: 2, weight: 20 }
+  I: { health: 2.80, damage: 2.00, armor: 16, speed: 1.12, enchant-level: 3, weight: 16 }
+  J: { health: 3.20, damage: 2.15, armor: 18, speed: 1.14, enchant-level: 4, weight: 12 }
+  K: { health: 5.00, damage: 2.30, armor: 20, speed: 1.18, enchant-level: 5, weight: 6 }
 
 mob-spawn:
   max-light-level: 7

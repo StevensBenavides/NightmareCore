@@ -1,9 +1,6 @@
 package com.nightmare.enchant;
 
-import java.util.Map;
-
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -64,7 +61,7 @@ public final class EnchantAnvilService implements Listener {
             int maximumLevel = Math.min(enchant.maxLevel, EnchantBookService.maxLevelForDay(firstId, day));
             int resultLevel = Math.min(maximumLevel, firstLvl == secondLvl ? firstLvl + 1 : Math.max(firstLvl, secondLvl));
 
-            if (resultLevel <= 0) {
+            if (resultLevel <= Math.max(firstLvl, secondLvl)) {
                 event.setResult(null);
                 return;
             }
@@ -111,20 +108,7 @@ public final class EnchantAnvilService implements Listener {
         int upgraded = bookLevel > existing ? bookLevel : (bookLevel == existing ? existing + 1 : existing);
         int resultLevel = Math.min(maximumLevel, upgraded);
 
-        if (resultLevel <= 0) {
-            event.setResult(null);
-            return;
-        }
-
-        int customCount = 0;
-
-        for (Map.Entry<String, NamespacedKey> entry : EnchantKeys.KEYS.entrySet()) {
-            if (targetContainer.get(entry.getValue(), PersistentDataType.INTEGER) != null) {
-                customCount++;
-            }
-        }
-
-        if (existingLevel == null && customCount >= 3) {
+        if (resultLevel <= existing) {
             event.setResult(null);
             return;
         }
