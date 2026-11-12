@@ -27,6 +27,7 @@ public final class AltarPlacement {
     /**
      * Cave naturalness is decided from block probes. Natural cave air and
      * natural decorations are allowed; player/ordinary air and constructed
+
      * blocks are not.
      */
     public enum Probe {
@@ -70,230 +71,6 @@ public final class AltarPlacement {
             "DARK_PRISMARINE", "SEA_LANTERN");
 
     private AltarPlacement() {
-    }
-
-    public static Site find(World world, int centerX, int centerZ, long hash, YamlConfiguration config) {
-        return find(new WorldReader(world), centerX, centerZ, hash, config);
-    }
-
-    static Site find(BlockReader reader, int centerX, int centerZ, long hash, YamlConfiguration config) {
-        YamlConfiguration settings = config == null ? new YamlConfiguration() : config;
-        String mode = settings.getString("altars.placement.mode", "either");
-
-        if (mode == null) {
-            mode = "either";
-        }
-
-        mode = mode.trim().toLowerCase();
-        boolean surfaceOnly = mode.equals("surface");
-        boolean caveOnly = mode.equals("cave");
-        boolean either = !surfaceOnly && !caveOnly;
-        double caveChance = clamp01(settings.getDouble("altars.placement.cave-chance", 0.35));
-        boolean preferCave = caveOnly || (either && prefersCave(mode, caveChance, hash));
-
-        if (surfaceOnly) {
-            return findSurface(reader, centerX, centerZ, settings);
-        }
-
-        if (caveOnly) {
-            return findCave(reader, centerX, centerZ, settings);
-        }
-
-        if (preferCave) {
-            Site cave = findCave(reader, centerX, centerZ, settings);
-
-            if (cave != null) {
-                return cave;
-            }
-
-            return findSurface(reader, centerX, centerZ, settings);
-        }
-
-        Site surface = findSurface(reader, centerX, centerZ, settings);
-
-        if (surface != null) {
-            return surface;
-        }
-
-        return findCave(reader, centerX, centerZ, settings);
-    }
-
-    static boolean prefersCave(String mode, double chance, long hash) {
-        if (mode == null) {
-            return false;
-        }
-
-        String normalized = mode.trim().toLowerCase();
-
-        if (normalized.equals("cave")) {
-            return true;
-        }
-
-        if (normalized.equals("surface")) {
-            return false;
-        }
-
-        if (chance <= 0.0D) {
-            return false;
-        }
-
-        if (chance >= 1.0D) {
-            return true;
-        }
-
-        long bucket = Long.remainderUnsigned(hash >>> 32, 10_000L);
-
-        return bucket / 10_000.0D < chance;
-    }
-
-    public static boolean isArtificialName(String name) {
-        if (name == null || name.isEmpty()) {
-            return false;
-        }
-
-        if (ARTIFICIAL_NAMES.contains(name)) {
-            return true;
-        }
-
-        return name.endsWith("_PLANKS")
-                || name.endsWith("_LOG")
-                || name.endsWith("_WOOD")
-                || name.startsWith("STRIPPED_")
-                || name.endsWith("_LEAVES")
-                || name.endsWith("_SLAB")
-                || name.endsWith("_STAIRS")
-                || name.endsWith("_WALL")
-                || name.endsWith("_FENCE")
-                || name.endsWith("_FENCE_GATE")
-                || name.endsWith("_DOOR")
-                || name.endsWith("_TRAPDOOR")
-                || name.endsWith("_BRICKS")
-                || name.endsWith("_TILES")
-                || name.endsWith("_GLASS")
-                || name.endsWith("_GLASS_PANE")
-                || name.endsWith("_PANE")
-                || name.endsWith("_WOOL")
-                || name.endsWith("_CARPET")
-                || name.endsWith("_BANNER")
-                || name.endsWith("_BED")
-                || name.endsWith("_CONCRETE")
-                || name.endsWith("_CONCRETE_POWDER")
-                || name.endsWith("_TERRACOTTA")
-                || name.endsWith("_GLAZED_TERRACOTTA")
-                || name.endsWith("_SHULKER_BOX")
-                || name.endsWith("_CANDLE")
-                || name.endsWith("_CANDLE_CAKE")
-                || name.endsWith("_SIGN")
-                || name.endsWith("_BUTTON")
-                || name.endsWith("_PRESSURE_PLATE")
-                || name.endsWith("_BARS")
-                || name.endsWith("_PILLAR")
-                || name.endsWith("_GRATE")
-                || name.endsWith("_BULB")
-                || name.startsWith("POLISHED_")
-                || name.startsWith("CHISELED_")
-                || name.startsWith("CUT_")
-                || name.startsWith("SMOOTH_")
-                || name.startsWith("WAXED_")
-                || name.startsWith("INFESTED_")
-                || (name.startsWith("COPPER_") && !name.endsWith("_ORE"))
-                || name.startsWith("QUARTZ_")
-                || (name.startsWith("RAW_") && name.endsWith("_BLOCK"))
-                || (name.endsWith("_BLOCK") && (name.startsWith("IRON")
-                        || name.startsWith("GOLD")
-                        || name.startsWith("DIAMOND")
-                        || name.startsWith("EMERALD")
-                        || name.startsWith("LAPIS")
-                        || name.startsWith("REDSTONE")
-                        || name.startsWith("COAL")
-                        || name.startsWith("COPPER")
-                        || name.startsWith("NETHERITE")));
-    }
-
-    private static Site findSurface(BlockReader reader, int centerX, int centerZ, YamlConfiguration config) {
-        int baseY = surfaceMax(reader, centerX, centerZ);
-
-        if (!suitableSurface(reader, centerX, baseY, centerZ, config)) {
-            return null;
-        }
-
-        return new Site(centerX, centerZ, baseY, Kind.SURFACE, Math.max(0, reader.maxY() - baseY));
-    }
-
-    private static int surfaceMax(BlockReader reader, int centerX, int centerZ) {
-        int max = Integer.MIN_VALUE;
-
-        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-            for (int dz = -RADIUS; dz <= RADIUS; dz++) {
-                max = Math.max(max, reader.highestY(centerX + dx, centerZ + dz));
-            }
-        }
-
-        return max == Integer.MIN_VALUE ? reader.highestY(centerX, centerZ) : max;
-    }
-
-    private static boolean suitableSurface(BlockReader reader, int baseX, int baseY, int baseZ,
-            YamlConfiguration config) {
-        int min = Integer.MAX_VALUE;
-        int max = Integer.MIN_VALUE;
-        int obstructed = 0;
-
-        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-            for (int dz = -RADIUS; dz <= RADIUS; dz++) {
-                int surface = reader.highestY(baseX + dx, baseZ + dz);
-
-                min = Math.min(min, surface);
-                max = Math.max(max, surface);
-
-                if (reader.probeAt(baseX + dx, surface, baseZ + dz) == Probe.LIQUID) {
-                    return false;
-                }
-
-                for (int y = surface + 1; y <= surface + 6; y++) {
-                    Probe probe = reader.probeAt(baseX + dx, y, baseZ + dz);
-
-                    if (probe == Probe.NATURAL_SOLID || probe == Probe.ARTIFICIAL) {
-                        obstructed++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        int maxHeightDifference = Math.max(0, config.getInt("altars.max-height-difference", 4));
-        int maxObstructed = Math.max(0, config.getInt("altars.max-obstructed", 20));
-
-        return max - min <= maxHeightDifference && obstructed <= maxObstructed;
-    }
-
-    private static Site findCave(BlockReader reader, int centerX, int centerZ, YamlConfiguration config) {
-        int surfaceY = reader.highestY(centerX, centerZ);
-        int minDepth = Math.max(0, config.getInt("altars.cave.min-depth", 12));
-        int maxDepth = Math.max(minDepth, config.getInt("altars.cave.max-depth", 64));
-        int minHeight = Math.max(3, config.getInt("altars.cave.min-height", 5));
-        int maxHeight = Math.max(minHeight, config.getInt("altars.cave.max-height", 24));
-        double minOpen = clamp01(config.getDouble("altars.cave.min-open-ratio", 0.85D));
-        double minFloor = clamp01(config.getDouble("altars.cave.min-floor-ratio", 0.75D));
-        boolean requireCeiling = config.getBoolean("altars.cave.require-ceiling", true);
-        boolean avoidLiquids = config.getBoolean("altars.cave.avoid-liquids", true);
-
-        int top = surfaceY - minDepth;
-        int bottom = Math.max(reader.minY() + 1, surfaceY - maxDepth);
-
-        for (int y = top; y >= bottom; y--) {
-            if (y + minHeight > reader.maxY()) {
-                continue;
-            }
-
-            Site site = evaluateCave(reader, centerX, centerZ, y, minHeight, maxHeight, minOpen, minFloor,
-                    requireCeiling, avoidLiquids);
-
-            if (site != null) {
-                return site;
-            }
-        }
-
-        return null;
     }
 
     private static Site evaluateCave(BlockReader reader, int centerX, int centerZ, int baseY, int minHeight,
@@ -420,6 +197,231 @@ public final class AltarPlacement {
         }
 
         return new Site(centerX, centerZ, baseY, Kind.CAVE, headroom);
+    }
+
+    public static boolean isArtificialName(String name) {
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
+
+        if (ARTIFICIAL_NAMES.contains(name)) {
+            return true;
+        }
+
+        return name.endsWith("_PLANKS")
+                || name.endsWith("_LOG")
+                || name.endsWith("_WOOD")
+                || name.startsWith("STRIPPED_")
+                || name.endsWith("_LEAVES")
+                || name.endsWith("_SLAB")
+                || name.endsWith("_STAIRS")
+                || name.endsWith("_WALL")
+                || name.endsWith("_FENCE")
+                || name.endsWith("_FENCE_GATE")
+                || name.endsWith("_DOOR")
+                || name.endsWith("_TRAPDOOR")
+                || name.endsWith("_BRICKS")
+                || name.endsWith("_TILES")
+                || name.endsWith("_GLASS")
+                || name.endsWith("_GLASS_PANE")
+                || name.endsWith("_PANE")
+                || name.endsWith("_WOOL")
+                || name.endsWith("_CARPET")
+                || name.endsWith("_BANNER")
+                || name.endsWith("_BED")
+                || name.endsWith("_CONCRETE")
+                || name.endsWith("_CONCRETE_POWDER")
+                || name.endsWith("_TERRACOTTA")
+                || name.endsWith("_GLAZED_TERRACOTTA")
+                || name.endsWith("_SHULKER_BOX")
+                || name.endsWith("_CANDLE")
+                || name.endsWith("_CANDLE_CAKE")
+                || name.endsWith("_SIGN")
+                || name.endsWith("_BUTTON")
+                || name.endsWith("_PRESSURE_PLATE")
+                || name.endsWith("_BARS")
+                || name.endsWith("_PILLAR")
+                || name.endsWith("_GRATE")
+                || name.endsWith("_BULB")
+                || name.startsWith("POLISHED_")
+                || name.startsWith("CHISELED_")
+                || name.startsWith("CUT_")
+                || name.startsWith("SMOOTH_")
+                || name.startsWith("WAXED_")
+                || name.startsWith("INFESTED_")
+                || (name.startsWith("COPPER_") && !name.endsWith("_ORE"))
+                || name.startsWith("QUARTZ_")
+                || (name.startsWith("RAW_") && name.endsWith("_BLOCK"))
+                || (name.endsWith("_BLOCK") && (name.startsWith("IRON")
+                        || name.startsWith("GOLD")
+                        || name.startsWith("DIAMOND")
+                        || name.startsWith("EMERALD")
+                        || name.startsWith("LAPIS")
+                        || name.startsWith("REDSTONE")
+                        || name.startsWith("COAL")
+                        || name.startsWith("COPPER")
+                        || name.startsWith("NETHERITE")));
+    }
+
+    static Site find(BlockReader reader, int centerX, int centerZ, long hash, YamlConfiguration config) {
+        YamlConfiguration settings = config == null ? new YamlConfiguration() : config;
+        String mode = settings.getString("altars.placement.mode", "either");
+
+        if (mode == null) {
+            mode = "either";
+        }
+
+        mode = mode.trim().toLowerCase();
+        
+        boolean surfaceOnly = mode.equals("surface");
+        boolean caveOnly = mode.equals("cave");
+        boolean either = !surfaceOnly && !caveOnly;
+        double caveChance = clamp01(settings.getDouble("altars.placement.cave-chance", 0.35));
+        boolean preferCave = caveOnly || (either && prefersCave(mode, caveChance, hash));
+
+        if (surfaceOnly) {
+            return findSurface(reader, centerX, centerZ, settings);
+        }
+
+        if (caveOnly) {
+            return findCave(reader, centerX, centerZ, settings);
+        }
+
+        if (preferCave) {
+            Site cave = findCave(reader, centerX, centerZ, settings);
+
+            if (cave != null) {
+                return cave;
+            }
+
+            return findSurface(reader, centerX, centerZ, settings);
+        }
+
+        Site surface = findSurface(reader, centerX, centerZ, settings);
+
+        if (surface != null) {
+            return surface;
+        }
+
+        return findCave(reader, centerX, centerZ, settings);
+    }
+
+    private static boolean suitableSurface(BlockReader reader, int baseX, int baseY, int baseZ,
+            YamlConfiguration config) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        int obstructed = 0;
+
+        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
+            for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+                int surface = reader.highestY(baseX + dx, baseZ + dz);
+
+                min = Math.min(min, surface);
+                max = Math.max(max, surface);
+
+                if (reader.probeAt(baseX + dx, surface, baseZ + dz) == Probe.LIQUID) {
+                    return false;
+                }
+
+                for (int y = surface + 1; y <= surface + 6; y++) {
+                    Probe probe = reader.probeAt(baseX + dx, y, baseZ + dz);
+
+                    if (probe == Probe.NATURAL_SOLID || probe == Probe.ARTIFICIAL) {
+                        obstructed++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        int maxHeightDifference = Math.max(0, config.getInt("altars.max-height-difference", 4));
+        int maxObstructed = Math.max(0, config.getInt("altars.max-obstructed", 20));
+
+        return max - min <= maxHeightDifference && obstructed <= maxObstructed;
+    }
+
+    private static Site findCave(BlockReader reader, int centerX, int centerZ, YamlConfiguration config) {
+        int surfaceY = reader.highestY(centerX, centerZ);
+        int minDepth = Math.max(0, config.getInt("altars.cave.min-depth", 12));
+        int maxDepth = Math.max(minDepth, config.getInt("altars.cave.max-depth", 64));
+        int minHeight = Math.max(3, config.getInt("altars.cave.min-height", 5));
+        int maxHeight = Math.max(minHeight, config.getInt("altars.cave.max-height", 24));
+        double minOpen = clamp01(config.getDouble("altars.cave.min-open-ratio", 0.85D));
+        double minFloor = clamp01(config.getDouble("altars.cave.min-floor-ratio", 0.75D));
+        boolean requireCeiling = config.getBoolean("altars.cave.require-ceiling", true);
+        boolean avoidLiquids = config.getBoolean("altars.cave.avoid-liquids", true);
+
+        int top = surfaceY - minDepth;
+        int bottom = Math.max(reader.minY() + 1, surfaceY - maxDepth);
+
+        for (int y = top; y >= bottom; y--) {
+            if (y + minHeight > reader.maxY()) {
+                continue;
+            }
+
+            Site site = evaluateCave(reader, centerX, centerZ, y, minHeight, maxHeight, minOpen, minFloor,
+                    requireCeiling, avoidLiquids);
+
+            if (site != null) {
+                return site;
+            }
+        }
+
+        return null;
+    }
+
+    static boolean prefersCave(String mode, double chance, long hash) {
+        if (mode == null) {
+            return false;
+        }
+
+        String normalized = mode.trim().toLowerCase();
+
+        if (normalized.equals("cave")) {
+            return true;
+        }
+
+        if (normalized.equals("surface")) {
+            return false;
+        }
+
+        if (chance <= 0.0D) {
+            return false;
+        }
+
+        if (chance >= 1.0D) {
+            return true;
+        }
+
+        long bucket = Long.remainderUnsigned(hash >>> 32, 10_000L);
+
+        return bucket / 10_000.0D < chance;
+    }
+
+    private static int surfaceMax(BlockReader reader, int centerX, int centerZ) {
+        int max = Integer.MIN_VALUE;
+
+        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
+            for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+                max = Math.max(max, reader.highestY(centerX + dx, centerZ + dz));
+            }
+        }
+
+        return max == Integer.MIN_VALUE ? reader.highestY(centerX, centerZ) : max;
+    }
+
+    private static Site findSurface(BlockReader reader, int centerX, int centerZ, YamlConfiguration config) {
+        int baseY = surfaceMax(reader, centerX, centerZ);
+
+        if (!suitableSurface(reader, centerX, baseY, centerZ, config)) {
+            return null;
+        }
+
+        return new Site(centerX, centerZ, baseY, Kind.SURFACE, Math.max(0, reader.maxY() - baseY));
+    }
+
+    public static Site find(World world, int centerX, int centerZ, long hash, YamlConfiguration config) {
+        return find(new WorldReader(world), centerX, centerZ, hash, config);
     }
 
     private static double clamp01(double value) {

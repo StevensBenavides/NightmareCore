@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -16,14 +17,11 @@ import org.bukkit.persistence.PersistentDataType;
 
 import com.nightmare.Main;
 import com.nightmare.item.ItemModels;
+import com.nightmare.lang.LangService;
 
 public final class SoulHeartItem {
 
     private SoulHeartItem() {
-    }
-
-    public static ItemStack create() {
-        return create(null);
     }
 
     public static ItemStack create(UUID owner) {
@@ -35,7 +33,7 @@ public final class SoulHeartItem {
         }
 
         meta.setItemName(ChatColor.WHITE + "" + ChatColor.BOLD
-                + com.nightmare.lang.LangService.msg("relics.soul_heart.name", "❖ Soul Heart"));
+                + LangService.msg("relics.soul_heart.name", "❖ Soul Heart"));
         meta.setLore(buildLore());
         meta.setMaxStackSize(1);
         meta.addEnchant(Enchantment.UNBREAKING, 1, true);
@@ -52,12 +50,6 @@ public final class SoulHeartItem {
         item.setItemMeta(meta);
 
         return item;
-    }
-
-    public static boolean isSoulHeart(ItemStack item) {
-        return item != null && item.getType() == Material.HEART_OF_THE_SEA && item.getItemMeta() != null
-                && Boolean.TRUE.equals(item.getItemMeta().getPersistentDataContainer()
-                        .get(RelicKeys.SOUL_HEART_AMULET, PersistentDataType.BOOLEAN));
     }
 
     public static UUID owner(ItemStack item) {
@@ -116,19 +108,29 @@ public final class SoulHeartItem {
         long burstCooldown = balance().getLong("soul-heart.burst-cooldown-ms", 45000L);
         long divineCooldown = balance().getLong("soul-heart.divine-cooldown-ms", 3600000L);
 
-        return com.nightmare.lang.LangService.loreLines("relics.soul_heart.lines",
+        return LangService.loreLines("relics.soul_heart.lines",
                 "%dmg_burst%", number(balance().getDouble("soul-heart.burst-damage", 200.0)),
                 "%cd_burst%", number(burstCooldown / 1000.0),
                 "%dmg_divine%", number(balance().getDouble("soul-heart.divine-damage", 150.0)),
                 "%cd_divine%", number(divineCooldown / 1000.0));
     }
 
+    public static boolean isSoulHeart(ItemStack item) {
+        return item != null && item.getType() == Material.HEART_OF_THE_SEA && item.getItemMeta() != null
+                && Boolean.TRUE.equals(item.getItemMeta().getPersistentDataContainer()
+                        .get(RelicKeys.SOUL_HEART_AMULET, PersistentDataType.BOOLEAN));
+    }
+
+    public static ItemStack create() {
+        return create(null);
+    }
+
     private static void setCustomModel(ItemMeta meta, String id) {
         ItemModels.applyMeta(meta, id);
     }
 
-    private static org.bukkit.configuration.file.YamlConfiguration balance() {
-        return Main.balance == null ? new org.bukkit.configuration.file.YamlConfiguration() : Main.balance;
+    private static YamlConfiguration balance() {
+        return Main.balance == null ? new YamlConfiguration() : Main.balance;
     }
 
     private static String number(double value) {

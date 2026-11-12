@@ -14,23 +14,12 @@ public final class DifficultyService implements Listener {
     public DifficultyService() {
     }
 
-    @EventHandler
-    public void onWorldLoad(WorldLoadEvent event) {
-        apply(event.getWorld());
-    }
-
     public static void apply(World world) {
         long day = world.getFullTime() / 24000L;
         int maxMonsters = Main.balance.getInt("caps.max-monsters", 90);
 
         world.setDifficulty(Difficulty.HARD);
         world.setPVP(day >= 9);
-
-        world.setGameRule(org.bukkit.GameRule.ADVANCE_TIME, day < 81);
-
-        if (day >= 81 && world.getTime() != 18000L) {
-            world.setTime(18000L);
-        }
 
         int monsters;
         if (day < 9) {
@@ -46,6 +35,11 @@ public final class DifficultyService implements Listener {
         }
 
         world.setSpawnLimit(SpawnCategory.MONSTER, monsters);
+    }
+
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent event) {
+        apply(event.getWorld());
     }
 
 }

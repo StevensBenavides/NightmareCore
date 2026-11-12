@@ -9,6 +9,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.AbstractSkeleton;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
@@ -29,6 +31,7 @@ import com.nightmare.tier.TierSchedule;
 
 public final class MobSpawnService implements Listener {
 
+    @SuppressWarnings("deprecation")
     private static final Set<CreatureSpawnEvent.SpawnReason> ALLOWED_REASONS = EnumSet.of(
             CreatureSpawnEvent.SpawnReason.NATURAL,
             CreatureSpawnEvent.SpawnReason.CHUNK_GEN,
@@ -172,6 +175,7 @@ public final class MobSpawnService implements Listener {
         }
 
         String tierPath = "tiers." + tier.name() + ".";
+        
         double healthMultiplier = Main.balance.getDouble(tierPath + "health", tier.healthMultiplier);
         double damageMultiplier = Main.balance.getDouble(tierPath + "damage", tier.damageMultiplier);
         int armorBonus = Main.balance.getInt(tierPath + "armor", tier.armorBonus);
@@ -283,7 +287,7 @@ public final class MobSpawnService implements Listener {
     }
 
     private static boolean isMinerRoll(Mob mob, MobTier tier) {
-        if (mob.getType() != org.bukkit.entity.EntityType.ZOMBIE) {
+        if (mob.getType() != EntityType.ZOMBIE) {
             return false;
         }
 
@@ -308,21 +312,6 @@ public final class MobSpawnService implements Listener {
         return ThreadLocalRandom.current().nextDouble() < chance;
     }
 
-    private static int rollDigCharges() {
-        int min = Main.balance == null ? 2 : Math.max(0, Main.balance.getInt("miner.dig-charges-min", 2));
-        int max = Main.balance == null ? 6 : Math.max(min, Main.balance.getInt("miner.dig-charges-max", 6));
-
-        return min == max ? min : min + ThreadLocalRandom.current().nextInt(max - min + 1);
-    }
-
-    private static boolean isTooBright(Mob mob) {
-        int max = Main.balance == null ? 7 : Main.balance.getInt("mob-spawn.max-light-level", 7);
-        org.bukkit.block.Block feet = mob.getLocation().getBlock();
-        org.bukkit.block.Block head = feet.getRelative(org.bukkit.block.BlockFace.UP);
-
-        return feet.getLightLevel() > max || head.getLightLevel() > max;
-    }
-
     private static MobTier forcedTier(Mob mob) {
         String value = mob.getPersistentDataContainer().get(MobKeys.PHASE_RAID_TIER, PersistentDataType.STRING);
 
@@ -335,6 +324,21 @@ public final class MobSpawnService implements Listener {
         } catch (IllegalArgumentException exception) {
             return null;
         }
+    }
+
+    private static boolean isTooBright(Mob mob) {
+        int max = Main.balance == null ? 7 : Main.balance.getInt("mob-spawn.max-light-level", 7);
+        Block feet = mob.getLocation().getBlock();
+        Block head = feet.getRelative(BlockFace.UP);
+
+        return feet.getLightLevel() > max || head.getLightLevel() > max;
+    }
+
+    private static int rollDigCharges() {
+        int min = Main.balance == null ? 2 : Math.max(0, Main.balance.getInt("miner.dig-charges-min", 2));
+        int max = Main.balance == null ? 6 : Math.max(min, Main.balance.getInt("miner.dig-charges-max", 6));
+
+        return min == max ? min : min + ThreadLocalRandom.current().nextInt(max - min + 1);
     }
 
 }

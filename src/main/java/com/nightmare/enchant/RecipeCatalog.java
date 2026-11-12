@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.nightmare.relic.AbyssalTendrilsItem;
 import com.nightmare.relic.SoulHeartItem;
+import com.nightmare.lang.LangService;
 
 public final class RecipeCatalog {
 
@@ -44,38 +45,6 @@ public final class RecipeCatalog {
             5, 81);
 
     private RecipeCatalog() {
-    }
-
-    public static RecipeStep bookRecipe(String id, int level) {
-        Material tierMaterial = TIER_MATERIALS.get(level);
-        Material catalyst = CATALYSTS.get(id);
-
-        if (tierMaterial == null || catalyst == null) {
-            return null;
-        }
-
-        List<RecipeIngredient> ingredients = new ArrayList<>();
-
-        int[] tierSlots = { 0, 2, 6, 8 };
-        int[] catalystSlots = { 1, 3, 5, 7 };
-
-        for (int slot : tierSlots) {
-            ingredients.add(new RecipeIngredient(slot, new ItemStack(tierMaterial), 1, label("recipe_tier", "Tier material")));
-        }
-
-        for (int slot : catalystSlots) {
-            ingredients.add(new RecipeIngredient(slot, new ItemStack(catalyst), 1, label("recipe_catalyst", "Catalyst")));
-        }
-
-        ingredients.add(new RecipeIngredient(4, new ItemStack(Material.BOOK), 1, label("recipe_book", "Book")));
-
-        List<String> summary = List.of(
-                "4× " + itemName(tierMaterial),
-                "4× " + itemName(catalyst),
-                "1× " + label("recipe_book", "Book"));
-
-        return new RecipeStep(label("recipe_crafting", "Crafting Recipe"), false, ingredients,
-                EnchantBookService.createBook(id, level), summary);
     }
 
     public static List<RecipeStep> abyssalSteps() {
@@ -125,44 +94,36 @@ public final class RecipeCatalog {
         return steps;
     }
 
-    public static RecipeStep abyssalCoreRecipe() {
+    public static RecipeStep bookRecipe(String id, int level) {
+        Material tierMaterial = TIER_MATERIALS.get(level);
+        Material catalyst = CATALYSTS.get(id);
+
+        if (tierMaterial == null || catalyst == null) {
+            return null;
+        }
+
         List<RecipeIngredient> ingredients = new ArrayList<>();
 
-        int[] netheriteSlots = { 0, 2, 6, 8 };
-        int[] nucleusSlots = { 1, 3, 5, 7 };
+        int[] tierSlots = { 0, 2, 6, 8 };
+        int[] catalystSlots = { 1, 3, 5, 7 };
 
-        for (int slot : netheriteSlots) {
-            ingredients.add(new RecipeIngredient(slot, new ItemStack(Material.NETHERITE_INGOT), 1, label("recipe_netherite_ingot", "Netherite Ingot")));
+        for (int slot : tierSlots) {
+            ingredients.add(new RecipeIngredient(slot, new ItemStack(tierMaterial), 1, label("recipe_tier", "Tier material")));
         }
 
-        for (int slot : nucleusSlots) {
-            ingredients.add(new RecipeIngredient(slot, EnchantBookService.createAbyssalNucleus(), 1, label("recipe_nucleus", "Abyssal Nucleus")));
+        for (int slot : catalystSlots) {
+            ingredients.add(new RecipeIngredient(slot, new ItemStack(catalyst), 1, label("recipe_catalyst", "Catalyst")));
         }
 
-        ingredients.add(new RecipeIngredient(4, EnchantBookService.createBook("abyssal_howl", 1), 1, label("recipe_howl", "Abyssal Howl")));
+        ingredients.add(new RecipeIngredient(4, new ItemStack(Material.BOOK), 1, label("recipe_book", "Book")));
 
-        return new RecipeStep(label("recipe_core", "Abyssal Core"), false, ingredients,
-                EnchantBookService.createBook("abyssal_core", 1),
-                List.of("4× " + itemName(Material.NETHERITE_INGOT), "4× " + label("recipe_nucleus", "Abyssal Nucleus"), "1× " + label("recipe_howl", "Abyssal Howl")));
-    }
+        List<String> summary = List.of(
+                "4× " + itemName(tierMaterial),
+                "4× " + itemName(catalyst),
+                "1× " + label("recipe_book", "Book"));
 
-    public static RecipeStep abyssalTendrilsRecipe() {
-        List<RecipeIngredient> ingredients = new ArrayList<>();
-        int[] echoSlots = { 0, 2, 6, 8 };
-        int[] nucleusSlots = { 1, 3, 5, 7 };
-
-        for (int slot : echoSlots) {
-            ingredients.add(new RecipeIngredient(slot, new ItemStack(Material.ECHO_SHARD), 1, label("recipe_echo_shard", "Echo Shard")));
-        }
-
-        for (int slot : nucleusSlots) {
-            ingredients.add(new RecipeIngredient(slot, EnchantBookService.createAbyssalNucleus(), 1, label("recipe_nucleus", "Abyssal Nucleus")));
-        }
-
-        ingredients.add(new RecipeIngredient(4, new ItemStack(Material.NAUTILUS_SHELL), 1, label("recipe_nautilus_shell", "Nautilus Shell")));
-
-        return new RecipeStep(label("recipe_tendrils", "Abyssal Tendrils"), false, ingredients, AbyssalTendrilsItem.create(),
-                List.of("4× " + itemName(Material.ECHO_SHARD), "4× " + label("recipe_nucleus", "Abyssal Nucleus"), "1× " + itemName(Material.NAUTILUS_SHELL)));
+        return new RecipeStep(label("recipe_crafting", "Crafting Recipe"), false, ingredients,
+                EnchantBookService.createBook(id, level), summary);
     }
 
     public static RecipeStep soulHeartRecipe() {
@@ -190,12 +151,25 @@ public final class RecipeCatalog {
                 List.of("2× " + itemName(Material.NETHERITE_INGOT), "2× " + label("recipe_nucleus", "Abyssal Nucleus"), "2× " + itemName(Material.SOUL_LANTERN), "1× " + label("recipe_core_book", "Abyssal Core book") + ""));
     }
 
-    private static String label(String key, String fallback) {
-        return com.nightmare.lang.LangService.msg("gui." + key, fallback);
-    }
+    public static RecipeStep abyssalCoreRecipe() {
+        List<RecipeIngredient> ingredients = new ArrayList<>();
 
-    private static String itemName(Material material) {
-        return label("recipe_" + material.name().toLowerCase(), pretty(material));
+        int[] netheriteSlots = { 0, 2, 6, 8 };
+        int[] nucleusSlots = { 1, 3, 5, 7 };
+
+        for (int slot : netheriteSlots) {
+            ingredients.add(new RecipeIngredient(slot, new ItemStack(Material.NETHERITE_INGOT), 1, label("recipe_netherite_ingot", "Netherite Ingot")));
+        }
+
+        for (int slot : nucleusSlots) {
+            ingredients.add(new RecipeIngredient(slot, EnchantBookService.createAbyssalNucleus(), 1, label("recipe_nucleus", "Abyssal Nucleus")));
+        }
+
+        ingredients.add(new RecipeIngredient(4, EnchantBookService.createBook("abyssal_howl", 1), 1, label("recipe_howl", "Abyssal Howl")));
+
+        return new RecipeStep(label("recipe_core", "Abyssal Core"), false, ingredients,
+                EnchantBookService.createBook("abyssal_core", 1),
+                List.of("4× " + itemName(Material.NETHERITE_INGOT), "4× " + label("recipe_nucleus", "Abyssal Nucleus"), "1× " + label("recipe_howl", "Abyssal Howl")));
     }
 
     private static String pretty(Material material) {
@@ -218,4 +192,33 @@ public final class RecipeCatalog {
         return builder.toString();
     }
 
+    public static RecipeStep abyssalTendrilsRecipe() {
+        List<RecipeIngredient> ingredients = new ArrayList<>();
+        int[] echoSlots = { 0, 2, 6, 8 };
+        int[] nucleusSlots = { 1, 3, 5, 7 };
+
+        for (int slot : echoSlots) {
+            ingredients.add(new RecipeIngredient(slot, new ItemStack(Material.ECHO_SHARD), 1, label("recipe_echo_shard", "Echo Shard")));
+        }
+
+        for (int slot : nucleusSlots) {
+            ingredients.add(new RecipeIngredient(slot, EnchantBookService.createAbyssalNucleus(), 1, label("recipe_nucleus", "Abyssal Nucleus")));
+        }
+
+        ingredients.add(new RecipeIngredient(4, new ItemStack(Material.NAUTILUS_SHELL), 1, label("recipe_nautilus_shell", "Nautilus Shell")));
+
+        return new RecipeStep(label("recipe_tendrils", "Abyssal Tendrils"), false, ingredients, AbyssalTendrilsItem.create(),
+                List.of("4× " + itemName(Material.ECHO_SHARD), "4× " + label("recipe_nucleus", "Abyssal Nucleus"), "1× " + itemName(Material.NAUTILUS_SHELL)));
+    }
+
+    private static String label(String key, String fallback) {
+        return LangService.msg("gui." + key, fallback);
+    }
+
+    private static String itemName(Material material) {
+        return label("recipe_" + material.name().toLowerCase(), pretty(material));
+    }
+
 }
+
+

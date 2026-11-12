@@ -13,6 +13,7 @@ public final class TierSchedule {
     private TierSchedule() {
     }
 
+    @SuppressWarnings("null")
     public static MobTier roll(long day, Random random) {
         if (random.nextDouble() < 0.10) {
             return null;

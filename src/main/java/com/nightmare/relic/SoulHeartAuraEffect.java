@@ -16,10 +16,7 @@ public final class SoulHeartAuraEffect {
     private SoulHeartAuraEffect() {
     }
 
-    public static void start(Plugin plugin) {
-        Bukkit.getScheduler().runTaskTimer(plugin, SoulHeartAuraEffect::tick, 4L, 4L);
-    }
-
+    @SuppressWarnings("null")
     public static void tick() {
         double radius = Main.balance == null ? 2.0 : Main.balance.getDouble("soul-heart.aura-radius", 2.0);
         long rotationMs = Main.balance == null ? 5000L : Main.balance.getLong("soul-heart.aura-rotation-ms", 5000L);
@@ -35,6 +32,10 @@ public final class SoulHeartAuraEffect {
             Location center = player.getLocation().add(0.0, 0.05, 0.0);
             PentagramEffect.draw(player.getWorld(), center, RIGHT, FORWARD, radius, rotation, true);
         }
+    }
+
+    public static void start(Plugin plugin) {
+        Bukkit.getScheduler().runTaskTimer(plugin, SoulHeartAuraEffect::tick, 4L, 4L);
     }
 
 }

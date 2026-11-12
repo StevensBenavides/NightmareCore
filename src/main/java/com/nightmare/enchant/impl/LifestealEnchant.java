@@ -1,6 +1,7 @@
 package com.nightmare.enchant.impl;
 
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 
 import com.nightmare.Main;
@@ -42,7 +43,7 @@ public final class LifestealEnchant extends CustomEnchant {
         }
 
         attacker.setHealth(Math.min(attacker.getMaxHealth(), attacker.getHealth() + heal));
-        attacker.getWorld().spawnParticle(org.bukkit.Particle.HEART, attacker.getLocation().add(0.0, 1.5, 0.0), 3);
+        attacker.getWorld().spawnParticle(Particle.HEART, attacker.getLocation().add(0.0, 1.5, 0.0), 3);
     }
 
 }

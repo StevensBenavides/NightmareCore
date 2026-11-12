@@ -28,22 +28,6 @@ public final class InsomniaService implements Listener {
     private InsomniaService() {
     }
 
-    public static void start(Plugin owner) {
-        plugin = owner;
-        shutdown();
-        Bukkit.getPluginManager().registerEvents(new InsomniaService(), owner);
-        Bukkit.getScheduler().runTaskTimer(owner, InsomniaService::tick, 20L, 20L);
-    }
-
-    public static void shutdown() {
-        activeUntil = 0L;
-        nextStartAt = 0L;
-    }
-
-    public static boolean isActive() {
-        return System.currentTimeMillis() < activeUntil;
-    }
-
     private static void tick() {
         if (!enabled()) {
             activeUntil = 0L;
@@ -77,6 +61,7 @@ public final class InsomniaService implements Listener {
         begin(now);
     }
 
+    @SuppressWarnings("null")
     private static void begin(long now) {
         int min = Math.max(1, configInt("duration-min-minutes", 2));
         int max = Math.max(min, configInt("duration-max-minutes", 6));
@@ -107,6 +92,7 @@ public final class InsomniaService implements Listener {
         }
     }
 
+    @SuppressWarnings("null")
     private static void end() {
         activeUntil = 0L;
 
@@ -129,14 +115,6 @@ public final class InsomniaService implements Listener {
         }
     }
 
-    private static void scheduleNext(long now) {
-        int min = Math.max(1, configInt("interval-min-minutes", 20));
-        int max = Math.max(min, configInt("interval-max-minutes", 45));
-        int interval = min == max ? min : min + (int) (Math.random() * (max - min + 1));
-
-        nextStartAt = now + interval * 60_000L;
-    }
-
     private static boolean isNightSomewhere() {
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() != World.Environment.NORMAL) {
@@ -157,6 +135,49 @@ public final class InsomniaService implements Listener {
         return false;
     }
 
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBedEnter(PlayerBedEnterEvent event) {
+        if (!isActive()) {
+            return;
+        }
+
+        if (event.getPlayer().getWorld().getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+
+        event.setCancelled(true);
+
+        Player player = event.getPlayer();
+        player.sendMessage(colored(LangService.msg("insomnia.denied",
+                "&cYou can't sleep tonight.")));
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.4F, 0.5F);
+    }
+
+    public static void start(Plugin owner) {
+        plugin = owner;
+        shutdown();
+        
+        Bukkit.getPluginManager().registerEvents(new InsomniaService(), owner);
+        Bukkit.getScheduler().runTaskTimer(owner, InsomniaService::tick, 20L, 20L);
+    }
+
+    private static void scheduleNext(long now) {
+        int min = Math.max(1, configInt("interval-min-minutes", 20));
+        int max = Math.max(min, configInt("interval-max-minutes", 45));
+        int interval = min == max ? min : min + (int) (Math.random() * (max - min + 1));
+
+        nextStartAt = now + interval * 60_000L;
+    }
+
+    public static void shutdown() {
+        activeUntil = 0L;
+        nextStartAt = 0L;
+    }
+
+    public static boolean isActive() {
+        return System.currentTimeMillis() < activeUntil;
+    }
+
     private static boolean enabled() {
         return Main.balance == null || Main.balance.getBoolean("insomnia.enabled", true);
     }
@@ -175,23 +196,5 @@ public final class InsomniaService implements Listener {
 
     private static String colored(String text) {
         return ChatColor.translateAlternateColorCodes('&', text == null ? "" : text);
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBedEnter(PlayerBedEnterEvent event) {
-        if (!isActive()) {
-            return;
-        }
-
-        if (event.getPlayer().getWorld().getEnvironment() != World.Environment.NORMAL) {
-            return;
-        }
-
-        event.setCancelled(true);
-
-        Player player = event.getPlayer();
-        player.sendMessage(colored(LangService.msg("insomnia.denied",
-                "&cYou can't sleep tonight.")));
-        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.4F, 0.5F);
     }
 }

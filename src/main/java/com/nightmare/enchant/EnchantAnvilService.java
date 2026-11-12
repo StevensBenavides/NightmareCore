@@ -3,6 +3,7 @@ package com.nightmare.enchant;
 import java.util.Map;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -117,7 +118,7 @@ public final class EnchantAnvilService implements Listener {
 
         int customCount = 0;
 
-        for (Map.Entry<String, org.bukkit.NamespacedKey> entry : EnchantKeys.KEYS.entrySet()) {
+        for (Map.Entry<String, NamespacedKey> entry : EnchantKeys.KEYS.entrySet()) {
             if (targetContainer.get(entry.getValue(), PersistentDataType.INTEGER) != null) {
                 customCount++;
             }

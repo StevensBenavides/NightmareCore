@@ -24,6 +24,25 @@ public final class NametagService implements Listener {
 
     public static final Map<UUID, Long> VISIBLE_UNTIL = new ConcurrentHashMap<>();
 
+    public static void tick() {
+        long now = System.currentTimeMillis();
+        
+        for (Map.Entry<UUID, Long> entry : new ArrayList<>(VISIBLE_UNTIL.entrySet())) {
+            if (entry.getValue() > now) {
+                continue;
+            }
+
+            Entity entity = Bukkit.getEntity(entry.getKey());
+
+            if (entity instanceof Mob mob) {
+                String tierName = mob.getPersistentDataContainer().get(MobKeys.MOB_TIER, PersistentDataType.STRING);
+                mob.setCustomNameVisible(tierName != null && tierName.equals(MobTier.K.name()));
+            }
+
+            VISIBLE_UNTIL.remove(entry.getKey());
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         Entity damager = event.getDamager();
@@ -39,15 +58,6 @@ public final class NametagService implements Listener {
         if (event.getEntity() instanceof Mob mob) {
             show(mob);
         }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onTarget(EntityTargetLivingEntityEvent event) {
-        if (!(event.getEntity() instanceof Mob mob) || !(event.getTarget() instanceof Player)) {
-            return;
-        }
-
-        show(mob);
     }
 
     public static void show(Mob mob) {
@@ -77,27 +87,17 @@ public final class NametagService implements Listener {
         VISIBLE_UNTIL.remove(mob.getUniqueId());
     }
 
-    public static void clear(UUID uuid) {
-        VISIBLE_UNTIL.remove(uuid);
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTarget(EntityTargetLivingEntityEvent event) {
+        if (!(event.getEntity() instanceof Mob mob) || !(event.getTarget() instanceof Player)) {
+            return;
+        }
+
+        show(mob);
     }
 
-    public static void tick() {
-        long now = System.currentTimeMillis();
-        
-        for (Map.Entry<UUID, Long> entry : new ArrayList<>(VISIBLE_UNTIL.entrySet())) {
-            if (entry.getValue() > now) {
-                continue;
-            }
-
-            Entity entity = Bukkit.getEntity(entry.getKey());
-
-            if (entity instanceof Mob mob) {
-                String tierName = mob.getPersistentDataContainer().get(MobKeys.MOB_TIER, PersistentDataType.STRING);
-                mob.setCustomNameVisible(tierName != null && tierName.equals(MobTier.K.name()));
-            }
-
-            VISIBLE_UNTIL.remove(entry.getKey());
-        }
+    public static void clear(UUID uuid) {
+        VISIBLE_UNTIL.remove(uuid);
     }
 
 }

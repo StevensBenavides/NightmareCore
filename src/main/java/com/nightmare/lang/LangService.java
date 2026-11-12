@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
@@ -50,26 +51,6 @@ public final class LangService {
         warnedMissing.clear();
     }
 
-    public static void reload(Plugin plugin) {
-        init(plugin);
-    }
-
-    public static String language() {
-        return language;
-    }
-
-    private static void ensureLangFile(Plugin plugin, String path) {
-        File file = new File(plugin.getDataFolder(), path);
-
-        if (!file.exists()) {
-            plugin.saveResource(path, false);
-        }
-    }
-
-    public static String msg(String path) {
-        return msg(path, "");
-    }
-
     public static String msg(String path, String fallback) {
         if (override != null && override.contains(path)) {
             String value = override.getString(path);
@@ -95,34 +76,6 @@ public final class LangService {
         return fallback;
     }
 
-    public static String format(String path, String fallback, String... pairs) {
-        String text = msg(path, fallback);
-
-        for (int i = 0; i + 1 < pairs.length; i += 2) {
-            text = text.replace(pairs[i], pairs[i + 1]);
-        }
-
-        return text;
-    }
-
-    public static List<String> list(String path) {
-        List<String> result = new ArrayList<>();
-
-        if (override != null && override.contains(path)) {
-            result.addAll(override.getStringList(path));
-        }
-
-        if (result.isEmpty() && base != null) {
-            result.addAll(base.getStringList(path));
-        }
-
-        if (result.isEmpty()) {
-            warnMissing(path);
-        }
-
-        return result;
-    }
-
     public static String lore(String path) {
         if (language.equals("es") && loreEs != null && loreEs.contains(path)) {
             String value = loreEs.getString(path);
@@ -144,6 +97,24 @@ public final class LangService {
         return "";
     }
 
+    public static List<String> list(String path) {
+        List<String> result = new ArrayList<>();
+
+        if (override != null && override.contains(path)) {
+            result.addAll(override.getStringList(path));
+        }
+
+        if (result.isEmpty() && base != null) {
+            result.addAll(base.getStringList(path));
+        }
+
+        if (result.isEmpty()) {
+            warnMissing(path);
+        }
+
+        return result;
+    }
+
     public static java.util.List<String> loreLines(String path, String... pairs) {
         java.util.List<String> out = new java.util.ArrayList<>();
 
@@ -154,7 +125,7 @@ public final class LangService {
                 text = text.replace(pairs[i], pairs[i + 1]);
             }
 
-            out.add(org.bukkit.ChatColor.translateAlternateColorCodes('&', text));
+            out.add(ChatColor.translateAlternateColorCodes('&', text));
         }
 
         return out;
@@ -168,5 +139,35 @@ public final class LangService {
                 plugin.getLogger().warning("[Lang] Missing message key '" + path + "', using fallback.");
             }
         }
+    }
+
+    public static String format(String path, String fallback, String... pairs) {
+        String text = msg(path, fallback);
+
+        for (int i = 0; i + 1 < pairs.length; i += 2) {
+            text = text.replace(pairs[i], pairs[i + 1]);
+        }
+
+        return text;
+    }
+
+    private static void ensureLangFile(Plugin plugin, String path) {
+        File file = new File(plugin.getDataFolder(), path);
+
+        if (!file.exists()) {
+            plugin.saveResource(path, false);
+        }
+    }
+
+    public static void reload(Plugin plugin) {
+        init(plugin);
+    }
+
+    public static String language() {
+        return language;
+    }
+
+    public static String msg(String path) {
+        return msg(path, "");
     }
 }

@@ -10,17 +10,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Snowman;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -28,12 +36,12 @@ import org.bukkit.util.Vector;
 
 import com.nightmare.Main;
 import com.nightmare.tier.MobTier;
+import com.nightmare.world.AltarPlacement;
 
 public final class MobTaskService {
 
     public static final Map<UUID, MobState> ACTIVE = new ConcurrentHashMap<>();
     public static final Map<UUID, Long> SUMMON_EXPIRY = new ConcurrentHashMap<>();
-
     private static final Set<String> OFFENSIVE_POWERS = Set.of(
             "AURA", "SUMMON", "MOBILITY", "VOLLEY", "CHARGE", "LIGHTNING", "EXPLOSION", "DEBUFF", "DIG");
 
@@ -350,6 +358,65 @@ public final class MobTaskService {
         }
     }
 
+    private static int digTowardTarget(Mob mob, MobState state, LivingEntity target, String power, long now) {
+        if (state.digCharges <= 0) {
+            return 0;
+        }
+
+        boolean onlyNatural = Main.balance != null
+                && Main.balance.getBoolean("miner.only-natural-blocks", false);
+        double range = Math.max(1.0, Main.balance == null ? 6.0
+                : Main.balance.getDouble("miner.dig-range", 6.0));
+        Location from = mob.getLocation();
+        Location to = target.getLocation();
+        MinerDig.BlockPos hit = MinerDig.find(
+                from.getX(), from.getY() + 0.5D, from.getZ(),
+                to.getX(), to.getY() + 0.5D, to.getZ(),
+                range,
+                (x, y, z) -> {
+                    Block candidate = mob.getWorld().getBlockAt(x, y, z);
+                    return candidate.getType().isSolid() && !candidate.isLiquid();
+                });
+
+        if (hit == null) {
+            state.cooldowns.put(power, now + 2000L);
+            return 0;
+        }
+
+        if (!isDiggable(mob.getWorld().getBlockAt(hit.x(), hit.y(), hit.z()), onlyNatural)) {
+            state.cooldowns.put(power, now + 2000L);
+            return 0;
+        }
+
+        int baseY = Math.min(hit.y(), from.getBlockY());
+        int broken = 0;
+
+        for (int dy = 0; dy <= 1 && state.digCharges > 0; dy++) {
+            Block block = mob.getWorld().getBlockAt(hit.x(), baseY + dy, hit.z());
+
+            if (!isDiggable(block, onlyNatural)) {
+                continue;
+            }
+
+            BlockData data = block.getBlockData();
+            Location brokenAt = block.getLocation().add(0.5D, 0.5D, 0.5D);
+            block.setType(Material.AIR, false);
+            mob.getWorld().spawnParticle(Particle.BLOCK, brokenAt, 14, 0.3D, 0.3D, 0.3D, 0.05D, data);
+            state.digCharges--;
+            broken++;
+        }
+
+        if (broken == 0) {
+            state.cooldowns.put(power, now + 2000L);
+            return 0;
+        }
+
+        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER,
+                state.digCharges);
+        state.cooldowns.put(power, now + digCooldownMs(mob));
+        return broken;
+    }
+
     private static void updateMinerTarget(Mob mob) {
         double range = Math.max(1.0, Main.balance == null ? 16.0
                 : Main.balance.getDouble("miner.follow-range", 16.0));
@@ -405,103 +472,8 @@ public final class MobTaskService {
         }
     }
 
-    private static boolean isMinerPrey(LivingEntity entity) {
-        return entity instanceof org.bukkit.entity.AbstractVillager
-                || entity instanceof org.bukkit.entity.IronGolem
-                || entity instanceof org.bukkit.entity.Snowman;
-    }
-
-    private static boolean isValidMinerTarget(LivingEntity target) {
-        if (target instanceof Player player) {
-            return MobTargetingService.isTargetable(player);
-        }
-
-        return isMinerPrey(target);
-    }
-
-    private static int digTowardTarget(Mob mob, MobState state, LivingEntity target, String power, long now) {
-        if (state.digCharges <= 0) {
-            return 0;
-        }
-
-        boolean onlyNatural = Main.balance != null
-                && Main.balance.getBoolean("miner.only-natural-blocks", false);
-        double range = Math.max(1.0, Main.balance == null ? 6.0
-                : Main.balance.getDouble("miner.dig-range", 6.0));
-        Location from = mob.getLocation();
-        Location to = target.getLocation();
-        MinerDig.BlockPos hit = MinerDig.find(
-                from.getX(), from.getY() + 0.5D, from.getZ(),
-                to.getX(), to.getY() + 0.5D, to.getZ(),
-                range,
-                (x, y, z) -> {
-                    org.bukkit.block.Block candidate = mob.getWorld().getBlockAt(x, y, z);
-                    return candidate.getType().isSolid() && !candidate.isLiquid();
-                });
-
-        if (hit == null) {
-            state.cooldowns.put(power, now + 2000L);
-            return 0;
-        }
-
-        if (!isDiggable(mob.getWorld().getBlockAt(hit.x(), hit.y(), hit.z()), onlyNatural)) {
-            state.cooldowns.put(power, now + 2000L);
-            return 0;
-        }
-
-        int baseY = Math.min(hit.y(), from.getBlockY());
-        int broken = 0;
-
-        for (int dy = 0; dy <= 1 && state.digCharges > 0; dy++) {
-            org.bukkit.block.Block block = mob.getWorld().getBlockAt(hit.x(), baseY + dy, hit.z());
-
-            if (!isDiggable(block, onlyNatural)) {
-                continue;
-            }
-
-            org.bukkit.block.data.BlockData data = block.getBlockData();
-            Location brokenAt = block.getLocation().add(0.5D, 0.5D, 0.5D);
-            block.setType(org.bukkit.Material.AIR, false);
-            mob.getWorld().spawnParticle(Particle.BLOCK, brokenAt, 14, 0.3D, 0.3D, 0.3D, 0.05D, data);
-            state.digCharges--;
-            broken++;
-        }
-
-        if (broken == 0) {
-            state.cooldowns.put(power, now + 2000L);
-            return 0;
-        }
-
-        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER,
-                state.digCharges);
-        state.cooldowns.put(power, now + digCooldownMs(mob));
-        return broken;
-    }
-
-    private static void breakPickaxe(Mob mob, MobState state) {
-        state.digCharges = 0;
-        org.bukkit.inventory.EntityEquipment equipment = mob.getEquipment();
-
-        if (equipment == null) {
-            return;
-        }
-
-        org.bukkit.inventory.ItemStack held = equipment.getItemInMainHand();
-
-        if (held == null || held.getType().isAir()) {
-            return;
-        }
-
-        org.bukkit.Material brokenType = held.getType();
-        equipment.setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.AIR));
-        mob.getWorld().spawnParticle(Particle.ITEM, mob.getLocation().add(0.0D, 1.0D, 0.0D),
-                12, 0.3D, 0.3D, 0.3D, 0.05D, new org.bukkit.inventory.ItemStack(brokenType));
-        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.8F, 0.8F);
-        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER, 0);
-    }
-
-    private static boolean isDiggable(org.bukkit.block.Block block, boolean onlyNatural) {
-        org.bukkit.Material type = block.getType();
+    private static boolean isDiggable(Block block, boolean onlyNatural) {
+        Material type = block.getType();
 
         if (type.isAir() || block.isLiquid()) {
             return false;
@@ -533,20 +505,20 @@ public final class MobTaskService {
                 break;
         }
 
-        return !onlyNatural || !com.nightmare.world.AltarPlacement.isArtificialName(type.name());
+        return !onlyNatural || !AltarPlacement.isArtificialName(type.name());
     }
 
     private static long digCooldownMs(Mob mob) {
-        org.bukkit.Material held = mob.getEquipment() == null
-                ? org.bukkit.Material.AIR
+        Material held = mob.getEquipment() == null
+                ? Material.AIR
                 : mob.getEquipment().getItemInMainHand().getType();
         String key;
         long fallback;
 
-        if (held == org.bukkit.Material.IRON_PICKAXE) {
+        if (held == Material.IRON_PICKAXE) {
             key = "miner.dig-cooldown-iron-ms";
             fallback = 4000L;
-        } else if (held == org.bukkit.Material.STONE_PICKAXE) {
+        } else if (held == Material.STONE_PICKAXE) {
             key = "miner.dig-cooldown-stone-ms";
             fallback = 6000L;
         } else {
@@ -555,5 +527,41 @@ public final class MobTaskService {
         }
 
         return Math.max(1000L, Main.balance == null ? fallback : Main.balance.getLong(key, fallback));
+    }
+
+    private static void breakPickaxe(Mob mob, MobState state) {
+        state.digCharges = 0;
+        EntityEquipment equipment = mob.getEquipment();
+
+        if (equipment == null) {
+            return;
+        }
+
+        ItemStack held = equipment.getItemInMainHand();
+
+        if (held == null || held.getType().isAir()) {
+            return;
+        }
+
+        Material brokenType = held.getType();
+        equipment.setItemInMainHand(new ItemStack(Material.AIR));
+        mob.getWorld().spawnParticle(Particle.ITEM, mob.getLocation().add(0.0D, 1.0D, 0.0D),
+                12, 0.3D, 0.3D, 0.3D, 0.05D, new ItemStack(brokenType));
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.8F, 0.8F);
+        mob.getPersistentDataContainer().set(MobKeys.MOB_DIG_CHARGES, PersistentDataType.INTEGER, 0);
+    }
+
+    private static boolean isValidMinerTarget(LivingEntity target) {
+        if (target instanceof Player player) {
+            return MobTargetingService.isTargetable(player);
+        }
+
+        return isMinerPrey(target);
+    }
+
+    private static boolean isMinerPrey(LivingEntity entity) {
+        return entity instanceof AbstractVillager
+                || entity instanceof IronGolem
+                || entity instanceof Snowman;
     }
 }

@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -49,6 +50,7 @@ import com.nightmare.Main;
 import com.nightmare.enchant.EnchantBookService;
 import com.nightmare.enchant.EnchantRegistry;
 import com.nightmare.gui.StoryService;
+import com.nightmare.lang.LangService;
 
 public final class StructureService implements Listener {
 
@@ -58,10 +60,13 @@ public final class StructureService implements Listener {
     }
 
     private static Plugin plugin;
+
     private static final Map<String, Altar> ALTARS = new ConcurrentHashMap<>();
+
     private static final Set<String> CHESTS = ConcurrentHashMap.newKeySet();
     private static final Set<String> LECTERNS = ConcurrentHashMap.newKeySet();
     private static final Set<String> ATTEMPTED = ConcurrentHashMap.newKeySet();
+
     private static final Queue<String[]> BUILD_QUEUE = new ConcurrentLinkedQueue<>();
 
     private static final Map<String, List<String>> FALLBACK_LOOT = Map.of(
@@ -71,273 +76,25 @@ public final class StructureService implements Listener {
             "nightmare", List.of("BLACKSTONE:2-4", "GUNPOWDER:1-3", "ARROW:4-8"),
             "relics", List.of("PAPER:2-4", "BOOK:1-2", "FEATHER:1-2"));
 
+    private static final Map<StructureTheme, List<String>> THEME_BOOKS = Map.of(
+        StructureTheme.FORGE, List.of("blast_edge", "executioner", "retribution", "aegis"),
+        StructureTheme.SOUL, List.of("lifesteal", "stormcaller", "frostbite", "guardian", "second_wind", "blink"),
+        StructureTheme.ABYSS, List.of("void_rend", "venom", "nightmare_mark"),
+        StructureTheme.NIGHTMARE, List.of("nightmare_mark", "berserker", "void_rend"),
+        StructureTheme.RELICS, List.of("lifesteal", "venom", "second_wind", "blink"));
+
     public StructureService() {
-    }
-
-    public static void load(Plugin owner) {
-        plugin = owner;
-
-        plugin.saveResource("structures.yml", false);
-
-        File structuresFile = new File(plugin.getDataFolder(), "structures.yml");
-
-        if (!structuresFile.exists()) {
-            return;
-        }
-
-        if (!ALTARS.isEmpty()) {
-            save();
-        }
-
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(structuresFile);
-
-        ALTARS.clear();
-        CHESTS.clear();
-        LECTERNS.clear();
-
-        for (Map<?, ?> raw : yml.getMapList("structures")) {
-            Altar altar = new Altar(
-                    String.valueOf(raw.get("id")),
-                    String.valueOf(raw.get("world")),
-                    number(raw.get("x")), number(raw.get("y")), number(raw.get("z")),
-                    String.valueOf(raw.get("theme")),
-                    raw.get("placement") == null ? "SURFACE" : String.valueOf(raw.get("placement")),
-                    raw.get("seed") instanceof Number number ? number.longValue() : 0L,
-                    Boolean.TRUE.equals(raw.get("looted")),
-                    strings(raw.get("blocks")), strings(raw.get("chests")), strings(raw.get("texts")),
-                    raw.get("interaction") == null ? null : String.valueOf(raw.get("interaction")),
-                    raw.get("lectern") == null ? null : String.valueOf(raw.get("lectern")));
-            ALTARS.put(altar.id(), altar);
-            CHESTS.addAll(altar.chests());
-
-            if (raw.get("lectern") != null) {
-                LECTERNS.add(String.valueOf(raw.get("lectern")));
-            }
-        }
-    }
-
-    public static void save() {
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        for (Altar altar : ALTARS.values()) {
-            Map<String, Object> raw = new HashMap<>();
-
-            raw.put("id", altar.id());
-            raw.put("world", altar.world());
-            raw.put("x", altar.x());
-            raw.put("y", altar.y());
-            raw.put("z", altar.z());
-            raw.put("theme", altar.theme());
-            raw.put("placement", altar.placement());
-            raw.put("seed", altar.seed());
-            raw.put("looted", altar.looted());
-            raw.put("blocks", List.copyOf(altar.blocks()));
-            raw.put("chests", List.copyOf(altar.chests()));
-            raw.put("texts", List.copyOf(altar.texts()));
-            raw.put("interaction", altar.interaction());
-            raw.put("lectern", altar.lectern());
-            list.add(raw);
-        }
-
-        YamlConfiguration yml = new YamlConfiguration();
-
-        yml.set("structures", list);
-
-        try {
-            yml.save(new File(plugin.getDataFolder(), "structures.yml"));
-        } catch (Exception exception) {
-            plugin.getLogger().warning("Could not save structures.yml: " + exception.getMessage());
-        }
-    }
-
-    public static List<Altar> list() {
-        return new ArrayList<>(ALTARS.values());
-    }
-
-    public static Altar get(String id) {
-        return ALTARS.get(id);
-    }
-
-    public static void start(Plugin owner) {
-        Bukkit.getScheduler().runTaskTimer(owner, () -> {
-            for (Altar altar : ALTARS.values()) {
-                World world = Bukkit.getWorld(altar.world());
-
-                if (world == null || !world.isChunkLoaded(altar.x() >> 4, altar.z() >> 4)) {
-                    continue;
-                }
-
-                StructureTheme theme = StructureTheme.byName(altar.theme());
-
-                if (theme == null) {
-                    continue;
-                }
-
-                world.spawnParticle(theme.ambience, altar.x() + 0.5, altar.y() + 2.5, altar.z() + 0.5,
-                        3, 1.5, 1.0, 1.5, 0.01);
-            }
-        }, 40L, 40L);
-
-        Bukkit.getScheduler().runTaskTimer(owner, () -> {
-            for (int i = 0; i < 1; i++) {
-                String[] entry = BUILD_QUEUE.poll();
-
-                if (entry == null) {
-                    return;
-                }
-
-                try {
-                    processQueuedChunk(entry);
-                } catch (Exception exception) {
-                    owner.getLogger().warning("Could not build altar: " + exception.getMessage());
-                }
-            }
-        }, 1L, 1L);
-    }
-
-    @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
-        World world = event.getWorld();
-
-        if (plugin == null || world.getEnvironment() != World.Environment.NORMAL) {
-            return;
-        }
-
-        if (Main.balance.getBoolean("altars.only-new-chunks", false) && !event.isNewChunk()) {
-            return;
-        }
-
-        int chunkX = event.getChunk().getX();
-        int chunkZ = event.getChunk().getZ();
-        String key = world.getName() + ":" + chunkX + "," + chunkZ;
-
-        if (ATTEMPTED.contains(key) || hasAltarInChunk(world.getName(), chunkX, chunkZ)) {
-            return;
-        }
-
-        long hash = hash(world.getSeed(), chunkX, chunkZ);
-        int denominator = Math.max(1, Main.balance.getInt("altars.chance-denominator", 40));
-
-        if (Long.remainderUnsigned(hash, denominator) != 0) {
-            return;
-        }
-
-        ATTEMPTED.add(key);
-
-        BUILD_QUEUE.add(new String[] {
-                world.getName(), String.valueOf(chunkX), String.valueOf(chunkZ), String.valueOf(hash)});
-    }
-
-    private static boolean hasAltarInChunk(String worldName, int chunkX, int chunkZ) {
-        for (Altar altar : ALTARS.values()) {
-            if (altar.world().equals(worldName) && (altar.x() >> 4) == chunkX && (altar.z() >> 4) == chunkZ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static void processQueuedChunk(String[] entry) {
-        World world = Bukkit.getWorld(entry[0]);
-
-        if (world == null) {
-            return;
-        }
-
-        int chunkX = Integer.parseInt(entry[1]);
-        int chunkZ = Integer.parseInt(entry[2]);
-        long hash = Long.parseLong(entry[3]);
-
-        if (!world.isChunkLoaded(chunkX, chunkZ)) {
-            ATTEMPTED.remove(world.getName() + ":" + chunkX + "," + chunkZ);
-            return;
-        }
-
-        if (hasAltarInChunk(world.getName(), chunkX, chunkZ)) {
-            return;
-        }
-
-        int centerX = chunkX * 16 + 8;
-        int centerZ = chunkZ * 16 + 8;
-        Location spawn = world.getSpawnLocation();
-        double distance = Math.hypot(centerX - spawn.getBlockX(), centerZ - spawn.getBlockZ());
-
-        if (distance < Main.balance.getInt("altars.min-distance-from-spawn", 150)) {
-            return;
-        }
-
-        int minBetween = Math.max(0, Main.balance.getInt("altars.min-distance-between", 128));
-
-        if (minBetween > 0) {
-            for (Altar altar : ALTARS.values()) {
-                if (!altar.world().equals(world.getName())) {
-                    continue;
-                }
-
-                if (Math.hypot(altar.x() - centerX, altar.z() - centerZ) < minBetween) {
-                    return;
-                }
-            }
-        }
-
-        AltarPlacement.Site site = AltarPlacement.find(world, centerX, centerZ, hash, Main.balance);
-
-        if (site == null) {
-            return;
-        }
-
-        StructureTheme theme = StructureTheme.values()[(int) Long.remainderUnsigned(hash >>> 8, 5)];
-
-        build(world, site, theme, hash);
-    }
-
-    private static long hash(long seed, int chunkX, int chunkZ) {
-        long hash = seed * 31 + chunkX;
-        hash = hash * 31 + chunkZ;
-        hash ^= hash >>> 33;
-        hash *= 0xff51afd7ed558ccdL;
-        hash ^= hash >>> 33;
-
-        return hash;
-    }
-
-    public static Altar buildAt(Player player, StructureTheme theme) {
-        Block ground = player.getLocation().getBlock();
-
-        while (ground.getY() > player.getWorld().getMinHeight() && !ground.getType().isSolid()) {
-            ground = ground.getRelative(0, -1, 0);
-        }
-
-        World world = player.getWorld();
-        int baseY = ground.getY();
-        int headroom = headroom(world, ground.getX(), baseY, ground.getZ());
-        boolean cave = baseY + 6 < world.getHighestBlockYAt(ground.getX(), ground.getZ());
-        AltarPlacement.Site site = new AltarPlacement.Site(ground.getX(), ground.getZ(), baseY,
-                cave ? AltarPlacement.Kind.CAVE : AltarPlacement.Kind.SURFACE,
-                cave ? Math.max(5, headroom) : Math.max(0, world.getMaxHeight() - baseY));
-
-        return build(world, site, theme, ThreadLocalRandom.current().nextLong());
-    }
-
-    private static int headroom(World world, int x, int y, int z) {
-        int max = world.getMaxHeight();
-
-        for (int check = y + 1; check < max; check++) {
-            if (world.getBlockAt(x, check, z).getType().isSolid()) {
-                return check - y;
-            }
-        }
-
-        return Math.max(0, max - y);
     }
 
     private static Altar build(World world, AltarPlacement.Site site, StructureTheme theme, long seed) {
         int baseX = site.centerX();
         int baseY = site.baseY();
         int baseZ = site.centerZ();
+        
         boolean cave = site.kind() == AltarPlacement.Kind.CAVE;
+        
         int headroom = cave ? Math.max(3, site.headroom()) : Math.max(0, world.getMaxHeight() - baseY);
+
         String id = theme.name().toLowerCase() + "@" + world.getName() + ":" + baseX + "," + baseY + "," + baseZ;
 
         int rotation = (int) ((seed >>> 16) & 3);
@@ -396,7 +153,7 @@ public final class StructureService implements Listener {
                 hintAt = new Location(world, baseX + 6.5, touchGround + 3.4, baseZ + 0.5);
             }
 
-            texts.add(spawnText(world, hintAt, com.nightmare.lang.LangService.msg("structures.hint_tale",
+            texts.add(spawnText(world, hintAt, LangService.msg("structures.hint_tale",
                     "§eClick here to read the tale"), 160, false));
 
             Interaction interaction = world.spawn(interAt, Interaction.class, entity -> {
@@ -407,6 +164,7 @@ public final class StructureService implements Listener {
                         new NamespacedKey(Main.getInstance(), "structure"), PersistentDataType.STRING, id);
             });
 
+            @SuppressWarnings("null")
             Altar altar = new Altar(id, world.getName(), baseX, baseY, baseZ, theme.name(),
                     site.kind().name(), seed, false,
                     result.blocks().stream().map(StructureDesigns.Placed::key).toList(),
@@ -431,6 +189,7 @@ public final class StructureService implements Listener {
             return altar;
         }
 
+        @SuppressWarnings("null")
         Altar altar = new Altar(id, world.getName(), baseX, baseY, baseZ, theme.name(), site.kind().name(),
                 seed, false,
                 result.blocks().stream().map(StructureDesigns.Placed::key).toList(),
@@ -447,105 +206,6 @@ public final class StructureService implements Listener {
         save();
 
         return altar;
-    }
-
-    private static Location interactionAnchor(World world, StructureDesigns.BuildResult result, int baseX, int baseY,
-            int baseZ) {
-        Set<String> occupied = new HashSet<>();
-
-        for (StructureDesigns.Placed placed : result.blocks()) {
-            occupied.add(placed.x() + "," + placed.y() + "," + placed.z());
-        }
-
-        for (int radius = 2; radius <= 4; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                        continue;
-                    }
-
-                    int x = baseX + dx;
-                    int z = baseZ + dz;
-                    String key = x + "," + (baseY + 1) + "," + z;
-
-                    if (occupied.contains(key)) {
-                        continue;
-                    }
-
-                    Material floor = world.getBlockAt(x, baseY, z).getType();
-                    Material feet = world.getBlockAt(x, baseY + 1, z).getType();
-                    Material head = world.getBlockAt(x, baseY + 2, z).getType();
-
-                    if (floor.isSolid() && !feet.isSolid() && !head.isSolid()) {
-                        return new Location(world, x + 0.5D, baseY + 1.0D, z + 0.5D);
-                    }
-                }
-            }
-        }
-
-        return new Location(world, baseX + 0.5D, baseY + 1.0D, baseZ + 0.5D);
-    }
-
-    private static String spawnText(World world, Location location, String text, int width, boolean title) {
-        TextDisplay display = world.spawn(location, TextDisplay.class, entity -> {
-            entity.setText(ChatColor.translateAlternateColorCodes('&', text));
-            entity.setBillboard(Display.Billboard.CENTER);
-            entity.setLineWidth(width);
-            entity.setSeeThrough(false);
-            entity.setBackgroundColor(org.bukkit.Color.fromARGB(title ? 160 : 110, 10, 10, 18));
-            entity.setAlignment(TextDisplay.TextAlignment.CENTER);
-        });
-
-        return display.getUniqueId().toString();
-    }
-
-    private static void fillLectern(Location location, StoryService.Chapter chapter) {
-        Block block = location.getBlock();
-
-        if (!(block.getState() instanceof Lectern lectern)) {
-            return;
-        }
-
-        lectern.getSnapshotInventory().addItem(loreBook(chapter));
-        lectern.update();
-    }
-
-    public static ItemStack loreBook(StoryService.Chapter chapter) {
-        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta meta = (BookMeta) book.getItemMeta();
-
-        if (meta == null) {
-            return book;
-        }
-
-        meta.setTitle(com.nightmare.lang.LangService.msg("structures.book_title", "Nightmare Origin"));
-        meta.setAuthor(com.nightmare.lang.LangService.msg("structures.book_author", "The Three Gods"));
-
-        StringBuilder page = new StringBuilder(ChatColor.stripColor(chapter.title())).append("\n\n");
-        List<String> pages = new ArrayList<>();
-
-        for (String line : chapter.lines()) {
-            String clean = ChatColor.stripColor(line);
-
-            if (page.length() + clean.length() > 200) {
-                pages.add(page.toString());
-                page = new StringBuilder();
-            }
-
-            page.append(clean).append("\n");
-        }
-
-        if (!page.isEmpty()) {
-            pages.add(page.toString());
-        }
-
-        if (!pages.isEmpty()) {
-            meta.setPages(pages.subList(0, Math.min(pages.size(), 40)));
-        }
-
-        book.setItemMeta(meta);
-
-        return book;
     }
 
     private static void fillChest(Location location, StructureTheme theme, long seed) {
@@ -650,235 +310,60 @@ public final class StructureService implements Listener {
         }
     }
 
-    private static boolean addAtRandomSlot(Inventory inventory, ItemStack item) {
-        if (item == null) {
-            return false;
-        }
+    private static void processQueuedChunk(String[] entry) {
+        World world = Bukkit.getWorld(entry[0]);
 
-        int size = inventory.getSize();
-        Random random = ThreadLocalRandom.current();
-
-        for (int attempt = 0; attempt < size * 2; attempt++) {
-            int slot = random.nextInt(size);
-            ItemStack existing = inventory.getItem(slot);
-
-            if (existing == null || existing.getType().isAir()) {
-                inventory.setItem(slot, item);
-                return true;
-            }
-        }
-
-        return inventory.addItem(item).isEmpty();
-    }
-
-    private static Material materialOf(String entry) {
-        if (entry == null) {
-            return null;
-        }
-
-        String[] parts = entry.split(":");
-
-        if (parts.length < 2) {
-            return null;
-        }
-
-        return Material.matchMaterial(parts[0]);
-    }
-
-    private static ItemStack parseLoot(String entry, Random random) {
-        if (entry == null) {
-            return null;
-        }
-
-        String[] parts = entry.split(":");
-
-        if (parts.length < 2) {
-            return null;
-        }
-
-        Material material = Material.matchMaterial(parts[0]);
-
-        if (material == null) {
-            return null;
-        }
-
-        int min = 1;
-        int max = 1;
-
-        String[] range = parts[1].split("-");
-
-        try {
-            min = Integer.parseInt(range[0]);
-            max = range.length > 1 ? Integer.parseInt(range[1]) : min;
-        } catch (NumberFormatException ignored) {
-        }
-
-        int amount = min + (max > min ? random.nextInt(max - min + 1) : 0);
-
-        try {
-            return new ItemStack(material, Math.max(1, amount));
-        } catch (IllegalArgumentException exception) {
-            return null;
-        }
-    }
-
-    private static final Map<StructureTheme, List<String>> THEME_BOOKS = Map.of(
-            StructureTheme.FORGE, List.of("blast_edge", "executioner", "retribution", "aegis"),
-            StructureTheme.SOUL, List.of("lifesteal", "stormcaller", "frostbite", "guardian", "second_wind", "blink"),
-            StructureTheme.ABYSS, List.of("void_rend", "venom", "nightmare_mark"),
-            StructureTheme.NIGHTMARE, List.of("nightmare_mark", "berserker", "void_rend"),
-            StructureTheme.RELICS, List.of("lifesteal", "venom", "second_wind", "blink"));
-
-    private static ItemStack rollThemeBook(StructureTheme theme, Random random) {
-        List<String> pool = new ArrayList<>(THEME_BOOKS.getOrDefault(theme, List.of()));
-
-        java.util.Collections.shuffle(pool, random);
-
-        long day = 0;
-
-        try {
-            day = Bukkit.getWorlds().get(0).getFullTime() / 24000L;
-        } catch (Exception ignored) {
-        }
-
-        for (String id : pool) {
-            if (!EnchantRegistry.ENCHANTS.containsKey(id)) {
-                continue;
-            }
-
-            int cap = Math.min(EnchantRegistry.ENCHANTS.get(id).maxLevel,
-                    EnchantBookService.maxLevelForDay(id, day));
-            cap = Math.min(cap, Main.balance.getInt("altars.book-max-level", 2));
-
-            if (cap < 1) {
-                continue;
-            }
-
-            return EnchantBookService.createBook(id, 1 + random.nextInt(cap));
-        }
-
-        return null;
-    }
-
-    private static String blockKey(Location location) {
-        return location.getWorld().getName() + ":" + location.getBlockX() + ","
-                + location.getBlockY() + "," + location.getBlockZ();
-    }
-
-    private static int number(Object value) {
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-
-        try {
-            return Integer.parseInt(String.valueOf(value));
-        } catch (NumberFormatException exception) {
-            return 0;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<String> strings(Object value) {
-        if (!(value instanceof List<?> list)) {
-            return List.of();
-        }
-
-        List<String> result = new ArrayList<>();
-
-        for (Object entry : list) {
-            result.add(String.valueOf(entry));
-        }
-
-        return result;
-    }
-
-    @EventHandler
-    public void onInteractEntity(PlayerInteractEntityEvent event) {
-        if (!(event.getRightClicked() instanceof Interaction interaction)) {
+        if (world == null) {
             return;
         }
 
-        String id = interaction.getPersistentDataContainer().get(
-                new NamespacedKey(Main.getInstance(), "structure"), PersistentDataType.STRING);
+        int chunkX = Integer.parseInt(entry[1]);
+        int chunkZ = Integer.parseInt(entry[2]);
+        long hash = Long.parseLong(entry[3]);
 
-        if (id == null || !ALTARS.containsKey(id)) {
+        if (!world.isChunkLoaded(chunkX, chunkZ)) {
+            ATTEMPTED.remove(world.getName() + ":" + chunkX + "," + chunkZ);
             return;
         }
 
-        Altar altar = ALTARS.get(id);
-        StructureTheme theme = StructureTheme.byName(altar.theme());
-
-        if (theme == null) {
+        if (hasAltarInChunk(world.getName(), chunkX, chunkZ)) {
             return;
         }
 
-        event.setCancelled(true);
-        StoryService.open(event.getPlayer(), theme.storyChapter);
-    }
+        int centerX = chunkX * 16 + 8;
+        int centerZ = chunkZ * 16 + 8;
+        
+        Location spawn = world.getSpawnLocation();
 
-    @EventHandler
-    public void onTakeBook(PlayerTakeLecternBookEvent event) {
-        if (LECTERNS.contains(blockKey(event.getLectern().getLocation()))) {
-            event.setCancelled(true);
-        }
-    }
+        double distance = Math.hypot(centerX - spawn.getBlockX(), centerZ - spawn.getBlockZ());
 
-    @EventHandler
-    public void onInventoryOpen(InventoryOpenEvent event) {
-        Location at = event.getInventory().getLocation();
-
-        if (at == null || at.getWorld() == null) {
+        if (distance < Main.balance.getInt("altars.min-distance-from-spawn", 150)) {
             return;
         }
 
-        String key = blockKey(at);
+        int minBetween = Math.max(0, Main.balance.getInt("altars.min-distance-between", 128));
 
-        if (!CHESTS.contains(key)) {
-            return;
-        }
+        if (minBetween > 0) {
+            for (Altar altar : ALTARS.values()) {
+                if (!altar.world().equals(world.getName())) {
+                    continue;
+                }
 
-        for (Altar altar : ALTARS.values()) {
-            if (altar.looted() || !altar.chests().contains(key)) {
-                continue;
-            }
-
-            StructureTheme theme = StructureTheme.byName(altar.theme());
-
-            if (theme != null) {
-                Block block = at.getBlock();
-
-                if (block.getState() instanceof Chest chest && chest.getSnapshotInventory().isEmpty()) {
-                    fillChest(at, theme, altar.seed());
+                if (Math.hypot(altar.x() - centerX, altar.z() - centerZ) < minBetween) {
+                    return;
                 }
             }
-
-            ALTARS.put(altar.id(), new Altar(altar.id(), altar.world(), altar.x(), altar.y(), altar.z(),
-                    altar.theme(), altar.placement(), altar.seed(), true, altar.blocks(), altar.chests(),
-                    altar.texts(), altar.interaction(), altar.lectern()));
-
-            save();
-
-            return;
         }
-    }
 
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) {
+        AltarPlacement.Site site = AltarPlacement.find(world, centerX, centerZ, hash, Main.balance);
+
+        if (site == null) {
             return;
         }
 
-        if (event.getClickedBlock() == null) {
-            return;
-        }
+        StructureTheme theme = StructureTheme.values()[(int) Long.remainderUnsigned(hash >>> 8, 5)];
 
-        String key = blockKey(event.getClickedBlock().getLocation());
-
-        if (LECTERNS.contains(key)) {
-            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    com.nightmare.lang.LangService.msg("structures.lectern_msg",
-                            "&7Nightmare Origin &8- &fuse &6/nightmare story &fto read the full tale.")));
-        }
+        build(world, site, theme, hash);
     }
 
     public static boolean remove(String id) {
@@ -926,5 +411,549 @@ public final class StructureService implements Listener {
         save();
 
         return true;
+    }
+
+    public static void load(Plugin owner) {
+        plugin = owner;
+
+        plugin.saveResource("structures.yml", false);
+
+        File structuresFile = new File(plugin.getDataFolder(), "structures.yml");
+
+        if (!structuresFile.exists()) {
+            return;
+        }
+
+        if (!ALTARS.isEmpty()) {
+            save();
+        }
+
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(structuresFile);
+
+        ALTARS.clear();
+        CHESTS.clear();
+        LECTERNS.clear();
+
+        for (Map<?, ?> raw : yml.getMapList("structures")) {
+            String id = String.valueOf(raw.get("id"));
+            String world = String.valueOf(raw.get("world"));
+            
+            int x = parseNumber(raw.get("x"));
+            int y = parseNumber(raw.get("y"));
+            int z = parseNumber(raw.get("z"));
+            
+            String theme = String.valueOf(raw.get("theme"));
+            String placement = raw.get("placement") == null ? "SURFACE" : String.valueOf(raw.get("placement"));
+            
+            long seed = raw.get("seed") instanceof Number seedNumber ? seedNumber.longValue() : 0L;
+            boolean looted = Boolean.TRUE.equals(raw.get("looted"));
+            
+            List<String> blocks = parseStringsCollection(raw.get("blocks"));
+            List<String> chests = parseStringsCollection(raw.get("chests"));
+            List<String> texts = parseStringsCollection(raw.get("texts"));
+            
+            String interaction = raw.get("interaction") == null ? null : String.valueOf(raw.get("interaction"));
+            String lectern = raw.get("lectern") == null ? null : String.valueOf(raw.get("lectern"));
+
+            Altar altar = new Altar(id, world, x, y, z, theme, placement, seed, looted, blocks, chests, texts, interaction, lectern);
+            
+            ALTARS.put(altar.id(), altar);
+            CHESTS.addAll(altar.chests());
+
+            if (raw.get("lectern") != null) {
+                LECTERNS.add(String.valueOf(raw.get("lectern")));
+            }
+        }
+    }
+
+    public static void start(Plugin owner) {
+        Bukkit.getScheduler().runTaskTimer(owner, () -> {
+            for (Altar altar : ALTARS.values()) {
+                World world = Bukkit.getWorld(altar.world());
+
+                if (world == null || !world.isChunkLoaded(altar.x() >> 4, altar.z() >> 4)) {
+                    continue;
+                }
+
+                StructureTheme theme = StructureTheme.byName(altar.theme());
+
+                if (theme == null) {
+                    continue;
+                }
+
+                world.spawnParticle(theme.ambience, altar.x() + 0.5, altar.y() + 2.5, altar.z() + 0.5,
+                        3, 1.5, 1.0, 1.5, 0.01);
+            }
+        }, 40L, 40L);
+
+        Bukkit.getScheduler().runTaskTimer(owner, () -> {
+            for (int i = 0; i < 1; i++) {
+                String[] entry = BUILD_QUEUE.poll();
+
+                if (entry == null) {
+                    return;
+                }
+
+                try {
+                    processQueuedChunk(entry);
+                } catch (Exception exception) {
+                    owner.getLogger().warning("Could not build altar: " + exception.getMessage());
+                }
+            }
+        }, 1L, 1L);
+    }
+
+    private static Location interactionAnchor(World world, StructureDesigns.BuildResult result, int baseX, int baseY,
+            int baseZ) {
+        Set<String> occupied = new HashSet<>();
+
+        for (StructureDesigns.Placed placed : result.blocks()) {
+            occupied.add(placed.x() + "," + placed.y() + "," + placed.z());
+        }
+
+        for (int radius = 2; radius <= 4; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
+
+                    int x = baseX + dx;
+                    int z = baseZ + dz;
+
+                    String key = x + "," + (baseY + 1) + "," + z;
+
+                    if (occupied.contains(key)) {
+                        continue;
+                    }
+
+                    Material floor = world.getBlockAt(x, baseY, z).getType();
+                    Material feet = world.getBlockAt(x, baseY + 1, z).getType();
+                    Material head = world.getBlockAt(x, baseY + 2, z).getType();
+
+                    if (floor.isSolid() && !feet.isSolid() && !head.isSolid()) {
+                        return new Location(world, x + 0.5D, baseY + 1.0D, z + 0.5D);
+                    }
+                }
+            }
+        }
+
+        return new Location(world, baseX + 0.5D, baseY + 1.0D, baseZ + 0.5D);
+    }
+
+    public static void save() {
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for (Altar altar : ALTARS.values()) {
+            Map<String, Object> raw = new HashMap<>();
+
+            raw.put("id", altar.id());
+            raw.put("world", altar.world());
+            raw.put("x", altar.x());
+            raw.put("y", altar.y());
+            raw.put("z", altar.z());
+            raw.put("theme", altar.theme());
+            raw.put("placement", altar.placement());
+            raw.put("seed", altar.seed());
+            raw.put("looted", altar.looted());
+            raw.put("blocks", List.copyOf(altar.blocks()));
+            raw.put("chests", List.copyOf(altar.chests()));
+            raw.put("texts", List.copyOf(altar.texts()));
+            raw.put("interaction", altar.interaction());
+            raw.put("lectern", altar.lectern());
+            list.add(raw);
+        }
+
+        YamlConfiguration yml = new YamlConfiguration();
+
+        yml.set("structures", list);
+
+        try {
+            yml.save(new File(plugin.getDataFolder(), "structures.yml"));
+        } catch (Exception exception) {
+            plugin.getLogger().warning("Could not save structures.yml: " + exception.getMessage());
+        }
+    }
+
+    public static ItemStack loreBook(StoryService.Chapter chapter) {
+        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta meta = (BookMeta) book.getItemMeta();
+
+        if (meta == null) {
+            return book;
+        }
+
+        meta.setTitle(LangService.msg("structures.book_title", "Nightmare Origin"));
+        meta.setAuthor(LangService.msg("structures.book_author", "The Three Gods"));
+
+        StringBuilder page = new StringBuilder(ChatColor.stripColor(chapter.title())).append("\n\n");
+        List<String> pages = new ArrayList<>();
+
+        for (String line : chapter.lines()) {
+            String clean = ChatColor.stripColor(line);
+
+            if (page.length() + clean.length() > 200) {
+                pages.add(page.toString());
+                page = new StringBuilder();
+            }
+
+            page.append(clean).append("\n");
+        }
+
+        if (!page.isEmpty()) {
+            pages.add(page.toString());
+        }
+
+        if (!pages.isEmpty()) {
+            meta.setPages(pages.subList(0, Math.min(pages.size(), 40)));
+        }
+
+        book.setItemMeta(meta);
+
+        return book;
+    }
+
+    private static ItemStack parseLoot(String entry, Random random) {
+        if (entry == null) {
+            return null;
+        }
+
+        String[] parts = entry.split(":");
+
+        if (parts.length < 2) {
+            return null;
+        }
+
+        Material material = Material.matchMaterial(parts[0]);
+
+        if (material == null) {
+            return null;
+        }
+
+        int min = 1;
+        int max = 1;
+
+        String[] range = parts[1].split("-");
+
+        try {
+            min = Integer.parseInt(range[0]);
+            max = range.length > 1 ? Integer.parseInt(range[1]) : min;
+        } catch (NumberFormatException ignored) {
+        }
+
+        int amount = min + (max > min ? random.nextInt(max - min + 1) : 0);
+
+        try {
+            return new ItemStack(material, Math.max(1, amount));
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
+    }
+
+    @EventHandler
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        Location at = event.getInventory().getLocation();
+
+        if (at == null || at.getWorld() == null) {
+            return;
+        }
+
+        String key = blockKey(at);
+
+        if (!CHESTS.contains(key)) {
+            return;
+        }
+
+        for (Altar altar : ALTARS.values()) {
+            if (altar.looted() || !altar.chests().contains(key)) {
+                continue;
+            }
+
+            StructureTheme theme = StructureTheme.byName(altar.theme());
+
+            if (theme != null) {
+                Block block = at.getBlock();
+
+                if (block.getState() instanceof Chest chest && chest.getSnapshotInventory().isEmpty()) {
+                    fillChest(at, theme, altar.seed());
+                }
+            }
+
+            ALTARS.put(altar.id(), new Altar(altar.id(), altar.world(), altar.x(), altar.y(), altar.z(),
+                    altar.theme(), altar.placement(), altar.seed(), true, altar.blocks(), altar.chests(),
+                    altar.texts(), altar.interaction(), altar.lectern()));
+
+            save();
+
+            return;
+        }
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        World world = event.getWorld();
+
+        if (plugin == null || world.getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+
+        if (Main.balance.getBoolean("altars.only-new-chunks", false) && !event.isNewChunk()) {
+            return;
+        }
+
+        int chunkX = event.getChunk().getX();
+        int chunkZ = event.getChunk().getZ();
+        String key = world.getName() + ":" + chunkX + "," + chunkZ;
+
+        if (ATTEMPTED.contains(key) || hasAltarInChunk(world.getName(), chunkX, chunkZ)) {
+            return;
+        }
+
+        long hash = hash(world.getSeed(), chunkX, chunkZ);
+        int denominator = Math.max(1, Main.balance.getInt("altars.chance-denominator", 40));
+
+        if (Long.remainderUnsigned(hash, denominator) != 0) {
+            return;
+        }
+
+        ATTEMPTED.add(key);
+
+        BUILD_QUEUE.add(new String[] {
+                world.getName(), String.valueOf(chunkX), String.valueOf(chunkZ), String.valueOf(hash)});
+    }
+
+    private static ItemStack rollThemeBook(StructureTheme theme, Random random) {
+        List<String> pool = new ArrayList<>(THEME_BOOKS.getOrDefault(theme, List.of()));
+
+        java.util.Collections.shuffle(pool, random);
+
+        long day = 0;
+
+        try {
+            day = Bukkit.getWorlds().get(0).getFullTime() / 24000L;
+        } catch (Exception ignored) {
+        }
+
+        for (String id : pool) {
+            if (!EnchantRegistry.ENCHANTS.containsKey(id)) {
+                continue;
+            }
+
+            int cap = Math.min(EnchantRegistry.ENCHANTS.get(id).maxLevel,
+                    EnchantBookService.maxLevelForDay(id, day));
+
+            cap = Math.min(cap, Main.balance.getInt("altars.book-max-level", 2));
+
+            if (cap < 1) {
+                continue;
+            }
+
+            return EnchantBookService.createBook(id, 1 + random.nextInt(cap));
+        }
+
+        return null;
+    }
+
+    @EventHandler
+    public void onInteractEntity(PlayerInteractEntityEvent event) {
+        if (!(event.getRightClicked() instanceof Interaction interaction)) {
+            return;
+        }
+
+        String id = interaction.getPersistentDataContainer().get(
+                new NamespacedKey(Main.getInstance(), "structure"), PersistentDataType.STRING);
+
+        if (id == null || !ALTARS.containsKey(id)) {
+            return;
+        }
+
+        Altar altar = ALTARS.get(id);
+
+        StructureTheme theme = StructureTheme.byName(altar.theme());
+
+        if (theme == null) {
+            return;
+        }
+
+        event.setCancelled(true);
+        
+        StoryService.open(event.getPlayer(), theme.storyChapter);
+    }
+
+    private static boolean addAtRandomSlot(Inventory inventory, ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+
+        int size = inventory.getSize();
+        Random random = ThreadLocalRandom.current();
+
+        for (int attempt = 0; attempt < size * 2; attempt++) {
+            int slot = random.nextInt(size);
+            ItemStack existing = inventory.getItem(slot);
+
+            if (existing == null || existing.getType().isAir()) {
+                inventory.setItem(slot, item);
+                return true;
+            }
+        }
+
+        return inventory.addItem(item).isEmpty();
+    }
+
+    public static Altar buildAt(Player player, StructureTheme theme) {
+        Block ground = player.getLocation().getBlock();
+
+        while (ground.getY() > player.getWorld().getMinHeight() && !ground.getType().isSolid()) {
+            ground = ground.getRelative(0, -1, 0);
+        }
+
+        World world = player.getWorld();
+        
+        int baseY = ground.getY();
+        int headroom = headroom(world, ground.getX(), baseY, ground.getZ());
+        boolean cave = baseY + 6 < world.getHighestBlockYAt(ground.getX(), ground.getZ());
+
+        AltarPlacement.Site site = new AltarPlacement.Site(ground.getX(), ground.getZ(), baseY,
+                cave ? AltarPlacement.Kind.CAVE : AltarPlacement.Kind.SURFACE,
+                cave ? Math.max(5, headroom) : Math.max(0, world.getMaxHeight() - baseY));
+
+        return build(world, site, theme, ThreadLocalRandom.current().nextLong());
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+
+        if (event.getClickedBlock() == null) {
+            return;
+        }
+
+        String key = blockKey(event.getClickedBlock().getLocation());
+
+        if (LECTERNS.contains(key)) {
+            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    LangService.msg("structures.lectern_msg",
+                            "&7Nightmare Origin &8- &fuse &6/nightmare story &fto read the full tale.")));
+        }
+    }
+
+    private static String spawnText(World world, Location location, String text, int width, boolean title) {
+        TextDisplay display = world.spawn(location, TextDisplay.class, entity -> {
+            entity.setText(ChatColor.translateAlternateColorCodes('&', text));
+            entity.setBillboard(Display.Billboard.CENTER);
+            entity.setLineWidth(width);
+            entity.setSeeThrough(false);
+            entity.setBackgroundColor(Color.fromARGB(title ? 160 : 110, 10, 10, 18));
+            entity.setAlignment(TextDisplay.TextAlignment.CENTER);
+        });
+
+        return display.getUniqueId().toString();
+    }
+
+    private static Material materialOf(String entry) {
+        if (entry == null) {
+            return null;
+        }
+
+        String[] parts = entry.split(":");
+
+        if (parts.length < 2) {
+            return null;
+        }
+
+        return Material.matchMaterial(parts[0]);
+    }
+
+    private static int parseNumber(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException exception) {
+            return 0;
+        }
+    }
+
+
+    private static List<String> parseStringsCollection(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return List.of();
+        }
+
+        List<String> result = new ArrayList<>();
+
+        for (Object entry : list) {
+            result.add(String.valueOf(entry));
+        }
+
+        return result;
+    }
+
+    private static int headroom(World world, int x, int y, int z) {
+        int max = world.getMaxHeight();
+
+        for (int check = y + 1; check < max; check++) {
+            if (world.getBlockAt(x, check, z).getType().isSolid()) {
+                return check - y;
+            }
+        }
+
+        return Math.max(0, max - y);
+    }
+
+    private static boolean hasAltarInChunk(String worldName, int chunkX, int chunkZ) {
+        for (Altar altar : ALTARS.values()) {
+            if (altar.world().equals(worldName) && (altar.x() >> 4) == chunkX && (altar.z() >> 4) == chunkZ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static long hash(long seed, int chunkX, int chunkZ) {
+        long hash = seed * 31 + chunkX;
+        hash = hash * 31 + chunkZ;
+        hash ^= hash >>> 33;
+        hash *= 0xff51afd7ed558ccdL;
+        hash ^= hash >>> 33;
+
+        return hash;
+    }
+
+    private static void fillLectern(Location location, StoryService.Chapter chapter) {
+        Block block = location.getBlock();
+
+        if (!(block.getState() instanceof Lectern lectern)) {
+            return;
+        }
+
+        lectern.getSnapshotInventory().addItem(loreBook(chapter));
+        lectern.update();
+    }
+
+    @EventHandler
+    public void onTakeBook(PlayerTakeLecternBookEvent event) {
+        if (LECTERNS.contains(blockKey(event.getLectern().getLocation()))) {
+            event.setCancelled(true);
+        }
+    }
+
+    private static String blockKey(Location location) {
+        return location.getWorld().getName() + ":" + location.getBlockX() + ","
+                + location.getBlockY() + "," + location.getBlockZ();
+    }
+
+    public static List<Altar> list() {
+        return new ArrayList<>(ALTARS.values());
+    }
+
+    public static Altar get(String id) {
+        return ALTARS.get(id);
     }
 }

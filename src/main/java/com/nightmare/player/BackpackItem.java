@@ -19,37 +19,6 @@ public final class BackpackItem {
     private BackpackItem() {
     }
 
-    public static ItemStack create(Player owner) {
-        ItemStack item = new ItemStack(Material.CHEST);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta == null) {
-            return item;
-        }
-
-        meta.setItemName(color(LangService.msg("backpack.name", "&6Backpack")));
-        meta.setLore(lore());
-        meta.setMaxStackSize(1);
-        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
-        meta.getPersistentDataContainer().set(PlayerItemKeys.BACKPACK, PersistentDataType.BYTE, (byte) 1);
-        meta.getPersistentDataContainer().set(PlayerItemKeys.BACKPACK_OWNER, PersistentDataType.STRING,
-                owner.getUniqueId().toString());
-        item.setItemMeta(meta);
-
-        return item;
-    }
-
-    public static boolean is(ItemStack item) {
-        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
-            return false;
-        }
-
-        ItemMeta meta = item.getItemMeta();
-
-        return meta != null && meta.getPersistentDataContainer().has(PlayerItemKeys.BACKPACK,
-                PersistentDataType.BYTE);
-    }
-
     public static UUID owner(ItemStack item) {
         if (!is(item)) {
             return null;
@@ -75,10 +44,24 @@ public final class BackpackItem {
         }
     }
 
-    public static boolean isOwnedBy(ItemStack item, Player player) {
-        UUID owner = owner(item);
+    public static ItemStack create(Player owner) {
+        ItemStack item = new ItemStack(Material.CHEST);
+        ItemMeta meta = item.getItemMeta();
 
-        return owner != null && owner.equals(player.getUniqueId());
+        if (meta == null) {
+            return item;
+        }
+
+        meta.setItemName(color(LangService.msg("backpack.name", "&6Backpack")));
+        meta.setLore(lore());
+        meta.setMaxStackSize(1);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
+        meta.getPersistentDataContainer().set(PlayerItemKeys.BACKPACK, PersistentDataType.BYTE, (byte) 1);
+        meta.getPersistentDataContainer().set(PlayerItemKeys.BACKPACK_OWNER, PersistentDataType.STRING,
+                owner.getUniqueId().toString());
+        item.setItemMeta(meta);
+
+        return item;
     }
 
     private static List<String> lore() {
@@ -94,6 +77,17 @@ public final class BackpackItem {
         return colored(raw);
     }
 
+    public static boolean is(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return false;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+
+        return meta != null && meta.getPersistentDataContainer().has(PlayerItemKeys.BACKPACK,
+                PersistentDataType.BYTE);
+    }
+
     private static List<String> colored(List<String> lines) {
         List<String> result = new ArrayList<>();
 
@@ -102,6 +96,12 @@ public final class BackpackItem {
         }
 
         return result;
+    }
+
+    public static boolean isOwnedBy(ItemStack item, Player player) {
+        UUID owner = owner(item);
+
+        return owner != null && owner.equals(player.getUniqueId());
     }
 
     private static String color(String text) {

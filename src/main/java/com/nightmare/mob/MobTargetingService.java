@@ -12,21 +12,6 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 
 public final class MobTargetingService implements Listener {
 
-    public static boolean isTargetable(Player player) {
-        return isTargetable(player.getGameMode());
-    }
-
-    public static boolean isTargetable(GameMode gameMode) {
-        return gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE;
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onTarget(EntityTargetLivingEntityEvent event) {
-        if (event.getTarget() instanceof Player player && !isTargetable(player)) {
-            event.setCancelled(true);
-        }
-    }
-
     @EventHandler
     public void onGameModeChange(PlayerGameModeChangeEvent event) {
         if (isTargetable(event.getNewGameMode())) {
@@ -41,6 +26,21 @@ public final class MobTargetingService implements Listener {
                 mob.setTarget(null);
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onTarget(EntityTargetLivingEntityEvent event) {
+        if (event.getTarget() instanceof Player player && !isTargetable(player)) {
+            event.setCancelled(true);
+        }
+    }
+
+    public static boolean isTargetable(Player player) {
+        return isTargetable(player.getGameMode());
+    }
+
+    public static boolean isTargetable(GameMode gameMode) {
+        return gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE;
     }
 
 }

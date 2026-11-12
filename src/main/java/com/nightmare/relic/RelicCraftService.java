@@ -50,6 +50,7 @@ public final class RelicCraftService implements Listener {
             if (item.getItemMeta() == null || !Boolean.TRUE.equals(item.getItemMeta().getPersistentDataContainer()
                     .get(ItemKeys.ABYSSAL_CORE, PersistentDataType.BOOLEAN))) {
                 event.getInventory().setResult(null);
+                
                 return;
             }
         }
@@ -63,18 +64,18 @@ public final class RelicCraftService implements Listener {
 
         if (AbyssalTendrilsItem.isTendrils(event.getCurrentItem())) {
             Main.getInstance().getServer().getScheduler().runTask(Main.getInstance(),
-                    () -> {
-                        if (player.isOnline()) {
-                            AbyssalTendrilsService.ensureBound(player);
-                        }
-                    });
+                () -> {
+                    if (player.isOnline()) {
+                        AbyssalTendrilsService.ensureBound(player);
+                    }
+                });
         } else if (SoulHeartItem.isSoulHeart(event.getCurrentItem())) {
             Main.getInstance().getServer().getScheduler().runTask(Main.getInstance(),
-                    () -> {
-                        if (player.isOnline()) {
-                            SoulHeartService.ensureBound(player);
-                        }
-                    });
+                () -> {
+                    if (player.isOnline()) {
+                        SoulHeartService.ensureBound(player);
+                    }
+                });
         }
     }
 

@@ -25,11 +25,15 @@ public final class NightmarePackService implements Listener {
     private NightmarePackService() {
     }
 
-    public static NightmarePackService register(Plugin plugin) {
-        NightmarePackService service = new NightmarePackService();
-        init(plugin);
-        plugin.getServer().getPluginManager().registerEvents(service, plugin);
-        return service;
+    @EventHandler
+    public void onStatus(PlayerResourcePackStatusEvent event) {
+        switch (event.getStatus()) {
+            case SUCCESSFULLY_LOADED -> Bukkit.getLogger().info("NightmareCoreTexturePack applied.");
+            case DECLINED -> Bukkit.getLogger().warning("NightmareCoreTexturePack declined.");
+            case FAILED_DOWNLOAD -> Bukkit.getLogger().warning("NightmareCoreTexturePack download failed.");
+            default -> {
+            }
+        }
     }
 
     private static void init(Plugin plugin) {
@@ -42,6 +46,13 @@ public final class NightmarePackService implements Listener {
         plugin.getLogger().info("NightmareCoreTexturePack URL: " + packUrl);
     }
 
+    public static NightmarePackService register(Plugin plugin) {
+        NightmarePackService service = new NightmarePackService();
+        init(plugin);
+        plugin.getServer().getPluginManager().registerEvents(service, plugin);
+        return service;
+    }
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         if (packUrl == null) {
@@ -51,18 +62,7 @@ public final class NightmarePackService implements Listener {
         event.getPlayer().setResourcePack(UUID.randomUUID(), packUrl, null, PACK_PROMPT, PACK_FORCE);
     }
 
-    @EventHandler
-    public void onStatus(PlayerResourcePackStatusEvent event) {
-        switch (event.getStatus()) {
-            case SUCCESSFULLY_LOADED -> Bukkit.getLogger().info("NightmareCoreTexturePack applied.");
-            case DECLINED -> Bukkit.getLogger().warning("NightmareCoreTexturePack declined.");
-            case FAILED_DOWNLOAD -> Bukkit.getLogger().warning("NightmareCoreTexturePack download failed.");
-            default -> {
-            }
-        }
-    }
-
-    public static void dispose() {
+    public static void shutdown() {
         packUrl = null;
     }
 

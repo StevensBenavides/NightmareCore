@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.nightmare.FastBoard.FastBoard;
+import com.nightmare.lang.LangService;
+import com.nightmare.player.StarterKitService;
 
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -53,7 +55,7 @@ public final class Events implements Listener {
 
         try {
 
-            com.nightmare.player.StarterKitService.give(event.getPlayer());
+            StarterKitService.give(event.getPlayer());
 
             if (config.getBoolean("scoreboard.enable")) {
 
@@ -141,12 +143,12 @@ public final class Events implements Listener {
                 event.getPlayer().setScoreboard(score);
                 event.getPlayer().damage(0.001F);
 
-            } 
+            }
 
             {
                 Player player = event.getPlayer();
                 UUID playerUUID = player.getUniqueId();
-    
+
                 TimeManagement.addPlayerTimeIfAbsent(playerUUID);
 
                 TimeManagement.getSpecificPlayerTime(playerUUID).ifPresent(playerTime -> {
@@ -176,58 +178,105 @@ public final class Events implements Listener {
             new GuideEntry("/nightmare help", "guide.help", "Open the main guide menu.", null),
             new GuideEntry("/nightmare story", "guide.story", "Open the nightmare story.", null));
 
-    private static void sendJoinGuide(Player player) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                com.nightmare.lang.LangService.msg("guide.header",
-                        "&6&lNightmare Guide &7| &fUseful commands:")));
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerDeathEvent(PlayerDeathEvent event) {
 
-        for (GuideEntry entry : JOIN_GUIDE) {
-            if (entry.permission() != null && !player.hasPermission(entry.permission())) {
-                continue;
+        Player player = event.getEntity();
+
+        player.setMetadata("thristy", new FixedMetadataValue(plugin, false));
+
+        {
+            UUID uuid = player.getUniqueId();
+            Optional<PlayerTime> currentPlayerTime = TimeManagement.getSpecificPlayerTime(uuid);
+
+            if (currentPlayerTime.isPresent()) {
+                PlayerTime playerTime = currentPlayerTime.get();
+                playerTime.resetThirstyMinutes();
             }
-
-            String description = com.nightmare.lang.LangService.msg(entry.descriptionKey(), entry.fallback());
-            String line = "&f" + entry.command() + " &7- " + description;
-
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    PlaceholderAPI.setPlaceholders(player, line)));
         }
+
+        {
+
+            try {
+
+                if (player.getGameMode() == GameMode.SURVIVAL) {
+                    final YamlConfiguration config = Main.getSettings();
+                    final boolean isDeathMessageEnabled = config.getBoolean("message_death.enable");
+
+                    if (isDeathMessageEnabled) {
+                        String baseTitle = config.getString("message_death.title", "")
+                                .replace("%player_killed%", player.getName());
+                        String baseSubtitle = config.getString("message_death.subtitle", "")
+                                .replace("%player_killed%", player.getName());
+
+                        for (Player outSidePlayer : player.getServer().getOnlinePlayers()) {
+                            if (outSidePlayer == null) {
+                                continue;
+                            }
+
+                            String titleMessage = ChatColor.translateAlternateColorCodes('&',
+                                    PlaceholderAPI.setPlaceholders(outSidePlayer, baseTitle));
+                            String subtitleMessage = ChatColor.translateAlternateColorCodes('&',
+                                    PlaceholderAPI.setPlaceholders(outSidePlayer, baseSubtitle));
+
+                            outSidePlayer.sendTitle(titleMessage, subtitleMessage, 10, 40, 10);
+
+                            outSidePlayer.playSound(
+                                outSidePlayer.getLocation(),
+                                Sound.ITEM_TRIDENT_RETURN,
+                                0.9f,
+                                1.0f
+                            );
+
+                            outSidePlayer.playSound(
+                                outSidePlayer.getLocation(),
+                                Sound.ITEM_TOTEM_USE,
+                                0.8f,
+                                1.0f
+                            );
+
+                        }
+
+                    }
+
+                    final String worldName = player.getWorld().getName();
+                    final Optional<WorldTime> worldTimeOpt = TimeManagement.getSpecificWorldTime(worldName);
+
+                    if (worldTimeOpt.isPresent()) {
+                        WorldTime worldTime = worldTimeOpt.get();
+                        long day = worldTime.getDay();
+                        int minutes;
+
+                        if (day < 27) {
+                            minutes = Main.balance.getInt("death-ban.days-0-26", 5);
+                        } else if (day < 54) {
+                            minutes = Main.balance.getInt("death-ban.days-27-53", 10);
+                        } else if (day < 81) {
+                            minutes = Main.balance.getInt("death-ban.days-54-80", 15);
+                        } else {
+                            minutes = Main.balance.getInt("death-ban.days-81-100", 20);
+                        }
+
+                        Date expirationDate = new Date(System.currentTimeMillis() + minutes * 60L * 1000L);
+
+                        if (!player.hasPermission("nightmare.bypass.deathban")) {
+                            player.ban(ChatColor.translateAlternateColorCodes('&',
+                                    LangService.msg("death.ban_reason",
+                                            "You fall into the nightmare.")),
+                                    expirationDate, "NightmareCore", true);
+                        }
+                    }
+                                    }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
+            }
+
+        }
+
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onLeave(PlayerQuitEvent event) {
-
-        try {
-
-            final YamlConfiguration config = Main.getSettings();
-
-            if (config.getBoolean("scoreboard.enable")) {
-                com.nightmare.FastBoard.FastBoard board =
-                        NightmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
-
-                if (board != null) {
-                    board.delete();
-                }
-            }
-            
-            if (config.getBoolean("join_and_leave.enable")) {
-
-                String message = config.getString("prefix", "")
-                        + config.getString("join_and_leave.leave", "");
-
-                message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
-
-                event.setQuitMessage(ChatColor.translateAlternateColorCodes('&', message));
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
-        }    
-
-    }
-    
     @EventHandler(priority = EventPriority.LOWEST)
     public void onItemConsumeEvent(PlayerItemConsumeEvent event) {
 
@@ -266,7 +315,7 @@ public final class Events implements Listener {
                     }
 
                 }
-                
+
 
             }
 
@@ -279,9 +328,9 @@ public final class Events implements Listener {
                 if (item.getType() == Material.POTION || item.getType() == Material.GLASS_BOTTLE) {
 
                     if (item.getItemMeta() instanceof PotionMeta meta) {
-    
+
                     if (meta.getBasePotionType() == PotionType.WATER) {
-    
+
                         if (player.hasMetadata("thristy")) {
 
                             boolean isThristy = false;
@@ -292,33 +341,67 @@ public final class Events implements Listener {
                                     break;
                                 }
                             }
-            
+
                             if (isThristy) {
                                 UUID uuid = player.getUniqueId();
-            
+
                                 Optional<PlayerTime> currentPlayerTime = TimeManagement.getSpecificPlayerTime(uuid);
-            
+
                                 if (currentPlayerTime.isPresent()) {
                                     PlayerTime playerTime = currentPlayerTime.get();
                                     playerTime.resetThirstyMinutes();
-                               
+
                                     player.removePotionEffect(PotionEffectType.BLINDNESS);
                                     player.removePotionEffect(PotionEffectType.SLOWNESS);
 
-                                    player.setMetadata("thristy", new FixedMetadataValue(plugin, false));   
+                                    player.setMetadata("thristy", new FixedMetadataValue(plugin, false));
                                 }
-                                
+
                             }
                         }
-            
+
                     }
-                    
+
                     }
 
                 }
 
             }
 
+        }
+
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onLeave(PlayerQuitEvent event) {
+
+        try {
+
+            final YamlConfiguration config = Main.getSettings();
+
+            if (config.getBoolean("scoreboard.enable")) {
+                FastBoard board =
+                        NightmareScoreboard.boards.remove(event.getPlayer().getUniqueId());
+
+                if (board != null) {
+                    board.delete();
+                }
+            }
+
+            if (config.getBoolean("join_and_leave.enable")) {
+
+                String message = config.getString("prefix", "")
+                        + config.getString("join_and_leave.leave", "");
+
+                message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
+
+                event.setQuitMessage(ChatColor.translateAlternateColorCodes('&', message));
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
         }
 
     }
@@ -346,106 +429,25 @@ public final class Events implements Listener {
             e.printStackTrace();
             plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
         }
-        
+
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerDeathEvent(PlayerDeathEvent event) {
+    private static void sendJoinGuide(Player player) {
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                LangService.msg("guide.header",
+                        "&6&lNightmare Guide &7| &fUseful commands:")));
 
-        Player player = event.getEntity();
-
-        player.setMetadata("thristy", new FixedMetadataValue(plugin, false));
-
-        {
-            UUID uuid = player.getUniqueId();
-            Optional<PlayerTime> currentPlayerTime = TimeManagement.getSpecificPlayerTime(uuid);
-
-            if (currentPlayerTime.isPresent()) {
-                PlayerTime playerTime = currentPlayerTime.get();
-                playerTime.resetThirstyMinutes();
+        for (GuideEntry entry : JOIN_GUIDE) {
+            if (entry.permission() != null && !player.hasPermission(entry.permission())) {
+                continue;
             }
+
+            String description = LangService.msg(entry.descriptionKey(), entry.fallback());
+            String line = "&f" + entry.command() + " &7- " + description;
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    PlaceholderAPI.setPlaceholders(player, line)));
         }
-
-        {
-
-            try {
-                
-                if (player.getGameMode() == GameMode.SURVIVAL) {
-                    final YamlConfiguration config = Main.getSettings();    
-                    final boolean isDeathMessageEnabled = config.getBoolean("message_death.enable");
-    
-                    if (isDeathMessageEnabled) {
-                        String baseTitle = config.getString("message_death.title", "")
-                                .replace("%player_killed%", player.getName());
-                        String baseSubtitle = config.getString("message_death.subtitle", "")
-                                .replace("%player_killed%", player.getName());
-
-                        for (Player outSidePlayer : player.getServer().getOnlinePlayers()) {
-                            if (outSidePlayer == null) {
-                                continue;
-                            }
-
-                            String titleMessage = ChatColor.translateAlternateColorCodes('&',
-                                    PlaceholderAPI.setPlaceholders(outSidePlayer, baseTitle));
-                            String subtitleMessage = ChatColor.translateAlternateColorCodes('&',
-                                    PlaceholderAPI.setPlaceholders(outSidePlayer, baseSubtitle));
-
-                            outSidePlayer.sendTitle(titleMessage, subtitleMessage, 10, 40, 10);
-    
-                            outSidePlayer.playSound(
-                                outSidePlayer.getLocation(), 
-                                Sound.ITEM_TRIDENT_RETURN, 
-                                0.9f,   
-                                1.0f   
-                            );
-    
-                            outSidePlayer.playSound(
-                                outSidePlayer.getLocation(), 
-                                Sound.ITEM_TOTEM_USE, 
-                                0.8f,   
-                                1.0f   
-                            );
-                        
-                        }
-    
-                    }
-
-                    final String worldName = player.getWorld().getName();
-                    final Optional<WorldTime> worldTimeOpt = TimeManagement.getSpecificWorldTime(worldName);
-
-                    if (worldTimeOpt.isPresent()) {
-                        WorldTime worldTime = worldTimeOpt.get();
-                        long day = worldTime.getDay();
-                        int minutes;
-
-                        if (day < 27) {
-                            minutes = Main.balance.getInt("death-ban.days-0-26", 5);
-                        } else if (day < 54) {
-                            minutes = Main.balance.getInt("death-ban.days-27-53", 10);
-                        } else if (day < 81) {
-                            minutes = Main.balance.getInt("death-ban.days-54-80", 15);
-                        } else {
-                            minutes = Main.balance.getInt("death-ban.days-81-100", 20);
-                        }
-
-                        Date expirationDate = new Date(System.currentTimeMillis() + minutes * 60L * 1000L);
-
-                        if (!player.hasPermission("nightmare.bypass.deathban")) {
-                            player.ban(ChatColor.translateAlternateColorCodes('&',
-                                    com.nightmare.lang.LangService.msg("death.ban_reason",
-                                            "You fall into the nightmare.")),
-                                    expirationDate, "NightmareCore", true);
-                        }
-                    }
-                                    }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Nightmare event error: " + e.getMessage());
-            }    
-            
-        }
-        
     }
 
 }

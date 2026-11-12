@@ -12,46 +12,31 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import com.nightmare.Main;
 
 public final class StructureDesigns {
+
+    private static final Set<Material> REPLACEABLE = EnumSet.of(
+        Material.AIR, Material.CAVE_AIR, Material.VOID_AIR,
+        Material.SHORT_GRASS, Material.TALL_GRASS, Material.FERN, Material.LARGE_FERN,
+        Material.SNOW, Material.VINE, Material.GLOW_LICHEN,
+        Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM,
+        Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP,
+        Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY,
+        Material.WITHER_ROSE, Material.BROWN_MUSHROOM, Material.RED_MUSHROOM,
+        Material.DEAD_BUSH, Material.SUGAR_CANE, Material.KELP, Material.SEAGRASS, Material.TALL_SEAGRASS);
 
     private StructureDesigns() {
     }
 
-    private static org.bukkit.configuration.file.YamlConfiguration balance() {
-        return com.nightmare.Main.balance == null
-                ? new org.bukkit.configuration.file.YamlConfiguration()
-                : com.nightmare.Main.balance;
-    }
-
-    public record Placed(String world, int x, int y, int z) {
-        String key() {
-            return world + ":" + x + "," + y + "," + z;
-        }
-    }
-
-    public record BuildResult(List<Placed> blocks, List<Location> chests, Location lectern, Location center) {
-    }
-
-    private static final Set<Material> REPLACEABLE = EnumSet.of(
-            Material.AIR, Material.CAVE_AIR, Material.VOID_AIR,
-            Material.SHORT_GRASS, Material.TALL_GRASS, Material.FERN, Material.LARGE_FERN,
-            Material.SNOW, Material.VINE, Material.GLOW_LICHEN,
-            Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM,
-            Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP,
-            Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY,
-            Material.WITHER_ROSE, Material.BROWN_MUSHROOM, Material.RED_MUSHROOM,
-            Material.DEAD_BUSH, Material.SUGAR_CANE, Material.KELP, Material.SEAGRASS, Material.TALL_SEAGRASS);
-
-    public interface Recorder {
-        void placed(Block block);
-    }
-
-    public static BuildResult build(ThemeLayout theme, World world, int baseX, int baseY, int baseZ, long seed,
-            int rotation, boolean cave, int headroom) {
+    public static BuildResult build(ThemeLayout theme, World world, int baseX, int baseY, int baseZ, long seed, int rotation, boolean cave, int headroom) {
         Random random = new Random(seed);
+
         List<Placed> placed = new ArrayList<>();
         List<Location> chests = new ArrayList<>();
+        
         Location[] lectern = new Location[1];
 
         int shape = (int) ((seed >>> 20) & 3);
@@ -180,9 +165,11 @@ public final class StructureDesigns {
                 for (int i = 1; i < steps; i++) {
                     int bx = a[0] + (b[0] - a[0]) * i / steps;
                     int bz = a[1] + (b[1] - a[1]) * i / steps;
+                    
                     if (random.nextDouble() < ruin) {
                         continue;
                     }
+
                     set(world, baseX + bx, baseY + beamY, baseZ + bz, theme.pillar().apply(random), placed);
                 }
 
@@ -203,6 +190,7 @@ public final class StructureDesigns {
                 if (random.nextDouble() < ruin) {
                     continue;
                 }
+                
                 int[] r = rotate(dx, dz, rotation);
 
                 set(world, baseX + r[0], baseY + 6, baseZ + r[1], theme.pillar().apply(random), placed);
@@ -224,6 +212,7 @@ public final class StructureDesigns {
             if (!extraMaterial.isBlock()) {
                 continue;
             }
+            
             Block extraBlock = world.getBlockAt(baseX + r[0], baseY + extra[2], baseZ + r[1]);
 
             if (canReplace(extraBlock)) {
@@ -236,6 +225,7 @@ public final class StructureDesigns {
 
         if (lecternCell != null) {
             int[] lecternRel = rotate(lecternCell[0], lecternCell[1], rotation);
+            
             Block lecternBlock = world.getBlockAt(baseX + lecternRel[0], baseY + 1, baseZ + lecternRel[1]);
 
             if (canReplace(lecternBlock)) {
@@ -297,6 +287,70 @@ public final class StructureDesigns {
         return new BuildResult(placed, chests, lectern[0], new Location(world, baseX + 0.5, baseY, baseZ + 0.5));
     }
 
+    public record Placed(String world, int x, int y, int z) {
+        String key() {
+            return world + ":" + x + "," + y + "," + z;
+        }
+    }
+
+    public record BuildResult(List<Placed> blocks, List<Location> chests, Location lectern, Location center) {
+    }
+
+
+    public interface Recorder {
+        void placed(Block block);
+    }
+
+    public static ThemeLayout layout(StructureTheme theme) {
+        return switch (theme) {
+            case FORGE -> new ThemeLayout(0.30f, 0.95f,
+                    (random, dist) -> pick(random, Material.STONE_BRICKS, Material.STONE_BRICKS,
+                            Material.CRACKED_STONE_BRICKS, Material.MOSSY_STONE_BRICKS, Material.COPPER_BLOCK),
+                    random -> pick(random, Material.STONE_BRICKS, Material.COBBLESTONE),
+                    Material.ANVIL,
+                    Material.FURNACE,
+                    List.of(new int[] { -3, -3, 0, Material.FURNACE.ordinal() },
+                            new int[] { 3, 3, 0, Material.MAGMA_BLOCK.ordinal() }));
+            case SOUL -> new ThemeLayout(0.15f, 1.0f,
+                    (random, dist) -> pick(random, Material.QUARTZ_BLOCK, Material.QUARTZ_BLOCK,
+                            Material.SMOOTH_QUARTZ, Material.WHITE_WOOL),
+                    random -> Material.QUARTZ_PILLAR,
+                    Material.QUARTZ_BLOCK,
+                    Material.SOUL_LANTERN,
+
+                    List.of(new int[] { -3, 0, 1, Material.SOUL_LANTERN.ordinal() },
+                            new int[] { 3, 0, 1, Material.SOUL_LANTERN.ordinal() }));
+            case ABYSS -> new ThemeLayout(0.25f, 0.95f,
+                    (random, dist) -> pick(random, Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES,
+                            Material.CRACKED_DEEPSLATE_BRICKS, Material.SCULK),
+                    random -> pick(random, Material.OBSIDIAN, Material.CRYING_OBSIDIAN),
+                    Material.DEEPSLATE_BRICKS,
+                    Material.OBSIDIAN,
+
+                    List.of(new int[] { 0, -3, 0, Material.WATER_CAULDRON.ordinal() }));
+            case NIGHTMARE -> new ThemeLayout(0.35f, 0.9f,
+                    (random, dist) -> pick(random, Material.BLACKSTONE, Material.POLISHED_BLACKSTONE,
+                            Material.CRACKED_POLISHED_BLACKSTONE_BRICKS, Material.NETHERRACK),
+                    random -> pick(random, Material.BLACKSTONE, Material.POLISHED_BLACKSTONE_BRICKS),
+                    Material.POLISHED_BLACKSTONE,
+                    Material.WITHER_SKELETON_SKULL,
+
+                    List.of(new int[] { -3, 2, 0, Material.NETHERRACK.ordinal() },
+                            new int[] { -3, 2, 1, Material.WITHER_ROSE.ordinal() },
+                            new int[] { 3, -2, 0, Material.NETHERRACK.ordinal() },
+                            new int[] { 3, -2, 1, Material.WITHER_ROSE.ordinal() }));
+            case RELICS -> new ThemeLayout(0.30f, 0.9f,
+                    (random, dist) -> pick(random, Material.OAK_PLANKS, Material.OAK_PLANKS,
+                            Material.BOOKSHELF, Material.CHISELED_BOOKSHELF),
+                    random -> pick(random, Material.BOOKSHELF, Material.OAK_LOG),
+                    Material.OAK_LOG,
+                    Material.CHISELED_BOOKSHELF,
+                    
+                    List.of(new int[] { -3, -3, 0, Material.CHISELED_BOOKSHELF.ordinal() },
+                            new int[] { 3, 3, 0, Material.ENCHANTING_TABLE.ordinal() }));
+        };
+    }
+
     private static int[] nearestCell(java.util.Set<String> footprint, int tx, int tz) {
         int[] best = null;
         int bestDist = Integer.MAX_VALUE;
@@ -317,24 +371,20 @@ public final class StructureDesigns {
         return best;
     }
 
-    private static int[] rotate(int dx, int dz, int rotation) {
-        return switch ((rotation & 3)) {
-            case 1 -> new int[] { -dz, dx };
-            case 2 -> new int[] { -dx, -dz };
-            case 3 -> new int[] { dz, -dx };
-            default -> new int[] { dx, dz };
-        };
-    }
-
-    private static BlockFace faceToward(int dx, int dz) {
-        if (Math.abs(dx) >= Math.abs(dz)) {
-            return dx > 0 ? BlockFace.WEST : BlockFace.EAST;
+    static int fitRoof(int requestedRoof, boolean cave, int headroom) {
+        if (!cave) {
+            return requestedRoof;
         }
-        return dz > 0 ? BlockFace.NORTH : BlockFace.SOUTH;
-    }
 
-    private static boolean canReplace(Block block) {
-        return REPLACEABLE.contains(block.getType());
+        if (headroom < 5) {
+            return 0;
+        }
+
+        if (headroom < 7 && requestedRoof == 3) {
+            return 2;
+        }
+
+        return requestedRoof;
     }
 
     private static void set(World world, int x, int y, int z, Material material, List<Placed> placed) {
@@ -351,6 +401,23 @@ public final class StructureDesigns {
         placed.add(new Placed(world.getName(), x, y, z));
     }
 
+    private static int[] rotate(int dx, int dz, int rotation) {
+        return switch ((rotation & 3)) {
+            case 1 -> new int[] { -dz, dx };
+            case 2 -> new int[] { -dx, -dz };
+            case 3 -> new int[] { dz, -dx };
+            default -> new int[] { dx, dz };
+        };
+    }
+
+    private static BlockFace faceToward(int dx, int dz) {
+        if (Math.abs(dx) >= Math.abs(dz)) {
+            return dx > 0 ? BlockFace.WEST : BlockFace.EAST;
+        }
+
+        return dz > 0 ? BlockFace.NORTH : BlockFace.SOUTH;
+    }
+
     public record ThemeLayout(float ruinChance, float floorKeep,
             java.util.function.BiFunction<Random, Integer, Material> floor,
             java.util.function.Function<Random, Material> pillar,
@@ -359,66 +426,14 @@ public final class StructureDesigns {
             List<int[]> extras) {
     }
 
-    public static ThemeLayout layout(StructureTheme theme) {
-        return switch (theme) {
-            case FORGE -> new ThemeLayout(0.30f, 0.95f,
-                    (random, dist) -> pick(random, Material.STONE_BRICKS, Material.STONE_BRICKS,
-                            Material.CRACKED_STONE_BRICKS, Material.MOSSY_STONE_BRICKS, Material.COPPER_BLOCK),
-                    random -> pick(random, Material.STONE_BRICKS, Material.COBBLESTONE),
-                    Material.ANVIL,
-                    Material.FURNACE,
-                    List.of(new int[] { -3, -3, 0, Material.FURNACE.ordinal() },
-                            new int[] { 3, 3, 0, Material.MAGMA_BLOCK.ordinal() }));
-            case SOUL -> new ThemeLayout(0.15f, 1.0f,
-                    (random, dist) -> pick(random, Material.QUARTZ_BLOCK, Material.QUARTZ_BLOCK,
-                            Material.SMOOTH_QUARTZ, Material.WHITE_WOOL),
-                    random -> Material.QUARTZ_PILLAR,
-                    Material.QUARTZ_BLOCK,
-                    Material.SOUL_LANTERN,
-                    List.of(new int[] { -3, 0, 1, Material.SOUL_LANTERN.ordinal() },
-                            new int[] { 3, 0, 1, Material.SOUL_LANTERN.ordinal() }));
-            case ABYSS -> new ThemeLayout(0.25f, 0.95f,
-                    (random, dist) -> pick(random, Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES,
-                            Material.CRACKED_DEEPSLATE_BRICKS, Material.SCULK),
-                    random -> pick(random, Material.OBSIDIAN, Material.CRYING_OBSIDIAN),
-                    Material.DEEPSLATE_BRICKS,
-                    Material.OBSIDIAN,
-                    List.of(new int[] { 0, -3, 0, Material.WATER_CAULDRON.ordinal() }));
-            case NIGHTMARE -> new ThemeLayout(0.35f, 0.9f,
-                    (random, dist) -> pick(random, Material.BLACKSTONE, Material.POLISHED_BLACKSTONE,
-                            Material.CRACKED_POLISHED_BLACKSTONE_BRICKS, Material.NETHERRACK),
-                    random -> pick(random, Material.BLACKSTONE, Material.POLISHED_BLACKSTONE_BRICKS),
-                    Material.POLISHED_BLACKSTONE,
-                    Material.WITHER_SKELETON_SKULL,
-                    List.of(new int[] { -3, 2, 0, Material.NETHERRACK.ordinal() },
-                            new int[] { -3, 2, 1, Material.WITHER_ROSE.ordinal() },
-                            new int[] { 3, -2, 0, Material.NETHERRACK.ordinal() },
-                            new int[] { 3, -2, 1, Material.WITHER_ROSE.ordinal() }));
-            case RELICS -> new ThemeLayout(0.30f, 0.9f,
-                    (random, dist) -> pick(random, Material.OAK_PLANKS, Material.OAK_PLANKS,
-                            Material.BOOKSHELF, Material.CHISELED_BOOKSHELF),
-                    random -> pick(random, Material.BOOKSHELF, Material.OAK_LOG),
-                    Material.OAK_LOG,
-                    Material.CHISELED_BOOKSHELF,
-                    List.of(new int[] { -3, -3, 0, Material.CHISELED_BOOKSHELF.ordinal() },
-                            new int[] { 3, 3, 0, Material.ENCHANTING_TABLE.ordinal() }));
-        };
+    private static YamlConfiguration balance() {
+        return Main.balance == null
+                ? new YamlConfiguration()
+                : Main.balance;
     }
 
-    static int fitRoof(int requestedRoof, boolean cave, int headroom) {
-        if (!cave) {
-            return requestedRoof;
-        }
-
-        if (headroom < 5) {
-            return 0;
-        }
-
-        if (headroom < 7 && requestedRoof == 3) {
-            return 2;
-        }
-
-        return requestedRoof;
+    private static boolean canReplace(Block block) {
+        return REPLACEABLE.contains(block.getType());
     }
 
     private static Material pick(Random random, Material... options) {

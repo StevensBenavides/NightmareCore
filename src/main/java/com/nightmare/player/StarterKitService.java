@@ -58,17 +58,6 @@ public final class StarterKitService {
         player.updateInventory();
     }
 
-    private static ItemStack waterBottles() {
-        ItemStack bottles = new ItemStack(Material.POTION, 2);
-
-        if (bottles.getItemMeta() instanceof PotionMeta meta) {
-            meta.setBasePotionType(PotionType.WATER);
-            bottles.setItemMeta(meta);
-        }
-
-        return bottles;
-    }
-
     private static void place(Player player, PlayerInventory inventory, int preferred, ItemStack item) {
         ItemStack current = inventory.getItem(preferred);
 
@@ -94,5 +83,16 @@ public final class StarterKitService {
         }
 
         player.getWorld().dropItemNaturally(player.getLocation(), item);
+    }
+
+    private static ItemStack waterBottles() {
+        ItemStack bottles = new ItemStack(Material.POTION, 2);
+
+        if (bottles.getItemMeta() instanceof PotionMeta meta) {
+            meta.setBasePotionType(PotionType.WATER);
+            bottles.setItemMeta(meta);
+        }
+
+        return bottles;
     }
 }

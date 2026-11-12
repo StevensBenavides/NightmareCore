@@ -14,7 +14,6 @@ public final class EnchantKeys {
     public static final NamespacedKey ABYSSAL_ACTIVE = Objects.requireNonNull(NamespacedKey.fromString("nightmare:abyssal_active"));
     public static final NamespacedKey ANTI_HEAL_UNTIL = Objects.requireNonNull(NamespacedKey.fromString("nightmare:anti_heal_until"));
     public static final NamespacedKey ANTI_HEAL_PERCENT = Objects.requireNonNull(NamespacedKey.fromString("nightmare:anti_heal_percent"));
-    public static final NamespacedKey OLD_STORMBREAKER = Objects.requireNonNull(NamespacedKey.fromString("nightmare:stormbreakerenchant"));
 
     public static final Map<String, NamespacedKey> KEYS;
 

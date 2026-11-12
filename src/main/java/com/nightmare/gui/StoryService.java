@@ -1,6 +1,5 @@
 package com.nightmare.gui;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +21,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import com.nightmare.enchant.EnchantLoreService;
 import com.nightmare.lang.LangService;
 
 public final class StoryService implements Listener {
@@ -37,138 +37,6 @@ public final class StoryService implements Listener {
     public StoryService() {
     }
 
-    public static void load(Plugin plugin) {
-        plugin.saveResource("story.yml", false);
-        CHAPTERS.clear();
-
-        java.io.File file = new java.io.File(plugin.getDataFolder(), "story.yml");
-
-        if ("es".equals(com.nightmare.lang.LangService.language())) {
-            java.io.File esFile = new java.io.File(plugin.getDataFolder(), "lang/es/story.yml");
-
-            if (esFile.exists()) {
-                file = esFile;
-            }
-        }
-
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-
-        for (Map<?, ?> raw : yml.getMapList("chapters")) {
-            List<String> lines = new ArrayList<>();
-            Object rawLines = raw.get("lines");
-
-            if (rawLines instanceof List<?> list) {
-                for (Object line : list) {
-                    lines.add(ChatColor.translateAlternateColorCodes('&', String.valueOf(line)));
-                }
-            }
-
-            Object rawTitle = raw.get("title");
-
-            CHAPTERS.add(new Chapter(
-                    ChatColor.translateAlternateColorCodes('&', String.valueOf(rawTitle == null ? "Untitled" : rawTitle)),
-                    match(raw.get("icon"), Material.ENCHANTED_BOOK),
-                    match(raw.get("border"), Material.RED_STAINED_GLASS_PANE),
-                    match(raw.get("left"), Material.SOUL_LANTERN),
-                    match(raw.get("right"), Material.ENDER_EYE),
-                    lines,
-                    Math.max(20, intOf(raw.get("hold-seconds"), 8) * 4),
-                    Boolean.TRUE.equals(raw.get("battle"))));
-        }
-    }
-
-    public static int size() {
-        return CHAPTERS.size();
-    }
-
-    public static Chapter chapter(int index) {
-        if (index < 0 || index >= CHAPTERS.size()) {
-            return null;
-        }
-        return CHAPTERS.get(index);
-    }
-
-    public static void open(Player player, int chapter) {
-        Chapter current = chapter(chapter);
-
-        if (current == null) {
-            return;
-        }
-
-        FRAME.put(player.getUniqueId(), 0);
-        PAUSED.remove(player.getUniqueId());
-
-        GuiManager.openStory(player, chapter);
-
-        click(player);
-    }
-
-    public static boolean togglePause(Player player) {
-
-        UUID uuid = player.getUniqueId();
-        if (PAUSED.contains(uuid)) {
-            PAUSED.remove(uuid);
-            return false;
-        }
-
-        PAUSED.add(uuid);
-
-        return true;
-    }
-
-    public static boolean paused(UUID uuid) {
-        return PAUSED.contains(uuid);
-    }
-
-    public static void start(Plugin plugin) {
-        Bukkit.getScheduler().runTaskTimer(plugin, StoryService::tick, 5L, 5L);
-    }
-
-    private static void tick() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof NightmareGuiHolder holder)
-                    || holder.type != GuiType.STORY) {
-                continue;
-            }
-
-            if (PAUSED.contains(player.getUniqueId())) {
-                continue;
-            }
-
-            Chapter current = chapter(holder.page);
-            if (current == null) {
-                continue;
-            }
-
-            int frame = FRAME.getOrDefault(player.getUniqueId(), 0) + 1;
-
-            FRAME.put(player.getUniqueId(), frame);
-
-            Inventory inventory = player.getOpenInventory().getTopInventory();
-
-            if (!(inventory.getHolder() instanceof NightmareGuiHolder)) {
-                continue;
-            }
-
-            render(player, inventory, holder.page, frame);
-
-            int revealed = Math.min(current.lines().size(), frame / 2 + 1);
-
-            if (revealed >= current.lines().size() && frame / 2 + 1 > current.lines().size() + current.holdFrames()) {
-
-                if (holder.page + 1 < CHAPTERS.size()) {
-                    open(player, holder.page + 1);
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8F, 1.0F);
-                }
-
-            }
-
-            if (current.battle() && frame % 4 == 1) {
-                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.25F, 1.6F);
-            }
-        }
-    }
-
     static void render(Player player, Inventory inventory, int chapterIndex, int frame) {
         Chapter current = chapter(chapterIndex);
 
@@ -177,10 +45,11 @@ public final class StoryService implements Listener {
         }
 
         int revealed = Math.min(current.lines().size(), frame / 2 + 1);
+        
         List<String> lore = new ArrayList<>();
 
         for (String raw : current.lines().subList(0, revealed)) {
-            lore.addAll(com.nightmare.enchant.EnchantLoreService.wrap(raw, ChatColor.RESET, false));
+            lore.addAll(EnchantLoreService.wrap(raw, ChatColor.RESET, false));
         }
 
         if (revealed < current.lines().size()) {
@@ -227,6 +96,92 @@ public final class StoryService implements Listener {
         player.updateInventory();
     }
 
+    @SuppressWarnings("null")
+    private static void tick() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof NightmareGuiHolder holder)
+                    || holder.type != GuiType.STORY) {
+                continue;
+            }
+
+            if (PAUSED.contains(player.getUniqueId())) {
+                continue;
+            }
+
+            Chapter current = chapter(holder.page);
+            if (current == null) {
+                continue;
+            }
+
+            int frame = FRAME.getOrDefault(player.getUniqueId(), 0) + 1;
+
+            FRAME.put(player.getUniqueId(), frame);
+
+            Inventory inventory = player.getOpenInventory().getTopInventory();
+
+            if (!(inventory.getHolder() instanceof NightmareGuiHolder)) {
+                continue;
+            }
+
+            render(player, inventory, holder.page, frame);
+
+            int revealed = Math.min(current.lines().size(), frame / 2 + 1);
+
+            if (revealed >= current.lines().size() && frame / 2 + 1 > current.lines().size() + current.holdFrames()) {
+
+                if (holder.page + 1 < CHAPTERS.size()) {
+                    open(player, holder.page + 1);
+                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8F, 1.0F);
+                }
+
+            }
+
+            if (current.battle() && frame % 4 == 1) {
+                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.25F, 1.6F);
+            }
+        }
+    }
+
+    public static void load(Plugin plugin) {
+        plugin.saveResource("story.yml", false);
+        CHAPTERS.clear();
+
+        java.io.File file = new java.io.File(plugin.getDataFolder(), "story.yml");
+
+        if ("es".equals(LangService.language())) {
+            java.io.File esFile = new java.io.File(plugin.getDataFolder(), "lang/es/story.yml");
+
+            if (esFile.exists()) {
+                file = esFile;
+            }
+        }
+
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+
+        for (Map<?, ?> raw : yml.getMapList("chapters")) {
+            List<String> lines = new ArrayList<>();
+            Object rawLines = raw.get("lines");
+
+            if (rawLines instanceof List<?> list) {
+                for (Object line : list) {
+                    lines.add(ChatColor.translateAlternateColorCodes('&', String.valueOf(line)));
+                }
+            }
+
+            Object rawTitle = raw.get("title");
+
+            CHAPTERS.add(new Chapter(
+                    ChatColor.translateAlternateColorCodes('&', String.valueOf(rawTitle == null ? "Untitled" : rawTitle)),
+                    match(raw.get("icon"), Material.ENCHANTED_BOOK),
+                    match(raw.get("border"), Material.RED_STAINED_GLASS_PANE),
+                    match(raw.get("left"), Material.SOUL_LANTERN),
+                    match(raw.get("right"), Material.ENDER_EYE),
+                    lines,
+                    Math.max(20, intOf(raw.get("hold-seconds"), 8) * 4),
+                    Boolean.TRUE.equals(raw.get("battle"))));
+        }
+    }
+
     private static void battleFrame(Inventory inventory, Chapter current, int frame) {
         int phase = frame % 4;
 
@@ -259,14 +214,19 @@ public final class StoryService implements Listener {
         }
     }
 
-    private static Material match(Object value, Material fallback) {
-        if (value == null) {
-            return fallback;
+    public static void open(Player player, int chapter) {
+        Chapter current = chapter(chapter);
+
+        if (current == null) {
+            return;
         }
 
-        Material material = Material.matchMaterial(String.valueOf(value));
+        FRAME.put(player.getUniqueId(), 0);
+        PAUSED.remove(player.getUniqueId());
 
-        return material == null ? fallback : material;
+        GuiManager.openStory(player, chapter);
+
+        click(player);
     }
 
     private static int intOf(Object value, int fallback) {
@@ -280,8 +240,35 @@ public final class StoryService implements Listener {
         }
     }
 
-    private static void click(Player player) {
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7F, 1.2F);
+    public static boolean togglePause(Player player) {
+
+        UUID uuid = player.getUniqueId();
+        if (PAUSED.contains(uuid)) {
+            PAUSED.remove(uuid);
+            return false;
+        }
+
+        PAUSED.add(uuid);
+
+        return true;
+    }
+
+    private static Material match(Object value, Material fallback) {
+        if (value == null) {
+            return fallback;
+        }
+
+        Material material = Material.matchMaterial(String.valueOf(value));
+
+        return material == null ? fallback : material;
+    }
+
+    public static Chapter chapter(int index) {
+        if (index < 0 || index >= CHAPTERS.size()) {
+            return null;
+        }
+        
+        return CHAPTERS.get(index);
     }
 
     @EventHandler
@@ -294,5 +281,21 @@ public final class StoryService implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         FRAME.remove(event.getPlayer().getUniqueId());
         PAUSED.remove(event.getPlayer().getUniqueId());
+    }
+
+    public static int size() {
+        return CHAPTERS.size();
+    }
+
+    public static boolean paused(UUID uuid) {
+        return PAUSED.contains(uuid);
+    }
+
+    public static void start(Plugin plugin) {
+        Bukkit.getScheduler().runTaskTimer(plugin, StoryService::tick, 5L, 5L);
+    }
+
+    private static void click(Player player) {
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7F, 1.2F);
     }
 }

@@ -22,120 +22,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 
+import com.nightmare.Main;
+
 public final class PermanentItemService implements Listener {
 
     public static int BACKPACK_SLOT = 9;
     public static int RECOVERY_SLOT = 10;
-
     private static Plugin plugin;
 
     private PermanentItemService() {
-    }
-
-    public static void start(Plugin owner) {
-        plugin = owner;
-
-        if (com.nightmare.Main.balance != null) {
-            BACKPACK_SLOT = slot(com.nightmare.Main.balance.getInt("player-items.backpack-slot", 9), 9);
-            RECOVERY_SLOT = slot(com.nightmare.Main.balance.getInt("player-items.recovery-slot", 10), 10);
-
-            if (BACKPACK_SLOT == RECOVERY_SLOT) {
-                RECOVERY_SLOT = BACKPACK_SLOT == 10 ? 9 : 10;
-            }
-        }
-
-        Bukkit.getPluginManager().registerEvents(new PermanentItemService(), owner);
-        Bukkit.getScheduler().runTaskTimer(owner, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                ensure(player);
-            }
-        }, 20L, 20L);
-    }
-
-    public static void ensure(Player player) {
-        if (player == null || !player.isOnline() || player.isDead() || !enabled()) {
-            return;
-        }
-
-        PlayerInventory inventory = player.getInventory();
-        boolean changed = false;
-        ItemStack backpack = inventory.getItem(BACKPACK_SLOT);
-
-        if (!BackpackItem.is(backpack) || !BackpackItem.isOwnedBy(backpack, player)) {
-            if (backpack != null && !backpack.getType().isAir()) {
-                drop(player, backpack);
-            }
-
-            inventory.setItem(BACKPACK_SLOT, BackpackItem.create(player));
-            changed = true;
-        }
-
-        ItemStack recovery = inventory.getItem(RECOVERY_SLOT);
-
-        if (recovery == null || recovery.getType() != Material.RECOVERY_COMPASS) {
-            if (recovery != null && !recovery.getType().isAir()) {
-                drop(player, recovery);
-            }
-
-            inventory.setItem(RECOVERY_SLOT, new ItemStack(Material.RECOVERY_COMPASS));
-            changed = true;
-        }
-
-        if (changed) {
-            player.updateInventory();
-        }
-    }
-
-    private static void drop(Player player, ItemStack item) {
-        player.getWorld().dropItemNaturally(player.getLocation(), item);
-    }
-
-    private static int slot(int configured, int fallback) {
-        return configured >= 0 && configured < 36 ? configured : fallback;
-    }
-
-    private static boolean enabled() {
-        return com.nightmare.Main.balance == null
-                || com.nightmare.Main.balance.getBoolean("player-items.enabled", true);
-    }
-
-    private static boolean isPermanentItem(ItemStack item) {
-        return BackpackItem.is(item);
-    }
-
-    private static boolean isProtectedRawSlot(Player player, InventoryView view, int rawSlot) {
-        Inventory inventory = view.getInventory(rawSlot);
-
-        if (inventory != player.getInventory()) {
-            return false;
-        }
-
-        int slot = view.convertSlot(rawSlot);
-
-        return slot == BACKPACK_SLOT || slot == RECOVERY_SLOT;
-    }
-
-    private static boolean wouldMoveIntoProtected(Player player, InventoryClickEvent event, ItemStack item) {
-        if (item == null || item.getType().isAir()) {
-            return false;
-        }
-
-        Inventory top = event.getView().getTopInventory();
-        boolean sourceIsPlayer = event.getClickedInventory() == player.getInventory();
-
-        if (sourceIsPlayer && top != player.getInventory()) {
-            return false;
-        }
-
-        for (int slot : new int[] { BACKPACK_SLOT, RECOVERY_SLOT }) {
-            ItemStack existing = player.getInventory().getItem(slot);
-
-            if (existing == null || existing.getType().isAir() || existing.isSimilar(item)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -178,6 +73,83 @@ public final class PermanentItemService implements Listener {
         }
     }
 
+    public static void ensure(Player player) {
+        if (player == null || !player.isOnline() || player.isDead() || !enabled()) {
+            return;
+        }
+
+        PlayerInventory inventory = player.getInventory();
+        boolean changed = false;
+        ItemStack backpack = inventory.getItem(BACKPACK_SLOT);
+
+        if (!BackpackItem.is(backpack) || !BackpackItem.isOwnedBy(backpack, player)) {
+            if (backpack != null && !backpack.getType().isAir()) {
+                drop(player, backpack);
+            }
+
+            inventory.setItem(BACKPACK_SLOT, BackpackItem.create(player));
+            changed = true;
+        }
+
+        ItemStack recovery = inventory.getItem(RECOVERY_SLOT);
+
+        if (recovery == null || recovery.getType() != Material.RECOVERY_COMPASS) {
+            if (recovery != null && !recovery.getType().isAir()) {
+                drop(player, recovery);
+            }
+
+            inventory.setItem(RECOVERY_SLOT, new ItemStack(Material.RECOVERY_COMPASS));
+            changed = true;
+        }
+
+        if (changed) {
+            player.updateInventory();
+        }
+    }
+
+    private static boolean wouldMoveIntoProtected(Player player, InventoryClickEvent event, ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
+
+        Inventory top = event.getView().getTopInventory();
+        boolean sourceIsPlayer = event.getClickedInventory() == player.getInventory();
+
+        if (sourceIsPlayer && top != player.getInventory()) {
+            return false;
+        }
+
+        for (int slot : new int[] { BACKPACK_SLOT, RECOVERY_SLOT }) {
+            ItemStack existing = player.getInventory().getItem(slot);
+
+            if (existing == null || existing.getType().isAir() || existing.isSimilar(item)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static void start(Plugin owner) {
+        plugin = owner;
+
+        if (Main.balance != null) {
+            BACKPACK_SLOT = slot(Main.balance.getInt("player-items.backpack-slot", 9), 9);
+            RECOVERY_SLOT = slot(Main.balance.getInt("player-items.recovery-slot", 10), 10);
+
+            if (BACKPACK_SLOT == RECOVERY_SLOT) {
+                RECOVERY_SLOT = BACKPACK_SLOT == 10 ? 9 : 10;
+            }
+        }
+
+        Bukkit.getPluginManager().registerEvents(new PermanentItemService(), owner);
+        Bukkit.getScheduler().runTaskTimer(owner, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                ensure(player);
+            }
+        }, 20L, 20L);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
@@ -197,6 +169,18 @@ public final class PermanentItemService implements Listener {
         }
     }
 
+    private static boolean isProtectedRawSlot(Player player, InventoryView view, int rawSlot) {
+        Inventory inventory = view.getInventory(rawSlot);
+
+        if (inventory != player.getInventory()) {
+            return false;
+        }
+
+        int slot = view.convertSlot(rawSlot);
+
+        return slot == BACKPACK_SLOT || slot == RECOVERY_SLOT;
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrop(PlayerDropItemEvent event) {
         if (isPermanentItem(event.getItemDrop().getItemStack())) {
@@ -209,6 +193,23 @@ public final class PermanentItemService implements Listener {
         if (isPermanentItem(event.getMainHandItem()) || isPermanentItem(event.getOffHandItem())) {
             event.setCancelled(true);
         }
+    }
+
+    private static boolean enabled() {
+        return Main.balance == null
+                || Main.balance.getBoolean("player-items.enabled", true);
+    }
+
+    private static void drop(Player player, ItemStack item) {
+        player.getWorld().dropItemNaturally(player.getLocation(), item);
+    }
+
+    private static int slot(int configured, int fallback) {
+        return configured >= 0 && configured < 36 ? configured : fallback;
+    }
+
+    private static boolean isPermanentItem(ItemStack item) {
+        return BackpackItem.is(item);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

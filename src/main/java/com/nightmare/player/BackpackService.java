@@ -37,143 +37,6 @@ public final class BackpackService implements Listener {
     private BackpackService() {
     }
 
-    public static void start(Plugin owner) {
-        plugin = owner;
-        folder = new File(owner.getDataFolder(), "backpacks");
-
-        if (!folder.exists() && !folder.mkdirs()) {
-            owner.getLogger().warning("Could not create backpack data folder.");
-        }
-
-        Bukkit.getPluginManager().registerEvents(new BackpackService(), owner);
-    }
-
-    public static void open(Player player) {
-        if (!enabled() || player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder) {
-            return;
-        }
-
-        int size = size();
-        BackpackHolder holder = new BackpackHolder(player.getUniqueId());
-        Inventory inventory = Bukkit.createInventory(holder, size, title());
-        holder.setInventory(inventory);
-        ItemStack[] contents = load(player.getUniqueId());
-
-        for (int slot = 0; slot < Math.min(size, contents.length); slot++) {
-            inventory.setItem(slot, contents[slot]);
-        }
-
-        player.openInventory(inventory);
-    }
-
-    private static boolean enabled() {
-        return Main.balance == null || Main.balance.getBoolean("player-items.enabled", true);
-    }
-
-    public static int size() {
-        int configured = Main.balance == null ? 27 : Main.balance.getInt("player-items.backpack-size", 27);
-        configured = Math.max(9, Math.min(54, configured));
-        configured = (configured / 9) * 9;
-
-        return configured;
-    }
-
-    public static List<ItemStack> drain(Player player) {
-        ItemStack[] contents = currentContents(player);
-        List<ItemStack> items = new ArrayList<>();
-
-        for (ItemStack item : contents) {
-            if (item != null && !item.getType().isAir()) {
-                items.add(item);
-            }
-        }
-
-        if (player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder) {
-            player.closeInventory();
-        }
-
-        CACHE.put(player.getUniqueId(), empty());
-        delete(player.getUniqueId());
-
-        return items;
-    }
-
-    public static void save(Player player) {
-        if (player == null) {
-            return;
-        }
-
-        ItemStack[] contents;
-
-        if (player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder holder
-                && holder.owner().equals(player.getUniqueId())) {
-            contents = holder.getInventory().getContents();
-        } else {
-            contents = CACHE.get(player.getUniqueId());
-
-            if (contents == null) {
-                return;
-            }
-        }
-
-        CACHE.put(player.getUniqueId(), contents);
-        write(player.getUniqueId(), contents);
-    }
-
-    public static void shutdown() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            save(player);
-        }
-
-        CACHE.clear();
-    }
-
-    private static ItemStack[] currentContents(Player player) {
-        if (player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder holder
-                && holder.owner().equals(player.getUniqueId())) {
-            return holder.getInventory().getContents();
-        }
-
-        return load(player.getUniqueId());
-    }
-
-    private static ItemStack[] load(UUID uuid) {
-        ItemStack[] cached = CACHE.get(uuid);
-
-        if (cached != null) {
-            return cached;
-        }
-
-        int size = size();
-        ItemStack[] contents = empty(size);
-        File file = file(uuid);
-
-        if (file.exists()) {
-            YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-
-            for (Map<?, ?> raw : yml.getMapList("items")) {
-                Object slotValue = raw.get("slot");
-                Object itemValue = raw.get("item");
-
-                if (!(slotValue instanceof Number number) || !(itemValue instanceof Map<?, ?> itemMap)) {
-                    continue;
-                }
-
-                int slot = number.intValue();
-
-                if (slot < 0 || slot >= size) {
-                    continue;
-                }
-
-                contents[slot] = deserialize(itemMap);
-            }
-        }
-
-        CACHE.put(uuid, contents);
-
-        return contents;
-    }
-
     private static void write(UUID uuid, ItemStack[] contents) {
         File file = file(uuid);
         List<Map<String, Object>> items = new ArrayList<>();
@@ -216,24 +79,101 @@ public final class BackpackService implements Listener {
         }
     }
 
-    private static void delete(UUID uuid) {
+    private static ItemStack[] load(UUID uuid) {
+        ItemStack[] cached = CACHE.get(uuid);
+
+        if (cached != null) {
+            return cached;
+        }
+
+        int size = size();
+        ItemStack[] contents = empty(size);
         File file = file(uuid);
 
-        if (file.exists() && !file.delete()) {
-            plugin.getLogger().warning("Could not delete backpack file for " + uuid);
+        if (file.exists()) {
+            YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+
+            for (Map<?, ?> raw : yml.getMapList("items")) {
+                Object slotValue = raw.get("slot");
+                Object itemValue = raw.get("item");
+
+                if (!(slotValue instanceof Number number) || !(itemValue instanceof Map<?, ?> itemMap)) {
+                    continue;
+                }
+
+                int slot = number.intValue();
+
+                if (slot < 0 || slot >= size) {
+                    continue;
+                }
+
+                contents[slot] = deserialize(itemMap);
+            }
         }
+
+        CACHE.put(uuid, contents);
+
+        return contents;
     }
 
-    private static File file(UUID uuid) {
-        return new File(folder, uuid + ".yml");
+    public static void save(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        ItemStack[] contents;
+
+        if (player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder holder
+                && holder.owner().equals(player.getUniqueId())) {
+            contents = holder.getInventory().getContents();
+        } else {
+            contents = CACHE.get(player.getUniqueId());
+
+            if (contents == null) {
+                return;
+            }
+        }
+
+        CACHE.put(player.getUniqueId(), contents);
+        write(player.getUniqueId(), contents);
     }
 
-    private static ItemStack[] empty() {
-        return empty(size());
+    public static List<ItemStack> drain(Player player) {
+        ItemStack[] contents = currentContents(player);
+        List<ItemStack> items = new ArrayList<>();
+
+        for (ItemStack item : contents) {
+            if (item != null && !item.getType().isAir()) {
+                items.add(item);
+            }
+        }
+
+        if (player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder) {
+            player.closeInventory();
+        }
+
+        CACHE.put(player.getUniqueId(), empty());
+        delete(player.getUniqueId());
+
+        return items;
     }
 
-    private static ItemStack[] empty(int size) {
-        return new ItemStack[size];
+    public static void open(Player player) {
+        if (!enabled() || player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder) {
+            return;
+        }
+
+        int size = size();
+        BackpackHolder holder = new BackpackHolder(player.getUniqueId());
+        Inventory inventory = Bukkit.createInventory(holder, size, title());
+        holder.setInventory(inventory);
+        ItemStack[] contents = load(player.getUniqueId());
+
+        for (int slot = 0; slot < Math.min(size, contents.length); slot++) {
+            inventory.setItem(slot, contents[slot]);
+        }
+
+        player.openInventory(inventory);
     }
 
     private static ItemStack deserialize(Map<?, ?> raw) {
@@ -250,8 +190,15 @@ public final class BackpackService implements Listener {
         }
     }
 
-    private static String title() {
-        return ChatColor.translateAlternateColorCodes('&', LangService.msg("backpack.title", "&8Backpack"));
+    public static void start(Plugin owner) {
+        plugin = owner;
+        folder = new File(owner.getDataFolder(), "backpacks");
+
+        if (!folder.exists() && !folder.mkdirs()) {
+            owner.getLogger().warning("Could not create backpack data folder.");
+        }
+
+        Bukkit.getPluginManager().registerEvents(new BackpackService(), owner);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -262,11 +209,6 @@ public final class BackpackService implements Listener {
             CACHE.put(uuid, contents);
             write(uuid, contents);
         }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onQuit(PlayerQuitEvent event) {
-        save(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -289,5 +231,63 @@ public final class BackpackService implements Listener {
         if (BackpackItem.is(event.getOldCursor())) {
             event.setCancelled(true);
         }
+    }
+
+    private static ItemStack[] currentContents(Player player) {
+        if (player.getOpenInventory().getTopInventory().getHolder() instanceof BackpackHolder holder
+                && holder.owner().equals(player.getUniqueId())) {
+            return holder.getInventory().getContents();
+        }
+
+        return load(player.getUniqueId());
+    }
+
+    public static int size() {
+        int configured = Main.balance == null ? 27 : Main.balance.getInt("player-items.backpack-size", 27);
+        configured = Math.max(9, Math.min(54, configured));
+        configured = (configured / 9) * 9;
+
+        return configured;
+    }
+
+    public static void shutdown() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            save(player);
+        }
+
+        CACHE.clear();
+    }
+
+    private static void delete(UUID uuid) {
+        File file = file(uuid);
+
+        if (file.exists() && !file.delete()) {
+            plugin.getLogger().warning("Could not delete backpack file for " + uuid);
+        }
+    }
+
+    private static boolean enabled() {
+        return Main.balance == null || Main.balance.getBoolean("player-items.enabled", true);
+    }
+
+    private static File file(UUID uuid) {
+        return new File(folder, uuid + ".yml");
+    }
+
+    private static ItemStack[] empty() {
+        return empty(size());
+    }
+
+    private static ItemStack[] empty(int size) {
+        return new ItemStack[size];
+    }
+
+    private static String title() {
+        return ChatColor.translateAlternateColorCodes('&', LangService.msg("backpack.title", "&8Backpack"));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onQuit(PlayerQuitEvent event) {
+        save(event.getPlayer());
     }
 }

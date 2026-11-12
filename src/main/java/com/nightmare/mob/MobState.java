@@ -14,6 +14,7 @@ public final class MobState {
     public final String worldName;
     public final boolean aggressive;
     public final boolean miner;
+    
     public int digCharges;
     public final Map<String, Long> cooldowns = new HashMap<>();
 

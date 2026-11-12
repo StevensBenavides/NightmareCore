@@ -6,9 +6,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.bukkit.BanEntry;
+import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -18,22 +22,30 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
 import com.nightmare.IO;
 import com.nightmare.Main;
 import com.nightmare.TimeManagement;
+import com.nightmare.core.CooldownResetService;
 import com.nightmare.core.DifficultyService;
 import com.nightmare.enchant.CustomEnchant;
 import com.nightmare.enchant.EnchantBookService;
 import com.nightmare.enchant.EnchantLoreService;
 import com.nightmare.enchant.EnchantRegistry;
 import com.nightmare.gui.GuiManager;
+import com.nightmare.gui.StoryService;
 import com.nightmare.item.CustomItemService;
 import com.nightmare.lang.LangService;
 import com.nightmare.mob.MobProfileLoader;
 import com.nightmare.relic.AbyssalTendrilsItem;
+import com.nightmare.relic.AbyssalTendrilsService;
+import com.nightmare.relic.SoulHeartService;
+import com.nightmare.world.GodDropService;
+import com.nightmare.world.StructureService;
+import com.nightmare.world.StructureTheme;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -42,7 +54,6 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 
 public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> ROOT = List.of("help", "reload", "time", "creator", "system", "story");
     private static final List<String> RELOAD_TARGETS = List.of(
             "messages.yml", "settings.yml", "language", "time", "enchants.yml", "balance.yml", "mobs.yml", "enchant-lore.yml", "story.yml", "structures.yml", "all");
     private static final List<String> SYSTEM = List.of("day", "enchant", "item", "relic", "cooldown", "reload", "altar", "revive", "airdrop");
@@ -53,269 +64,6 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
     private static final String[] ROMAN = { "I", "II", "III", "IV", "V" };
 
     private final Plugin plugin = Main.getInstance();
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0) {
-            if (sender instanceof Player player) {
-                GuiManager.openMain(player);
-            } else {
-                sendHelpText(sender);
-            }
-
-            return true;
-        }
-
-        switch (args[0].toLowerCase()) {
-            case "help", "h" -> handleHelp(sender, args);
-            case "reload" -> handleReload(sender, args);
-            case "time" -> handleTime(sender, args);
-            case "creator", "creators" -> handleCreator(sender, args);
-            case "system", "sys" -> handleSystem(sender, args);
-            case "story", "chronicle" -> handleStory(sender, args);
-            default -> send(sender, LangService.msg("commands.generic.unknown_subcommand",
-                    "&cUnknown subcommand. Use &f/nightmare help commands&c."));
-        }
-
-        return true;
-    }
-
-    private void handleHelp(CommandSender sender, String[] args) {
-        if (args.length > 2) {
-            sendUsage(sender, "/nightmare help [enchants|relics|commands|<ench>]");
-            return;
-        }
-
-        if (args.length == 1) {
-            if (sender instanceof Player player) {
-                GuiManager.openMain(player);
-            } else {
-                sendHelpText(sender);
-            }
-
-            return;
-        }
-
-        String target = args[1].toLowerCase();
-
-        if (target.equals("commands")) {
-            sendCommandHelp(sender);
-            return;
-        }
-
-        if (!(sender instanceof Player player)) {
-            send(sender, LangService.msg("commands.generic.gui_only_players",
-                    "The Nightmare help GUI is only available to players."));
-            sendHelpText(sender);
-            return;
-        }
-
-        if (target.equals("enchants")) {
-            GuiManager.openEnchantList(player);
-            return;
-        }
-
-        if (target.equals("relics")) {
-            GuiManager.openRelics(player);
-            return;
-        }
-
-        String id = normalizeEnchant(args[1]);
-
-        if (id == null) {
-            send(sender, LangService.format("commands.generic.unknown_enchant",
-                    "&cUnknown enchant or help category '&f%input%&c'.", "%input%", args[1]));
-            return;
-        }
-
-        GuiManager.openEnchantDetail(player, id, id.equals("nightmare_mark") ? 5 : 1);
-    }
-
-    private void handleReload(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("nightmare.reload")) {
-            sendPermission(sender);
-            return;
-        }
-
-        if (args.length != 2) {
-            sendUsage(sender, "/nightmare reload <" + String.join("|", RELOAD_TARGETS) + ">");
-            return;
-        }
-
-        reloadTarget(sender, args[1].toLowerCase());
-    }
-
-    private void reloadTarget(CommandSender sender, String target) {
-        if (!RELOAD_TARGETS.contains(target)) {
-            send(sender, LangService.format("commands.generic.unknown_reload_target",
-                    "&cUnknown reload target '&f%target%&c'.", "%target%", target));
-            return;
-        }
-
-        try {
-            if (target.equals("all")) {
-                validateAllReloadFiles();
-                reloadAll();
-            } else {
-                reloadOne(target);
-            }
-
-            send(sender, LangService.format("commands.reload.done",
-                    "&aReloaded &f%target%&a.", "%target%", target));
-        } catch (Exception exception) {
-            send(sender, LangService.format("commands.reload.failed",
-                    "&cCould not reload &f%target%&c: %error%", "%target%", target,
-                    "%error%", (exception.getMessage() != null ? exception.getMessage() : "unknown")));
-        }
-    }
-
-    private void reloadOne(String target) throws Exception {
-        switch (target) {
-            case "messages.yml" -> {
-                IO.reloadMessages(plugin);
-                LangService.reload(plugin);
-            }
-            case "settings.yml" -> {
-                IO.reloadSettings(plugin);
-                LangService.reload(plugin);
-            }
-            case "language" -> LangService.reload(plugin);
-            case "time" -> {
-                TimeManagement.updatePlayerTimes();
-                TimeManagement.updateWorldsTimes();
-            }
-            case "enchants.yml" -> Main.enchants = loadReloadYaml("enchants.yml");
-            case "balance.yml" -> Main.balance = loadReloadYaml("balance.yml");
-            case "mobs.yml" -> MobProfileLoader.load(plugin);
-            case "enchant-lore.yml" -> Main.enchantLore = loadReloadYaml("enchant-lore.yml");
-            case "story.yml" -> com.nightmare.gui.StoryService.load(plugin);
-            case "structures.yml" -> com.nightmare.world.StructureService.load(plugin);
-            default -> throw new IllegalArgumentException("Unknown reload target: " + target);
-        }
-    }
-
-    private void reloadAll() throws Exception {
-        IO.reloadMessages(plugin);
-        IO.reloadSettings(plugin);
-        LangService.reload(plugin);
-        TimeManagement.updatePlayerTimes();
-        TimeManagement.updateWorldsTimes();
-        Main.enchants = loadReloadYaml("enchants.yml");
-        Main.balance = loadReloadYaml("balance.yml");
-        MobProfileLoader.load(plugin);
-        Main.enchantLore = loadReloadYaml("enchant-lore.yml");
-        com.nightmare.gui.StoryService.load(plugin);
-        com.nightmare.world.StructureService.load(plugin);
-    }
-
-    private YamlConfiguration loadReloadYaml(String name) throws IOException {
-        File file = new File(plugin.getDataFolder(), name);
-
-        if (!file.exists()) {
-            throw new IOException(name + " does not exist.");
-        }
-
-        return YamlConfiguration.loadConfiguration(file);
-    }
-
-    private void validateAllReloadFiles() throws IOException {
-        String[] files = {
-                "messages.yml", "settings.yml", "enchants.yml", "balance.yml",
-                "mobs.yml", "enchant-lore.yml", "structures.yml"};
-
-        for (String name : files) {
-            File file = new File(plugin.getDataFolder(), name);
-
-            if (!file.exists()) {
-                throw new IOException(name + " does not exist.");
-            }
-
-            if (YamlConfiguration.loadConfiguration(file).getKeys(false).isEmpty()) {
-                throw new IOException(name + " is empty or invalid.");
-            }
-        }
-
-        File story = new File(plugin.getDataFolder(), "story.yml");
-
-        if (!story.exists()) {
-            throw new IOException("story.yml does not exist.");
-        }
-
-        if (YamlConfiguration.loadConfiguration(story).getMapList("chapters").isEmpty()) {
-            throw new IOException("story.yml has no chapters.");
-        }
-
-        YamlConfiguration settings = YamlConfiguration.loadConfiguration(
-                new File(plugin.getDataFolder(), "settings.yml"));
-
-        if (settings.getString("prefix") == null) {
-            throw new IOException("prefix not found in settings.yml.");
-        }
-    }
-
-    private void handleTime(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("nightmare.system")) {
-            sendPermission(sender);
-            return;
-        }
-
-        if (args.length != 3) {
-            sendUsage(sender, "/nightmare time <add|remove> <days>");
-            return;
-        }
-
-        int days;
-
-        try {
-            days = Integer.parseInt(args[2]);
-        } catch (NumberFormatException exception) {
-            send(sender, LangService.msg("commands.time.invalid_days",
-                    "&cInvalid number of days."));
-            return;
-        }
-
-        if (days <= 0) {
-            send(sender, LangService.msg("commands.time.days_positive",
-                    "&cDays must be a positive number."));
-            return;
-        }
-
-        if (args[1].equalsIgnoreCase("add")) {
-            long ticks = days * 24000L;
-
-            for (World world : Bukkit.getWorlds()) {
-                world.setFullTime(world.getFullTime() + ticks);
-            }
-
-            TimeManagement.updateWorldsTimes();
-            send(sender, LangService.format("commands.time.added_days",
-                    "&aAdded &6%days%&a day(s) to all worlds.", "%days%", String.valueOf(days)));
-            return;
-        }
-
-        if (args[1].equalsIgnoreCase("remove")) {
-            long ticks = days * 24000L;
-
-            for (World world : Bukkit.getWorlds()) {
-                if (world.getFullTime() - ticks < 24000L) {
-                    send(sender, LangService.msg("commands.time.cannot_below_day1",
-                            "&cYou cannot set any world below day 1."));
-                    return;
-                }
-            }
-
-            for (World world : Bukkit.getWorlds()) {
-                world.setFullTime(world.getFullTime() - ticks);
-            }
-
-            TimeManagement.updateWorldsTimes();
-            send(sender, LangService.format("commands.time.removed_days",
-                    "&aRemoved &6%days%&a day(s) from all worlds.", "%days%", String.valueOf(days)));
-            return;
-        }
-
-        sendUsage(sender, "/nightmare time <add|remove> <days>");
-    }
 
     private void handleSystem(CommandSender sender, String[] args) {
         if (!sender.hasPermission("nightmare.system")) {
@@ -340,14 +88,17 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 try {
                     day = Long.parseLong(args[2]);
                 } catch (NumberFormatException exception) {
-                send(sender, LangService.msg("commands.system.invalid_day",
+                    sendMessage(sender, LangService.msg("commands.system.invalid_day",
                         "&cInvalid day."));
-                    return;
+                    
+                        return;
                 }
 
                 if (day < 0) {
-                send(sender, LangService.msg("commands.system.day_positive",
+
+                    sendMessage(sender, LangService.msg("commands.system.day_positive",
                         "&cDay must be 0 or higher."));
+                
                     return;
                 }
 
@@ -364,12 +115,12 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                     TimeManagement.updateWorldsTimes();
                 }
 
-                send(sender, LangService.format("commands.system.day_set",
+                sendMessage(sender, LangService.format("commands.system.day_set",
                         "&aDay set to &6%day%&a.", "%day%", String.valueOf(day)));
             }
             case "enchant", "ench" -> {
                 if (!(sender instanceof Player player)) {
-                    send(sender, LangService.msg("commands.system.enchant_only_player",
+                    sendMessage(sender, LangService.msg("commands.system.enchant_only_player",
                             "&cThe enchant command can only be used by a player with an item in hand."));
                     return;
                 }
@@ -382,7 +133,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 String id = normalizeEnchant(args[2]);
 
                 if (id == null) {
-                    send(sender, LangService.format("commands.system.unknown_enchant",
+                    sendMessage(sender, LangService.format("commands.system.unknown_enchant",
                         "&cUnknown enchant '&f%input%&c'. Use &f/nightmare help enchants&c.", "%input%", args[2]));
                     return;
                 }
@@ -393,25 +144,25 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 try {
                     level = Integer.parseInt(args[3]);
                 } catch (NumberFormatException exception) {
-                    send(sender, LangService.msg("commands.system.invalid_level",
+                    sendMessage(sender, LangService.msg("commands.system.invalid_level",
                             "&cInvalid level."));
                     return;
                 }
 
                 if (level < 1 || level > enchant.maxLevel) {
-                    send(sender, LangService.format("commands.system.level_range",
+                    sendMessage(sender, LangService.format("commands.system.level_range",
                             "&cLevel must be between 1 and %max%.", "%max%", String.valueOf(enchant.maxLevel)));
                     return;
                 }
 
                 if (id.equals("nightmare_mark") && level != 5) {
-                    send(sender, LangService.msg("commands.system.mark_only_v",
+                    sendMessage(sender, LangService.msg("commands.system.mark_only_v",
                             "&cNightmare's Mark is only available at level V."));
                     return;
                 }
 
                 if (id.equals("abyssal_howl") && level != 1) {
-                    send(sender, LangService.msg("commands.system.howl_single",
+                    sendMessage(sender, LangService.msg("commands.system.howl_single",
                             "&cAbyssal Howl is a single legendary level."));
                     return;
                 }
@@ -419,13 +170,13 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 ItemStack item = player.getInventory().getItemInMainHand();
 
                 if (item == null || item.getType() == Material.AIR) {
-                    send(sender, LangService.msg("commands.system.must_hold_item",
+                    sendMessage(sender, LangService.msg("commands.system.must_hold_item",
                             "&cYou must hold an item."));
                     return;
                 }
 
                 if (!enchant.applicable.contains(item.getType())) {
-                    send(sender, LangService.format("commands.system.cannot_apply",
+                    sendMessage(sender, LangService.format("commands.system.cannot_apply",
                             "&c%enchant% cannot be applied to this item. Applicable on: %applicable%.",
                             "%enchant%", enchant.displayName,
                             "%applicable%", EnchantLoreService.applicabilitySummary(enchant)));
@@ -433,40 +184,44 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 }
 
                 CustomItemService.applyEnchant(item, id, level);
-                send(sender, LangService.format("commands.system.applied",
+
+                sendMessage(sender, LangService.format("commands.system.applied",
                         "&aApplied &6%enchant% %level%&a.",
                         "%enchant%", enchant.displayName, "%level%", ROMAN[level - 1]));
             }
             case "item" -> {
                 if (args.length == 4 && args[2].equalsIgnoreCase("info")) {
                     if (!(sender instanceof Player player)) {
-                        send(sender, LangService.msg("commands.system.only_players_inspect",
+                        sendMessage(sender, LangService.msg("commands.system.only_players_inspect",
                             "&cOnly players can inspect the held item."));
                         return;
                     }
 
                     ItemStack held = player.getInventory().getItemInMainHand();
-                    org.bukkit.inventory.meta.ItemMeta meta = held.getItemMeta();
+                    ItemMeta meta = held.getItemMeta();
                     String model = meta != null && meta.hasItemModel() && meta.getItemModel() != null
                             ? meta.getItemModel().toString()
                             : "none";
-                    send(sender, LangService.format("commands.system.held_info",
-                            "&7Held: &f%material% &8| &7item_model: &f%model%",
-                            "%material%", held.getType().name(),
-                            "%model%", model));
+                    
+                            sendMessage(sender, LangService.format("commands.system.held_info",
+                        "&7Held: &f%material% &8| &7item_model: &f%model%",
+                        "%material%", held.getType().name(),
+                        "%model%", model));
+
                     return;
                 }
 
                 if (args.length != 5 || !args[2].equalsIgnoreCase("give")) {
                     sendUsage(sender, "/nightmare system item give <player> <item>");
                     sendUsage(sender, "/nightmare system item info");
+
                     return;
                 }
 
                 Player target = Bukkit.getPlayerExact(args[3]);
 
                 if (target == null) {
-                    send(sender, LangService.format("commands.generic.player_offline",
+                    sendMessage(sender, LangService.format("commands.generic.player_offline",
                             "&cPlayer '&f%player%&c' is not online.", "%player%", args[3]));
                     return;
                 }
@@ -474,22 +229,22 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 String itemId = normalizeItem(args[4]);
 
                 if (itemId == null) {
-                    send(sender, LangService.format("commands.system.unknown_item",
+                    sendMessage(sender, LangService.format("commands.system.unknown_item",
                             "&cUnknown item '&f%input%&c'. Use &f/nightmare system item give <player> <item>&c.",
                             "%input%", args[4]));
                     return;
                 }
 
                 if (itemId.equals("soul_heart")) {
-                    com.nightmare.relic.SoulHeartService.give(target);
-                    send(sender, LangService.format("commands.system.gave_soul_heart",
+                    SoulHeartService.give(target);
+                    sendMessage(sender, LangService.format("commands.system.gave_soul_heart",
                             "&aGave &fSoul Heart&a to &f%player%&a.", "%player%", target.getName()));
                     return;
                 }
 
                 if (itemId.equals("abyssal_tendrils")) {
-                    com.nightmare.relic.AbyssalTendrilsService.give(target);
-                    send(sender, LangService.format("commands.system.gave_tendrils",
+                    AbyssalTendrilsService.give(target);
+                    sendMessage(sender, LangService.format("commands.system.gave_tendrils",
                             "&aGave &5Abyssal Tendrils&a to &f%player%&a.", "%player%", target.getName()));
                     return;
                 }
@@ -502,7 +257,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 };
 
                 if (item == null) {
-                    send(sender, LangService.format("commands.system.could_not_create",
+                    sendMessage(sender, LangService.format("commands.system.could_not_create",
                             "&cCould not create '&f%input%&c'.", "%input%", args[4]));
                     return;
                 }
@@ -511,7 +266,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                     target.getWorld().dropItemNaturally(target.getLocation(), item);
                 }
 
-                send(sender, LangService.format("commands.system.gave_item",
+                sendMessage(sender, LangService.format("commands.system.gave_item",
                         "&aGave &f%item%&a to &f%player%&a.",
                         "%item%", itemId, "%player%", target.getName()));
             }
@@ -525,19 +280,20 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 Player target = Bukkit.getPlayerExact(args[3]);
 
                 if (target == null) {
-                    send(sender, LangService.format("commands.generic.player_offline",
+                    sendMessage(sender, LangService.format("commands.generic.player_offline",
                             "&cPlayer '&f%player%&c' is not online.", "%player%", args[3]));
                     return;
                 }
 
                 if (action.equals("info")) {
-                    send(sender, "&f" + target.getName() + "&7:");
-                    send(sender, LangService.format("commands.system.relic_state",
+                    sendMessage(sender, "&f" + target.getName() + "&7:");
+                    sendMessage(sender, LangService.format("commands.system.relic_state",
                             "&7%label%: &f%state%",
                             "%label%", relicName("soul_heart"), "%state%", relicState(target, true)));
-                    send(sender, LangService.format("commands.system.relic_state",
-                            "&7%label%: &f%state%",
-                            "%label%", relicName("abyssal_tendrils"), "%state%", relicState(target, false)));
+                    sendMessage(sender, LangService.format("commands.system.relic_state",
+                    "&7%label%: &f%state%",
+                    "%label%", relicName("abyssal_tendrils"), "%state%", relicState(target, false)));
+
                     return;
                 }
 
@@ -549,33 +305,33 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 String relic = normalizeRelic(args[4]);
 
                 if (relic == null) {
-                    send(sender, LangService.format("commands.system.unknown_relic",
+                    sendMessage(sender, LangService.format("commands.system.unknown_relic",
                             "&cUnknown relic '&f%input%&c'.", "%input%", args[4]));
                     return;
                 }
 
                 if (action.equals("give")) {
                     if (relic.equals("soul_heart")) {
-                        if (com.nightmare.relic.SoulHeartService.hasHeart(target)) {
-                            send(sender, LangService.format("commands.system.already_has",
+                        if (SoulHeartService.hasHeart(target)) {
+                            sendMessage(sender, LangService.format("commands.system.already_has",
                                     "&c%player% already has %relic% equipped.",
                                     "%player%", target.getName(), "%relic%", relicName("soul_heart")));
                             return;
                         }
 
-                        com.nightmare.relic.SoulHeartService.give(target);
+                        SoulHeartService.give(target);
                     } else {
                         if (AbyssalTendrilsItem.isTendrils(target.getInventory().getItem(17))) {
-                            send(sender, LangService.format("commands.system.already_has",
+                            sendMessage(sender, LangService.format("commands.system.already_has",
                                     "&c%player% already has %relic% equipped.",
                                     "%player%", target.getName(), "%relic%", relicName("abyssal_tendrils")));
                             return;
                         }
 
-                        com.nightmare.relic.AbyssalTendrilsService.give(target);
+                        AbyssalTendrilsService.give(target);
                     }
 
-                    send(sender, LangService.format("commands.system.gave_relic",
+                    sendMessage(sender, LangService.format("commands.system.gave_relic",
                             "&aGave &f%relic%&a to &f%player%&a.",
                             "%relic%", relicName(relic), "%player%", target.getName()));
                     return;
@@ -583,17 +339,17 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
                 if (action.equals("remove")) {
                     boolean removed = relic.equals("soul_heart")
-                            ? com.nightmare.relic.SoulHeartService.remove(target)
-                            : com.nightmare.relic.AbyssalTendrilsService.remove(target);
+                            ? SoulHeartService.remove(target)
+                            : AbyssalTendrilsService.remove(target);
 
                     if (!removed) {
-                        send(sender, LangService.format("commands.system.does_not_have",
+                        sendMessage(sender, LangService.format("commands.system.does_not_have",
                                 "&c%player% does not have %relic% equipped.",
                                 "%player%", target.getName(), "%relic%", relicName(relic)));
                         return;
                     }
 
-                    send(sender, LangService.format("commands.system.removed_relic",
+                    sendMessage(sender, LangService.format("commands.system.removed_relic",
                             "&aRemoved &f%relic%&a from &f%player%&a.",
                             "%relic%", relicName(relic), "%player%", target.getName()));
                     return;
@@ -601,26 +357,26 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
                 if (action.equals("restore")) {
                     if (relic.equals("soul_heart")) {
-                        com.nightmare.relic.SoulHeartService.ensureBound(target);
+                        SoulHeartService.ensureBound(target);
 
-                        if (!com.nightmare.relic.SoulHeartService.hasHeart(target)) {
-                            send(sender, LangService.format("commands.system.not_in_inventory",
+                        if (!SoulHeartService.hasHeart(target)) {
+                            sendMessage(sender, LangService.format("commands.system.not_in_inventory",
                                     "&c%relic% is not in %player%'s inventory.",
                                     "%relic%", relicName("soul_heart"), "%player%", target.getName()));
                             return;
                         }
                     } else {
-                        com.nightmare.relic.AbyssalTendrilsService.ensureBound(target);
+                        AbyssalTendrilsService.ensureBound(target);
 
                         if (!AbyssalTendrilsItem.isTendrils(target.getInventory().getItem(17))) {
-                            send(sender, LangService.format("commands.system.not_in_inventory",
+                            sendMessage(sender, LangService.format("commands.system.not_in_inventory",
                                     "&c%relic% is not in %player%'s inventory.",
                                     "%relic%", relicName("abyssal_tendrils"), "%player%", target.getName()));
                             return;
                         }
                     }
 
-                    send(sender, LangService.format("commands.system.restored_relic",
+                    sendMessage(sender, LangService.format("commands.system.restored_relic",
                             "&aRestored &f%relic%&a for &f%player%&a.",
                             "%relic%", relicName(relic), "%player%", target.getName()));
                     return;
@@ -636,10 +392,10 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
                 if (args[2].equalsIgnoreCase("@a")) {
                     for (Player target : Bukkit.getOnlinePlayers()) {
-                        com.nightmare.core.CooldownResetService.reset(target.getUniqueId());
+                        CooldownResetService.reset(target.getUniqueId());
                     }
 
-                    send(sender, LangService.format("commands.system.reset_all_players",
+                    sendMessage(sender, LangService.format("commands.system.reset_all_players",
                             "&aReset all cooldowns for &f%count%&a players.",
                             "%count%", String.valueOf(Bukkit.getOnlinePlayers().size())));
                     return;
@@ -649,7 +405,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
                 if (args[2].equalsIgnoreCase("@player") || args[2].equalsIgnoreCase("@s")) {
                     if (!(sender instanceof Player player)) {
-                        send(sender, LangService.msg("commands.generic.use_name_or_console",
+                        sendMessage(sender, LangService.msg("commands.generic.use_name_or_console",
                                 "&cUse a player name or @a from the console."));
                         return;
                     }
@@ -660,22 +416,23 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 }
 
                 if (target == null) {
-                    org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(args[2]);
+                    OfflinePlayer offline = Bukkit.getOfflinePlayer(args[2]);
 
                     if (!offline.hasPlayedBefore()) {
-                        send(sender, LangService.format("commands.generic.never_joined",
+                        sendMessage(sender, LangService.format("commands.generic.never_joined",
                                 "&cPlayer '&f%player%&c' has never joined this server.", "%player%", args[2]));
                         return;
                     }
 
-                    com.nightmare.core.CooldownResetService.reset(offline.getUniqueId());
-                    send(sender, LangService.format("commands.system.reset_all_named",
+                    CooldownResetService.reset(offline.getUniqueId());
+                    sendMessage(sender, LangService.format("commands.system.reset_all_named",
                             "&aReset all cooldowns for &f%player%&a.", "%player%", args[2]));
                     return;
                 }
 
-                com.nightmare.core.CooldownResetService.reset(target.getUniqueId());
-                send(sender, LangService.format("commands.system.reset_all_named",
+                CooldownResetService.reset(target.getUniqueId());
+
+                sendMessage(sender, LangService.format("commands.system.reset_all_named",
                         "&aReset all cooldowns for &f%player%&a.", "%player%", target.getName()));
             }
             case "reload" -> {
@@ -701,440 +458,9 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                 handleAirdrop(sender);
             }
 
-            default -> send(sender, LangService.format("commands.system.unknown_command",
+            default -> sendMessage(sender, LangService.format("commands.system.unknown_command",
                 "&cUnknown system subcommand '&f%input%&c'.", "%input%", args[1]));
         }
-    }
-
-    private void handleAirdrop(CommandSender sender) {
-        org.bukkit.World world;
-
-        if (sender instanceof Player player) {
-            world = player.getWorld();
-        } else {
-            world = Bukkit.getWorlds().stream()
-                    .filter(candidate -> candidate.getEnvironment() == org.bukkit.World.Environment.NORMAL)
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        if (world == null) {
-            send(sender, LangService.msg("commands.system.airdrop_no_world",
-                    "&cNo normal world is available for the god drop."));
-            return;
-        }
-
-        if (com.nightmare.world.GodDropService.triggerNow(world)) {
-            send(sender, LangService.format("commands.system.airdrop_started",
-                    "&aGod drop created in &f%world%&a.", "%world%", world.getName()));
-        } else {
-            send(sender, LangService.msg("commands.system.airdrop_failed",
-                    "&cCould not create the god drop. Check the console for details."));
-        }
-    }
-
-    private void handleRevive(CommandSender sender, String[] args) {
-
-        if (args.length != 3) {
-
-            sendUsage(sender, "/nightmare system revive <player|@s|@a>");
-
-            return;
-        }
-
-        String query = args[2];
-
-        if (query.equalsIgnoreCase("@a")) {
-
-            int revived = 0;
-
-            for (Player target : Bukkit.getOnlinePlayers()) {
-
-                if (pardonBan(target.getName())) {
-
-                    revived++;
-                }
-            }
-
-            for (org.bukkit.OfflinePlayer banned : Bukkit.getBannedPlayers()) {
-
-                String name = banned.getName();
-
-                if (name != null && isNightmareBan(name) && pardonBan(name)) {
-
-                    revived++;
-                }
-            }
-
-            send(sender, LangService.format("commands.system.revived_many",
-                    "&aRevived &f%count%&a players.", "%count%", String.valueOf(revived)));
-
-            return;
-        }
-
-        if (query.equalsIgnoreCase("@s") || query.equalsIgnoreCase("@player")) {
-
-            if (!(sender instanceof Player self)) {
-
-                send(sender, LangService.msg("commands.generic.use_name_or_console",
-                        "&cUse a player name or @a from the console."));
-
-                return;
-            }
-
-            query = self.getName();
-        }
-
-        Player online = Bukkit.getPlayerExact(query);
-
-        String targetName = online != null ? online.getName() : query;
-
-        if (online == null) {
-
-            org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(query);
-
-            if (offline.getName() != null) {
-
-                targetName = offline.getName();
-            }
-        }
-
-        if (!Bukkit.getBanList(org.bukkit.BanList.Type.NAME).isBanned(targetName)) {
-
-            send(sender, LangService.format("commands.system.not_banned",
-                    "&7%player% is not banned.", "%player%", targetName));
-
-            return;
-        }
-
-        pardonBan(targetName);
-
-        send(sender, LangService.format("commands.system.revived_one",
-                "&aRevived &f%player%&a.", "%player%", targetName));
-    }
-
-    private static boolean pardonBan(String name) {
-
-        boolean pardoned = false;
-
-        org.bukkit.BanList nameBan = Bukkit.getBanList(org.bukkit.BanList.Type.NAME);
-
-        if (nameBan.isBanned(name)) {
-
-            nameBan.pardon(name);
-
-            pardoned = true;
-        }
-
-        try {
-
-            org.bukkit.BanList profileBan = Bukkit.getBanList(org.bukkit.BanList.Type.PROFILE);
-
-            if (profileBan.isBanned(name)) {
-
-                profileBan.pardon(name);
-
-                pardoned = true;
-            }
-
-        } catch (Exception ignored) {
-
-            // Paper < 1.21 or Bukkit without PROFILE: NAME only applies.
-        }
-
-        return pardoned;
-    }
-
-    private static boolean isNightmareBan(String name) {
-
-        org.bukkit.BanEntry entry = Bukkit.getBanList(org.bukkit.BanList.Type.NAME).getBanEntry(name);
-
-        return entry != null && "NightmareCore".equals(entry.getSource());
-    }
-
-    private void handleAltar(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            sendUsage(sender, "/nightmare system altar <place|list|teleport|remove> [theme|id]");
-            return;
-        }
-
-        switch (args[2].toLowerCase()) {
-            case "place" -> {
-                if (!(sender instanceof Player player)) {
-                    send(sender, LangService.msg("commands.system.only_players_place",
-                            "&cOnly players can place altars."));
-                    return;
-                }
-
-                if (args.length != 4) {
-                    sendUsage(sender, "/nightmare system altar place <forge|soul|abyss|nightmare|relics>");
-                    return;
-                }
-
-                com.nightmare.world.StructureTheme theme = com.nightmare.world.StructureTheme.byName(args[3]);
-
-                if (theme == null) {
-                    send(sender, LangService.format("commands.system.unknown_theme",
-                            "&cUnknown altar theme '&f%input%&c'.", "%input%", args[3]));
-                    return;
-                }
-
-                com.nightmare.world.StructureService.Altar altar =
-                        com.nightmare.world.StructureService.buildAt(player, theme);
-
-                send(sender, LangService.format("commands.system.built_altar",
-                        "&aBuilt %theme% altar &f%id%&a.",
-                        "%theme%", theme.name().toLowerCase(), "%id%", altar.id()));
-            }
-            case "list" -> {
-                java.util.List<com.nightmare.world.StructureService.Altar> altars =
-                        com.nightmare.world.StructureService.list();
-
-                if (altars.isEmpty()) {
-                    send(sender, LangService.msg("commands.system.no_altars",
-                            "&7No altars registered."));
-                    return;
-                }
-
-                for (com.nightmare.world.StructureService.Altar altar : altars) {
-                    send(sender, "&7- &f" + altar.id() + " &7(" + altar.theme().toLowerCase() + ")");
-                }
-            }
-            case "teleport" -> {
-                if (!(sender instanceof Player player)) {
-                    send(sender, LangService.msg("commands.system.only_players_teleport",
-                            "&cOnly players can teleport to altars."));
-                    return;
-                }
-
-                if (args.length != 4) {
-                    sendUsage(sender, "/nightmare system altar teleport <id>");
-                    return;
-                }
-
-                com.nightmare.world.StructureService.Altar altar =
-                        com.nightmare.world.StructureService.get(args[3]);
-
-                if (altar == null) {
-                    send(sender, LangService.format("commands.system.unknown_altar", "&cUnknown altar '&f%input%&c'.", "%input%", args[3]));
-                    return;
-                }
-                org.bukkit.World world = Bukkit.getWorld(altar.world());
-
-                if (world == null) {
-                    send(sender, LangService.msg("commands.system.world_not_loaded",
-                            "&cThat world is not loaded."));
-                    return;
-                }
-
-                player.teleport(new org.bukkit.Location(world, altar.x() + 0.5, altar.y() + 1, altar.z() + 0.5));
-                send(sender, LangService.format("commands.system.teleported_altar",
-                        "&aTeleported to altar &f%id%&a.", "%id%", altar.id()));
-            }
-            case "remove" -> {
-                if (args.length != 4) {
-                    sendUsage(sender, "/nightmare system altar remove <id>");
-                    return;
-                }
-
-                if (com.nightmare.world.StructureService.remove(args[3])) {
-                    send(sender, LangService.format("commands.system.removed_altar",
-                            "&aRemoved altar &f%id%&a.", "%id%", args[3]));
-                } else {
-                    send(sender, LangService.format("commands.system.unknown_altar", "&cUnknown altar '&f%input%&c'.", "%input%", args[3]));
-                }
-            }
-            default -> sendUsage(sender, "/nightmare system altar <place|list|teleport|remove> [theme|id]");
-        }
-    }
-
-    private void handleStory(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            send(sender, LangService.msg("commands.story.chronicle_only_player",
-                "&cThe chronicle can only be opened by a player."));
-            return;
-        }
-
-        if (!sender.hasPermission("nightmare.story")) {
-            sendPermission(sender);
-            return;
-        }
-
-        if (args.length != 1) {
-            sendUsage(sender, "/nightmare story");
-            return;
-        }
-
-        com.nightmare.gui.StoryService.open(player, 0);
-    }
-
-    private void handleCreator(CommandSender sender, String[] args) {
-        if (args.length != 1) {
-            sendUsage(sender, "/nightmare creator");
-            return;
-        }
-
-        String prefix = IO.HashMapOfSettings.getOrDefault("prefix", "");
-
-        if (sender instanceof Player player) {
-            TextComponent github = new TextComponent("Github 🔱  ");
-
-            github.setBold(true);
-            github.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
-            github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/StevensBenavides/NightmareCore"));
-            github.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new Text(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.github_hover",
-                            "&fOpen the creator's GitHub.")))));
-
-            TextComponent discord = new TextComponent("Discord ⚡");
-            discord.setBold(true);
-            discord.setColor(net.md_5.bungee.api.ChatColor.AQUA);
-            discord.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.com/invite/DWfuQRsxwb"));
-            discord.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new Text(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.discord_hover",
-                            "&fOpen the creator's Discord.")))));
-
-            player.sendMessage("");
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix));
-            player.sendMessage("");
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.support",
-                    "&7Support the creator through &8Github &7or &bDiscord&7.")));
-            player.sendMessage("");
-            player.spigot().sendMessage(github, discord);
-            player.sendMessage("");
-            player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 1.0F, 1.0F);
-
-            return;
-        }
-
-        sender.sendMessage("");
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix));
-        sender.sendMessage("");
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.support",
-                "&7Support the creator through &8Github &7or &bDiscord&7.")));
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.github_line",
-                "&8&lGithub: &7https://github.com/StevensBenavides/NightmareCore")));
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.discord_line",
-                "&b&lDiscord: &7https://discord.com/invite/DWfuQRsxwb")));
-        sender.sendMessage("");
-    }
-
-    private void sendHelpText(CommandSender sender) {
-        for (String line : LangService.list("commands.help.help_text")) {
-            send(sender, line);
-        }
-    }
-
-    private void sendCommandHelp(CommandSender sender) {
-        for (String line : LangService.list("commands.help.command_help")) {
-            send(sender, line);
-        }
-    }
-
-    private static void send(CommandSender sender, String message) {
-        String prefix = IO.HashMapOfSettings.getOrDefault("prefix", "");
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + message));
-    }
-
-    private static void sendUsage(CommandSender sender, String usage) {
-        send(sender, LangService.msg("commands.generic.usage_prefix", "&cUsage: &f") + usage);
-    }
-
-    private static void sendPermission(CommandSender sender) {
-        String message = IO.HashMapOfMessages.getOrDefault("permission", null);
-
-        if (message == null) {
-            message = LangService.msg("commands.generic.no_permission", "&cYou do not have permission.");
-        }
-
-        send(sender, message);
-    }
-
-    private static String normalizeEnchant(String input) {
-        String normalized = input.toLowerCase().replace('-', '_').replace(' ', '_').replace("'", "");
-
-        if (EnchantRegistry.ENCHANTS.containsKey(normalized)) {
-            return normalized;
-        }
-
-        for (CustomEnchant enchant : EnchantRegistry.ALL) {
-            String display = enchant.displayName.toLowerCase().replace("'", "").replace(' ', '_');
-
-            if (display.equals(normalized)) {
-                return enchant.id;
-            }
-        }
-
-        return null;
-    }
-
-    private static String normalizeRelic(String input) {
-        String normalized = input.toLowerCase().replace('-', '_').replace(' ', '_');
-
-        return switch (normalized) {
-            case "soulheart", "soul_heart", "soul" -> "soul_heart";
-            case "tendrils", "abyssal_tendrils", "tendril" -> "abyssal_tendrils";
-            default -> null;
-        };
-    }
-
-    private static String relicName(String id) {
-        return id.equals("soul_heart")
-                ? ChatColor.translateAlternateColorCodes('&', LangService.msg("relics.soul_heart.name", "❖ Soul Heart"))
-                : ChatColor.translateAlternateColorCodes('&', LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"));
-    }
-
-    private static String relicState(Player player, boolean soulHeart) {
-        String active = LangService.msg("commands.system.relic_state_active", "active");
-        String inInventory = LangService.msg("commands.system.relic_state_in_inventory", "in inventory");
-        String notFound = LangService.msg("commands.system.relic_state_not_found", "not found");
-
-        if (soulHeart) {
-            if (com.nightmare.relic.SoulHeartService.hasHeart(player)) {
-                return active;
-            }
-
-            return com.nightmare.relic.SoulHeartService.hasHeartInInventory(player) ? inInventory : notFound;
-        }
-
-        if (AbyssalTendrilsItem.isTendrils(player.getInventory().getItem(17))) {
-            return active;
-        }
-
-        return com.nightmare.relic.AbyssalTendrilsService.hasTendrilsInInventory(player) ? inInventory : notFound;
-    }
-
-    private static String normalizeItem(String input) {
-        String normalized = input.toLowerCase().replace('-', '_').replace(' ', '_').replace("'", "");
-
-        return switch (normalized) {
-            case "soulheart", "soul_heart", "soul" -> "soul_heart";
-            case "tendrils", "amulet", "abyssal_tendrils_amulet", "abyssal_tendrils" -> "abyssal_tendrils";
-            case "ink", "abyssal_ink" -> "abyssal_ink";
-            case "nucleus", "abyssal_nucleus" -> "abyssal_nucleus";
-            case "howl", "abyssal_howl" -> "abyssal_howl";
-            case "core", "abyssal_core" -> "abyssal_core";
-            default -> null;
-        };
-    }
-
-    private static List<String> filter(List<String> options, String prefix) {
-        List<String> result = new ArrayList<>();
-
-        if (options == null || options.isEmpty()) {
-            return result;
-        }
-
-        String lower = prefix.toLowerCase();
-
-        for (String option : options) {
-            if (option.toLowerCase().startsWith(lower)) {
-                result.add(option);
-            }
-        }
-
-        Collections.sort(result);
-        return result;
     }
 
     @Override
@@ -1218,14 +544,11 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
                     suggestions.add("@a");
 
                     for (Player player : Bukkit.getOnlinePlayers()) {
-
                         suggestions.add(player.getName());
                     }
 
-                    for (org.bukkit.BanEntry entry : Bukkit.getBanList(org.bukkit.BanList.Type.NAME).getBanEntries()) {
-
+                    for (BanEntry entry : Bukkit.getBanList(BanList.Type.NAME).getBanEntries()) {
                         if ("NightmareCore".equals(entry.getSource())) {
-
                             suggestions.add(entry.getTarget());
                         }
                     }
@@ -1258,7 +581,7 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
 
             if (args[2].equalsIgnoreCase("teleport") || args[2].equalsIgnoreCase("remove")) {
                 List<String> ids = new ArrayList<>();
-                for (com.nightmare.world.StructureService.Altar altar : com.nightmare.world.StructureService.list()) {
+                for (StructureService.Altar altar : StructureService.list()) {
                     ids.add(altar.id());
                 }
                 return filter(ids, args[3]);
@@ -1333,10 +656,681 @@ public final class NightmareCommand implements CommandExecutor, TabCompleter {
         return List.of();
     }
 
+    private void handleAltar(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sendUsage(sender, "/nightmare system altar <place|list|teleport|remove> [theme|id]");
+            return;
+        }
+
+        switch (args[2].toLowerCase()) {
+            case "place" -> {
+                if (!(sender instanceof Player player)) {
+                    sendMessage(sender, LangService.msg("commands.system.only_players_place",
+                            "&cOnly players can place altars."));
+                    return;
+                }
+
+                if (args.length != 4) {
+                    sendUsage(sender, "/nightmare system altar place <forge|soul|abyss|nightmare|relics>");
+                    return;
+                }
+
+                StructureTheme theme = StructureTheme.byName(args[3]);
+
+                if (theme == null) {
+                    sendMessage(sender, LangService.format("commands.system.unknown_theme",
+                            "&cUnknown altar theme '&f%input%&c'.", "%input%", args[3]));
+                    return;
+                }
+
+                StructureService.Altar altar =
+                        StructureService.buildAt(player, theme);
+
+                sendMessage(sender, LangService.format("commands.system.built_altar",
+                "&aBuilt %theme% altar &f%id%&a.",
+                "%theme%", theme.name().toLowerCase(), "%id%", altar.id()));
+            }
+            case "list" -> {
+                java.util.List<StructureService.Altar> altars =
+                        StructureService.list();
+
+                if (altars.isEmpty()) {
+                    sendMessage(sender, LangService.msg("commands.system.no_altars",
+                            "&7No altars registered."));
+                    return;
+                }
+
+                for (StructureService.Altar altar : altars) {
+                    sendMessage(sender, "&7- &f" + altar.id() + " &7(" + altar.theme().toLowerCase() + ")");
+                }
+            }
+            case "teleport" -> {
+                if (!(sender instanceof Player player)) {
+                    sendMessage(sender, LangService.msg("commands.system.only_players_teleport",
+                            "&cOnly players can teleport to altars."));
+                    return;
+                }
+
+                if (args.length != 4) {
+                    sendUsage(sender, "/nightmare system altar teleport <id>");
+                    return;
+                }
+
+                StructureService.Altar altar =
+                        StructureService.get(args[3]);
+
+                if (altar == null) {
+                    sendMessage(sender, LangService.format("commands.system.unknown_altar", "&cUnknown altar '&f%input%&c'.", "%input%", args[3]));
+                    return;
+                }
+                World world = Bukkit.getWorld(altar.world());
+
+                if (world == null) {
+                    sendMessage(sender, LangService.msg("commands.system.world_not_loaded",
+                            "&cThat world is not loaded."));
+                    return;
+                }
+
+                player.teleport(new Location(world, altar.x() + 0.5, altar.y() + 1, altar.z() + 0.5));
+                sendMessage(sender, LangService.format("commands.system.teleported_altar",
+                        "&aTeleported to altar &f%id%&a.", "%id%", altar.id()));
+            }
+            case "remove" -> {
+                if (args.length != 4) {
+                    sendUsage(sender, "/nightmare system altar remove <id>");
+                    return;
+                }
+
+                if (StructureService.remove(args[3])) {
+                    sendMessage(sender, LangService.format("commands.system.removed_altar",
+                            "&aRemoved altar &f%id%&a.", "%id%", args[3]));
+                } else {
+                    sendMessage(sender, LangService.format("commands.system.unknown_altar", "&cUnknown altar '&f%input%&c'.", "%input%", args[3]));
+                }
+            }
+            default -> sendUsage(sender, "/nightmare system altar <place|list|teleport|remove> [theme|id]");
+        }
+    }
+
+    private void handleTime(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("nightmare.system")) {
+            sendPermission(sender);
+            return;
+        }
+
+        if (args.length != 3) {
+            sendUsage(sender, "/nightmare time <add|remove> <days>");
+            return;
+        }
+
+        int days;
+
+        try {
+            days = Integer.parseInt(args[2]);
+        } catch (NumberFormatException exception) {
+            sendMessage(sender, LangService.msg("commands.time.invalid_days",
+                    "&cInvalid number of days."));
+            return;
+        }
+
+        if (days <= 0) {
+            sendMessage(sender, LangService.msg("commands.time.days_positive",
+                    "&cDays must be a positive number."));
+            return;
+        }
+
+        if (args[1].equalsIgnoreCase("add")) {
+            long ticks = days * 24000L;
+
+            for (World world : Bukkit.getWorlds()) {
+                world.setFullTime(world.getFullTime() + ticks);
+            }
+
+            TimeManagement.updateWorldsTimes();
+
+            sendMessage(sender, LangService.format("commands.time.added_days",
+                    "&aAdded &6%days%&a day(s) to all worlds.", "%days%", String.valueOf(days)));
+            return;
+        }
+
+        if (args[1].equalsIgnoreCase("remove")) {
+            long ticks = days * 24000L;
+
+            for (World world : Bukkit.getWorlds()) {
+                if (world.getFullTime() - ticks < 24000L) {
+                    sendMessage(sender, LangService.msg("commands.time.cannot_below_day1",
+                            "&cYou cannot set any world below day 1."));
+                    return;
+                }
+            }
+
+            for (World world : Bukkit.getWorlds()) {
+                world.setFullTime(world.getFullTime() - ticks);
+            }
+
+            TimeManagement.updateWorldsTimes();
+            sendMessage(sender, LangService.format("commands.time.removed_days",
+                    "&aRemoved &6%days%&a day(s) from all worlds.", "%days%", String.valueOf(days)));
+            return;
+        }
+
+        sendUsage(sender, "/nightmare time <add|remove> <days>");
+    }
+
+    private void handleRevive(CommandSender sender, String[] args) {
+        if (args.length != 3) {
+            sendUsage(sender, "/nightmare system revive <player|@s|@a>");
+            return;
+        }
+
+        String query = args[2];
+
+        if (query.equalsIgnoreCase("@a")) {
+            int revived = 0;
+
+            for (Player target : Bukkit.getOnlinePlayers()) {
+                if (pardonBan(target.getName())) {
+
+                    revived++;
+                }
+            }
+
+            for (OfflinePlayer banned : Bukkit.getBannedPlayers()) {
+                String name = banned.getName();
+
+                if (name != null && isNightmareBan(name) && pardonBan(name)) {
+                    revived++;
+                }
+            }
+
+            sendMessage(sender, LangService.format("commands.system.revived_many",
+                    "&aRevived &f%count%&a players.", "%count%", String.valueOf(revived)));
+
+            return;
+        }
+
+        if (query.equalsIgnoreCase("@s") || query.equalsIgnoreCase("@player")) {
+            if (!(sender instanceof Player self)) {
+                sendMessage(sender, LangService.msg("commands.generic.use_name_or_console",
+                        "&cUse a player name or @a from the console."));
+
+                return;
+            }
+
+            query = self.getName();
+        }
+
+        Player online = Bukkit.getPlayerExact(query);
+        String targetName = online != null ? online.getName() : query;
+
+        if (online == null) {
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(query);
+            if (offline.getName() != null) {
+                targetName = offline.getName();
+            }
+        }
+
+        if (!Bukkit.getBanList(BanList.Type.NAME).isBanned(targetName)) {
+            sendMessage(sender, LangService.format("commands.system.not_banned",
+                    "&7%player% is not banned.", "%player%", targetName));
+
+            return;
+        }
+
+        pardonBan(targetName);
+
+        sendMessage(sender, LangService.format("commands.system.revived_one",
+                "&aRevived &f%player%&a.", "%player%", targetName));
+    }
+
+    private void handleCreator(CommandSender sender, String[] args) {
+        if (args.length != 1) {
+            sendUsage(sender, "/nightmare creator");
+            return;
+        }
+
+        String prefix = IO.HashMapOfSettings.getOrDefault("prefix", "");
+
+        if (sender instanceof Player player) {
+            TextComponent github = new TextComponent("Github 🔱  ");
+
+            github.setBold(true);
+            github.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
+            github.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/StevensBenavides/NightmareCore"));
+            github.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                    new Text(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.github_hover",
+                            "&fOpen the creator's GitHub.")))));
+
+            TextComponent discord = new TextComponent("Discord ⚡");
+            discord.setBold(true);
+            discord.setColor(net.md_5.bungee.api.ChatColor.AQUA);
+            discord.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.com/invite/DWfuQRsxwb"));
+            discord.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                    new Text(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.discord_hover",
+                            "&fOpen the creator's Discord.")))));
+
+            player.sendMessage("");
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix));
+            player.sendMessage("");
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.support",
+                    "&7Support the creator through &8Github &7or &bDiscord&7.")));
+            player.sendMessage("");
+            player.spigot().sendMessage(github, discord);
+            player.sendMessage("");
+            player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 1.0F, 1.0F);
+
+            return;
+        }
+
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix));
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.support",
+                "&7Support the creator through &8Github &7or &bDiscord&7.")));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.github_line",
+                "&8&lGithub: &7https://github.com/StevensBenavides/NightmareCore")));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', LangService.msg("commands.creator.discord_line",
+                "&b&lDiscord: &7https://discord.com/invite/DWfuQRsxwb")));
+        sender.sendMessage("");
+    }
+
+    private void handleHelp(CommandSender sender, String[] args) {
+        if (args.length > 2) {
+            sendUsage(sender, "/nightmare help [enchants|relics|commands|<ench>]");
+            return;
+        }
+
+        if (args.length == 1) {
+            if (sender instanceof Player player) {
+                GuiManager.openMain(player);
+            } else {
+                sendHelpText(sender);
+            }
+
+            return;
+        }
+
+        String target = args[1].toLowerCase();
+
+        if (target.equals("commands")) {
+            sendCommandHelp(sender);
+            return;
+        }
+
+        if (!(sender instanceof Player player)) {
+            sendMessage(sender, LangService.msg("commands.generic.gui_only_players",
+                    "The Nightmare help GUI is only available to players."));
+            sendHelpText(sender);
+            return;
+        }
+
+        if (target.equals("enchants")) {
+            GuiManager.openEnchantList(player);
+            return;
+        }
+
+        if (target.equals("relics")) {
+            GuiManager.openRelics(player);
+            return;
+        }
+
+        String id = normalizeEnchant(args[1]);
+
+        if (id == null) {
+            sendMessage(sender, LangService.format("commands.generic.unknown_enchant",
+                    "&cUnknown enchant or help category '&f%input%&c'.", "%input%", args[1]));
+            return;
+        }
+
+        GuiManager.openEnchantDetail(player, id, id.equals("nightmare_mark") ? 5 : 1);
+    }
+
+    private void validateAllReloadFiles() throws IOException {
+        String[] files = {
+                "messages.yml", "settings.yml", "enchants.yml", "balance.yml",
+                "mobs.yml", "enchant-lore.yml", "structures.yml"};
+
+        for (String name : files) {
+            File file = new File(plugin.getDataFolder(), name);
+
+            if (!file.exists()) {
+                throw new IOException(name + " does not exist.");
+            }
+
+            if (YamlConfiguration.loadConfiguration(file).getKeys(false).isEmpty()) {
+                throw new IOException(name + " is empty or invalid.");
+            }
+        }
+
+        File story = new File(plugin.getDataFolder(), "story.yml");
+
+        if (!story.exists()) {
+            throw new IOException("story.yml does not exist.");
+        }
+
+        if (YamlConfiguration.loadConfiguration(story).getMapList("chapters").isEmpty()) {
+            throw new IOException("story.yml has no chapters.");
+        }
+
+        YamlConfiguration settings = YamlConfiguration.loadConfiguration(
+                new File(plugin.getDataFolder(), "settings.yml"));
+
+        if (settings.getString("prefix") == null) {
+            throw new IOException("prefix not found in settings.yml.");
+        }
+    }
+
+    private void reloadOne(String target) throws Exception {
+        switch (target) {
+            case "messages.yml" -> {
+                IO.reloadMessages(plugin);
+                LangService.reload(plugin);
+            }
+            case "settings.yml" -> {
+                IO.reloadSettings(plugin);
+                LangService.reload(plugin);
+            }
+            case "language" -> LangService.reload(plugin);
+            case "time" -> {
+                TimeManagement.updatePlayerTimes();
+                TimeManagement.updateWorldsTimes();
+            }
+            case "enchants.yml" -> Main.enchants = loadReloadYaml("enchants.yml");
+            case "balance.yml" -> Main.balance = loadReloadYaml("balance.yml");
+            case "mobs.yml" -> MobProfileLoader.load(plugin);
+            case "enchant-lore.yml" -> Main.enchantLore = loadReloadYaml("enchant-lore.yml");
+            case "story.yml" -> StoryService.load(plugin);
+            case "structures.yml" -> StructureService.load(plugin);
+            default -> throw new IllegalArgumentException("Unknown reload target: " + target);
+        }
+    }
+
+    private void handleAirdrop(CommandSender sender) {
+        World world;
+
+        if (sender instanceof Player player) {
+            world = player.getWorld();
+        } else {
+            world = Bukkit.getWorlds().stream()
+                    .filter(candidate -> candidate.getEnvironment() == World.Environment.NORMAL)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (world == null) {
+            sendMessage(sender, LangService.msg("commands.system.airdrop_no_world",
+                    "&cNo normal world is available for the god drop."));
+            return;
+        }
+
+        if (GodDropService.triggerNow(world)) {
+            sendMessage(sender, LangService.format("commands.system.airdrop_started",
+                    "&aGod drop created in &f%world%&a.", "%world%", world.getName()));
+        } else {
+            sendMessage(sender, LangService.msg("commands.system.airdrop_failed",
+                    "&cCould not create the god drop. Check the console for details."));
+        }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) {
+            if (sender instanceof Player player) {
+                GuiManager.openMain(player);
+            } else {
+                sendHelpText(sender);
+            }
+
+            return true;
+        }
+
+        switch (args[0].toLowerCase()) {
+            case "help", "h" -> handleHelp(sender, args);
+            case "reload" -> handleReload(sender, args);
+            case "time" -> handleTime(sender, args);
+            case "creator", "creators" -> handleCreator(sender, args);
+            case "system", "sys" -> handleSystem(sender, args);
+            case "story", "chronicle" -> handleStory(sender, args);
+            default -> sendMessage(sender, LangService.msg("commands.generic.unknown_subcommand",
+                    "&cUnknown subcommand. Use &f/nightmare help commands&c."));
+        }
+
+        return true;
+    }
+
+    private void reloadTarget(CommandSender sender, String target) {
+        if (!RELOAD_TARGETS.contains(target)) {
+            sendMessage(sender, LangService.format("commands.generic.unknown_reload_target",
+                    "&cUnknown reload target '&f%target%&c'.", "%target%", target));
+            return;
+        }
+
+        try {
+            if (target.equals("all")) {
+                validateAllReloadFiles();
+                reloadAll();
+            } else {
+                reloadOne(target);
+            }
+
+            sendMessage(sender, LangService.format("commands.reload.done",
+                    "&aReloaded &f%target%&a.", "%target%", target));
+        } catch (Exception exception) {
+            sendMessage(sender, LangService.format("commands.reload.failed",
+                    "&cCould not reload &f%target%&c: %error%", "%target%", target,
+                    "%error%", (exception.getMessage() != null ? exception.getMessage() : "unknown")));
+        }
+    }
+
+    private static boolean pardonBan(String name) {
+        boolean pardoned = false;
+        BanList nameBan = Bukkit.getBanList(BanList.Type.NAME);
+
+        if (nameBan.isBanned(name)) {
+            nameBan.pardon(name);
+            pardoned = true;
+        }
+
+        try {
+            BanList profileBan = Bukkit.getBanList(BanList.Type.PROFILE);
+
+            if (profileBan.isBanned(name)) {
+                profileBan.pardon(name);
+                pardoned = true;
+            }
+
+        } catch (Exception ignored) {
+            // Paper < 1.21 or Bukkit without PROFILE: NAME only applies.
+        }
+
+        return pardoned;
+    }
+
+    private void handleStory(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sendMessage(sender, LangService.msg("commands.story.chronicle_only_player",
+                "&cThe chronicle can only be opened by a player."));
+            return;
+        }
+
+        if (!sender.hasPermission("nightmare.story")) {
+            sendPermission(sender);
+            return;
+        }
+
+        if (args.length != 1) {
+            sendUsage(sender, "/nightmare story");
+            return;
+        }
+
+        StoryService.open(player, 0);
+    }
+
+    private static String relicState(Player player, boolean soulHeart) {
+        String active = LangService.msg("commands.system.relic_state_active", "active");
+        String inInventory = LangService.msg("commands.system.relic_state_in_inventory", "in inventory");
+        String notFound = LangService.msg("commands.system.relic_state_not_found", "not found");
+
+        if (soulHeart) {
+            if (SoulHeartService.hasHeart(player)) {
+                return active;
+            }
+
+            return SoulHeartService.hasHeartInInventory(player) ? inInventory : notFound;
+        }
+
+        if (AbyssalTendrilsItem.isTendrils(player.getInventory().getItem(17))) {
+            return active;
+        }
+
+        return AbyssalTendrilsService.hasTendrilsInInventory(player) ? inInventory : notFound;
+    }
+
+    private static List<String> filter(List<String> options, String prefix) {
+        List<String> result = new ArrayList<>();
+
+        if (options == null || options.isEmpty()) {
+            return result;
+        }
+
+        String lower = prefix.toLowerCase();
+
+        for (String option : options) {
+            if (option.toLowerCase().startsWith(lower)) {
+                result.add(option);
+            }
+        }
+
+        Collections.sort(result);
+        return result;
+    }
+
+    private void reloadAll() throws Exception {
+        IO.reloadMessages(plugin);
+        IO.reloadSettings(plugin);
+        LangService.reload(plugin);
+        TimeManagement.updatePlayerTimes();
+        TimeManagement.updateWorldsTimes();
+        Main.enchants = loadReloadYaml("enchants.yml");
+        Main.balance = loadReloadYaml("balance.yml");
+        MobProfileLoader.load(plugin);
+        Main.enchantLore = loadReloadYaml("enchant-lore.yml");
+        StoryService.load(plugin);
+        StructureService.load(plugin);
+    }
+
+    private static String normalizeEnchant(String input) {
+        String normalized = input.toLowerCase().replace('-', '_').replace(' ', '_').replace("'", "");
+
+        if (EnchantRegistry.ENCHANTS.containsKey(normalized)) {
+            return normalized;
+        }
+
+        for (CustomEnchant enchant : EnchantRegistry.ALL) {
+            String display = enchant.displayName.toLowerCase().replace("'", "").replace(' ', '_');
+
+            if (display.equals(normalized)) {
+                return enchant.id;
+            }
+        }
+
+        return null;
+    }
+
+    private static String normalizeItem(String input) {
+        String normalized = input.toLowerCase().replace('-', '_').replace(' ', '_').replace("'", "");
+
+        return switch (normalized) {
+            case "soulheart", "soul_heart", "soul" -> "soul_heart";
+            case "tendrils", "amulet", "abyssal_tendrils_amulet", "abyssal_tendrils" -> "abyssal_tendrils";
+            case "ink", "abyssal_ink" -> "abyssal_ink";
+            case "nucleus", "abyssal_nucleus" -> "abyssal_nucleus";
+            case "howl", "abyssal_howl" -> "abyssal_howl";
+            case "core", "abyssal_core" -> "abyssal_core";
+            default -> null;
+        };
+    }
+
+    private void handleReload(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("nightmare.reload")) {
+            sendPermission(sender);
+            return;
+        }
+
+        if (args.length != 2) {
+            sendUsage(sender, "/nightmare reload <" + String.join("|", RELOAD_TARGETS) + ">");
+            return;
+        }
+
+        reloadTarget(sender, args[1].toLowerCase());
+    }
+
+    private static String normalizeRelic(String input) {
+        String normalized = input.toLowerCase().replace('-', '_').replace(' ', '_');
+
+        return switch (normalized) {
+            case "soulheart", "soul_heart", "soul" -> "soul_heart";
+            case "tendrils", "abyssal_tendrils", "tendril" -> "abyssal_tendrils";
+            default -> null;
+        };
+    }
+
+    private YamlConfiguration loadReloadYaml(String name) throws IOException {
+        File file = new File(plugin.getDataFolder(), name);
+
+        if (!file.exists()) {
+            throw new IOException(name + " does not exist.");
+        }
+
+        return YamlConfiguration.loadConfiguration(file);
+    }
+
+    private static void sendPermission(CommandSender sender) {
+        String message = IO.HashMapOfMessages.getOrDefault("permission", null);
+
+        if (message == null) {
+            message = LangService.msg("commands.generic.no_permission", "&cYou do not have permission.");
+        }
+
+        sendMessage(sender, message);
+    }
+
+    private void sendHelpText(CommandSender sender) {
+        for (String line : LangService.list("commands.help.help_text")) {
+            sendMessage(sender, line);
+        }
+    }
+
+    private void sendCommandHelp(CommandSender sender) {
+        for (String line : LangService.list("commands.help.command_help")) {
+            sendMessage(sender, line);
+        }
+    }
+
+    private static String relicName(String id) {
+        return id.equals("soul_heart")
+                ? ChatColor.translateAlternateColorCodes('&', LangService.msg("relics.soul_heart.name", "❖ Soul Heart"))
+                : ChatColor.translateAlternateColorCodes('&', LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"));
+    }
+
     private static List<String> helpOptions() {
         List<String> options = new ArrayList<>(HELP);
         options.addAll(EnchantRegistry.ENCHANTS.keySet());
         return options;
     }
 
+    private static boolean isNightmareBan(String name) {
+        BanEntry entry = Bukkit.getBanList(BanList.Type.NAME).getBanEntry(name);
+
+        return entry != null && "NightmareCore".equals(entry.getSource());
+    }
+
+    private static void sendMessage(CommandSender sender, String message) {
+        String prefix = IO.HashMapOfSettings.getOrDefault("prefix", "");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + message));
+    }
+
+    private static void sendUsage(CommandSender sender, String usage) {
+        sendMessage(sender, LangService.msg("commands.generic.usage_prefix", "&cUsage: &f") + usage);
+    }
 }

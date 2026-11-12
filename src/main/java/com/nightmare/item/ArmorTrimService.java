@@ -17,6 +17,27 @@ import com.nightmare.enchant.EnchantKeys;
 
 public final class ArmorTrimService implements Listener {
 
+    private static void ensureTrim(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            return;
+        }
+
+        Integer level = meta.getPersistentDataContainer().get(EnchantKeys.KEYS.get("abyssal_core"),
+                PersistentDataType.INTEGER);
+
+        if (level == null || level <= 0) {
+            return;
+        }
+
+        applyAbyssalTrim(item);
+    }
+
     public static void applyAbyssalTrim(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
             return;
@@ -42,27 +63,6 @@ public final class ArmorTrimService implements Listener {
         for (ItemStack item : contents) {
             ensureTrim(item);
         }
-    }
-
-    private static void ensureTrim(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) {
-            return;
-        }
-
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta == null) {
-            return;
-        }
-
-        Integer level = meta.getPersistentDataContainer().get(EnchantKeys.KEYS.get("abyssal_core"),
-                PersistentDataType.INTEGER);
-
-        if (level == null || level <= 0) {
-            return;
-        }
-
-        applyAbyssalTrim(item);
     }
 
 }

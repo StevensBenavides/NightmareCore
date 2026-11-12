@@ -19,6 +19,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.Directional;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -55,9 +56,9 @@ public final class GraveService implements Listener {
     };
 
     private static final int[] VERTICAL_OFFSETS = { 0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6 };
-
     private static final Map<String, Grave> GRAVES = new ConcurrentHashMap<>();
     private static final Map<String, String> CHEST_TO_GRAVE = new ConcurrentHashMap<>();
+    
     private static Plugin plugin;
 
     public record Grave(String id, UUID owner, String ownerName, String world, int x, int y, int z,
@@ -68,73 +69,6 @@ public final class GraveService implements Listener {
     }
 
     private GraveService() {
-    }
-
-    public static void start(Plugin owner) {
-        plugin = owner;
-        Bukkit.getPluginManager().registerEvents(new GraveService(), owner);
-        load();
-    }
-
-    public static void shutdown() {
-        save();
-    }
-
-    public static List<Grave> list() {
-        return new ArrayList<>(GRAVES.values());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
-
-        if (player.getGameMode() != GameMode.SURVIVAL || !enabled()) {
-            return;
-        }
-
-        List<ItemStack> items = collect(player);
-        add(items, player.getItemOnCursor());
-        items.addAll(BackpackService.drain(player));
-
-        event.getDrops().clear();
-        player.setItemOnCursor(null);
-        player.getInventory().clear();
-        event.setKeepInventory(true);
-
-        if (!items.isEmpty()) {
-            createGrave(player, player.getLocation(), items);
-        }
-
-        player.getInventory().setItem(PermanentItemService.BACKPACK_SLOT, BackpackItem.create(player));
-        player.getInventory().setItem(PermanentItemService.RECOVERY_SLOT, new ItemStack(Material.RECOVERY_COMPASS));
-        player.updateInventory();
-    }
-
-    private static List<ItemStack> collect(Player player) {
-        List<ItemStack> items = new ArrayList<>();
-        ItemStack[] storage = player.getInventory().getStorageContents();
-
-        for (int slot = 0; slot < storage.length; slot++) {
-            if (slot == PermanentItemService.BACKPACK_SLOT || slot == PermanentItemService.RECOVERY_SLOT) {
-                continue;
-            }
-
-            add(items, storage[slot]);
-        }
-
-        for (ItemStack item : player.getInventory().getArmorContents()) {
-            add(items, item);
-        }
-
-        add(items, player.getInventory().getItemInOffHand());
-
-        return items;
-    }
-
-    private static void add(List<ItemStack> items, ItemStack item) {
-        if (item != null && !item.getType().isAir()) {
-            items.add(item);
-        }
     }
 
     private static void createGrave(Player player, Location death, List<ItemStack> items) {
@@ -171,6 +105,7 @@ public final class GraveService implements Listener {
         }
 
         long created = System.currentTimeMillis();
+
         String id = UUID.randomUUID().toString();
         String display = spawnLabel(world, site, player.getName());
         Grave grave = new Grave(id, player.getUniqueId(), player.getName(), world.getName(),
@@ -183,6 +118,78 @@ public final class GraveService implements Listener {
         plugin.getLogger().info("Created grave for " + player.getName() + " at "
                 + world.getName() + ":" + site.getBlockX() + "," + site.getBlockY() + "," + site.getBlockZ()
                 + " chests=" + chests.size());
+    }
+
+    private static void load() {
+        GRAVES.clear();
+        CHEST_TO_GRAVE.clear();
+        File file = file();
+
+        if (!file.exists()) {
+            return;
+        }
+
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+
+        for (Map<?, ?> raw : yml.getMapList("graves")) {
+            try {
+                String id = String.valueOf(raw.get("id"));
+                UUID owner = UUID.fromString(String.valueOf(raw.get("owner")));
+                String ownerName = String.valueOf(raw.get("owner-name"));
+                String world = String.valueOf(raw.get("world"));
+                
+                int x = number(raw.get("x"));
+                int y = number(raw.get("y"));
+                int z = number(raw.get("z"));
+                
+                List<String> chests = strings(raw.get("chests"));
+                
+                String display = raw.get("display") == null ? null : String.valueOf(raw.get("display"));
+                
+                long created = raw.get("created") instanceof Number number ? number.longValue() : 0L;
+                
+                Grave grave = new Grave(id, owner, ownerName, world, x, y, z, chests, display, created);
+
+                GRAVES.put(id, grave);
+                mapChests(grave);
+            } catch (RuntimeException exception) {
+                plugin.getLogger().warning("Skipping invalid grave entry: " + exception.getMessage());
+            }
+        }
+    }
+
+    private static void save() {
+        if (plugin == null) {
+            return;
+        }
+
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for (Grave grave : GRAVES.values()) {
+            Map<String, Object> raw = new HashMap<>();
+            
+            raw.put("id", grave.id());
+            raw.put("owner", grave.owner().toString());
+            raw.put("owner-name", grave.ownerName());
+            raw.put("world", grave.world());
+            raw.put("x", grave.x());
+            raw.put("y", grave.y());
+            raw.put("z", grave.z());
+            raw.put("chests", List.copyOf(grave.chests()));
+            raw.put("display", grave.display());
+            raw.put("created", grave.createdAt());
+
+            list.add(raw);
+        }
+
+        YamlConfiguration yml = new YamlConfiguration();
+        yml.set("graves", list);
+
+        try {
+            yml.save(file());
+        } catch (IOException exception) {
+            plugin.getLogger().warning("Could not save graves.yml: " + exception.getMessage());
+        }
     }
 
     private static Location findGraveSite(World world, Location death) {
@@ -209,6 +216,25 @@ public final class GraveService implements Listener {
             }
         }
 
+        for (int radius = 0; radius <= 6; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
+
+                    int x = death.getBlockX() + dx;
+                    int z = death.getBlockZ() + dz;
+
+                    for (int y = Math.min(baseY, world.getMaxHeight() - 2); y >= world.getMinHeight() + 1; y--) {
+                        if (isOceanFloorCell(world, x, y, z)) {
+                            return new Location(world, x, y, z);
+                        }
+                    }
+                }
+            }
+        }
+
         Location spawn = world.getSpawnLocation();
         int y = world.getHighestBlockYAt(spawn);
 
@@ -217,179 +243,6 @@ public final class GraveService implements Listener {
         }
 
         return new Location(world, spawn.getBlockX(), y + 1, spawn.getBlockZ());
-    }
-
-    private static boolean isSafeCell(World world, int x, int y, int z) {
-        if (y <= world.getMinHeight() || y + 2 > world.getMaxHeight()) {
-            return false;
-        }
-
-        Material below = world.getBlockAt(x, y - 1, z).getType();
-
-        if (!below.isSolid() || isLiquid(below)) {
-            return false;
-        }
-
-        return canPlaceChest(world.getBlockAt(x, y, z)) && canPlaceChest(world.getBlockAt(x, y + 1, z));
-    }
-
-    private static boolean canPlaceChest(Block block) {
-        Material type = block.getType();
-
-        if (isLiquid(type) || type.isSolid()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static boolean isLiquid(Material material) {
-        return material == Material.WATER || material == Material.LAVA || material == Material.BUBBLE_COLUMN;
-    }
-
-    private static ChestPair placeChestPair(World world, Location base) {
-        for (Location cell : candidateCells(world, base)) {
-            for (int[] direction : DIRECTIONS) {
-                Location other = cell.clone().add(direction[0], 0, direction[1]);
-
-                if (canPlacePair(world, cell, other)) {
-                    return placePair(world, cell, other);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static List<Location> candidateCells(World world, Location base) {
-        List<Location> cells = new ArrayList<>();
-
-        for (int radius = 0; radius <= 6; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                        continue;
-                    }
-
-                    int x = base.getBlockX() + dx;
-                    int z = base.getBlockZ() + dz;
-
-                    for (int offset : VERTICAL_OFFSETS) {
-                        int y = base.getBlockY() + offset;
-
-                        if (isSafeCell(world, x, y, z)) {
-                            cells.add(new Location(world, x, y, z));
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return cells;
-    }
-
-    private static boolean canPlacePair(World world, Location first, Location second) {
-        if (first.getBlockX() == second.getBlockX() && first.getBlockZ() == second.getBlockZ()) {
-            return false;
-        }
-
-        if (!isSafeCell(world, second.getBlockX(), second.getBlockY(), second.getBlockZ())) {
-            return false;
-        }
-
-        return !hasChestNeighbor(world, first, second);
-    }
-
-    private static boolean hasChestNeighbor(World world, Location first, Location second) {
-        Set<String> pair = new HashSet<>();
-        pair.add(blockKey(first));
-        pair.add(blockKey(second));
-
-        for (Location cell : List.of(first, second)) {
-            for (int[] direction : DIRECTIONS) {
-                Location neighbor = cell.clone().add(direction[0], 0, direction[1]);
-
-                if (pair.contains(blockKey(neighbor))) {
-                    continue;
-                }
-
-                Material type = world.getBlockAt(neighbor).getType();
-
-                if (type == Material.CHEST || type == Material.TRAPPED_CHEST) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static ChestPair placePair(World world, Location first, Location second) {
-        Block firstBlock = world.getBlockAt(first);
-        Block secondBlock = world.getBlockAt(second);
-
-        firstBlock.setType(Material.CHEST, false);
-        secondBlock.setType(Material.CHEST, false);
-        face(firstBlock);
-        face(secondBlock);
-
-        Inventory primary = ((Chest) firstBlock.getState()).getInventory();
-        Inventory secondary = ((Chest) secondBlock.getState()).getInventory();
-        List<String> keys = List.of(blockKey(first), blockKey(second));
-
-        if (primary.getSize() >= 54) {
-            return new ChestPair(keys, primary, null);
-        }
-
-        return new ChestPair(keys, primary, secondary);
-    }
-
-    private static void face(Block block) {
-        if (block.getBlockData() instanceof Directional directional) {
-            directional.setFacing(org.bukkit.block.BlockFace.NORTH);
-            block.setBlockData(directional, false);
-        }
-    }
-
-    private static List<ItemStack> fill(ChestPair pair, List<ItemStack> items) {
-        Map<Integer, ItemStack> leftover = pair.primary().addItem(items.toArray(new ItemStack[0]));
-        List<ItemStack> remaining = new ArrayList<>(leftover.values());
-
-        if (pair.secondary() != null && !remaining.isEmpty()) {
-            leftover = pair.secondary().addItem(remaining.toArray(new ItemStack[0]));
-            remaining = new ArrayList<>(leftover.values());
-        }
-
-        return remaining;
-    }
-
-    private static String spawnLabel(World world, Location site, String playerName) {
-        Location at = new Location(world, site.getBlockX() + 0.5D, site.getBlockY() + 2.2D,
-                site.getBlockZ() + 0.5D);
-        String text = LangService.format("grave.label", "&7R.I.P. %player%", "%player%", playerName);
-        TextDisplay display = world.spawn(at, TextDisplay.class, entity -> {
-            entity.setText(ChatColor.translateAlternateColorCodes('&', text));
-            entity.setBillboard(Display.Billboard.CENTER);
-            entity.setLineWidth(160);
-            entity.setSeeThrough(false);
-            entity.setBackgroundColor(Color.fromARGB(160, 10, 10, 18));
-            entity.setAlignment(TextDisplay.TextAlignment.CENTER);
-        });
-
-        return display.getUniqueId().toString();
-    }
-
-    private static void mapChests(Grave grave) {
-        for (String key : grave.chests()) {
-            CHEST_TO_GRAVE.put(key, grave.id());
-        }
-    }
-
-    private static void unmapChests(Grave grave) {
-        for (String key : grave.chests()) {
-            CHEST_TO_GRAVE.remove(key);
-        }
     }
 
     private static void removeGrave(Grave grave, boolean removeBlocks) {
@@ -424,35 +277,44 @@ public final class GraveService implements Listener {
         save();
     }
 
-    private static void checkEmpty(Grave grave) {
-        for (String key : grave.chests()) {
-            Location location = parseKey(key);
+    private static List<Location> candidateCells(World world, Location base) {
+        List<Location> cells = new ArrayList<>();
 
-            if (location == null || location.getWorld() == null) {
-                return;
-            }
+        for (int radius = 0; radius <= 6; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
 
-            World world = location.getWorld();
+                    int x = base.getBlockX() + dx;
+                    int z = base.getBlockZ() + dz;
 
-            if (!world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
-                return;
-            }
+                    boolean placed = false;
 
-            if (location.getBlock().getState() instanceof Chest chest && !chest.getInventory().isEmpty()) {
-                return;
+                    for (int offset : VERTICAL_OFFSETS) {
+                        int y = base.getBlockY() + offset;
+
+                        if (isSafeCell(world, x, y, z)) {
+                            cells.add(new Location(world, x, y, z));
+                            placed = true;
+                            break;
+                        }
+                    }
+
+                    if (!placed) {
+                        for (int y = Math.min(base.getBlockY(), world.getMaxHeight() - 2); y >= world.getMinHeight() + 1; y--) {
+                            if (isOceanFloorCell(world, x, y, z)) {
+                                cells.add(new Location(world, x, y, z));
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        removeGrave(grave, true);
-    }
-
-    private static boolean isGraveChest(Block block) {
-        return CHEST_TO_GRAVE.containsKey(blockKey(block.getLocation()));
-    }
-
-    private static String blockKey(Location location) {
-        return location.getWorld().getName() + ":" + location.getBlockX() + ","
-                + location.getBlockY() + "," + location.getBlockZ();
+        return cells;
     }
 
     private static Location parseKey(String key) {
@@ -481,18 +343,6 @@ public final class GraveService implements Listener {
         } catch (NumberFormatException exception) {
             return null;
         }
-    }
-
-    private static boolean enabled() {
-        return Main.balance == null || Main.balance.getBoolean("player-items.enabled", true);
-    }
-
-    private static boolean ownerOnly() {
-        return Main.balance == null || Main.balance.getBoolean("player-items.grave.owner-only", true);
-    }
-
-    private static boolean protect() {
-        return Main.balance != null && Main.balance.getBoolean("player-items.grave.protect", false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -553,6 +403,80 @@ public final class GraveService implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+
+        if (player.getGameMode() != GameMode.SURVIVAL || !enabled()) {
+            return;
+        }
+
+        List<ItemStack> items = collect(player);
+        
+        add(items, player.getItemOnCursor());
+
+        items.addAll(BackpackService.drain(player));
+
+        event.getDrops().clear();
+        player.setItemOnCursor(null);
+        player.getInventory().clear();
+        event.setKeepInventory(true);
+
+        if (!items.isEmpty()) {
+            createGrave(player, player.getLocation(), items);
+        }
+
+        player.getInventory().setItem(PermanentItemService.BACKPACK_SLOT, BackpackItem.create(player));
+        player.getInventory().setItem(PermanentItemService.RECOVERY_SLOT, new ItemStack(Material.RECOVERY_COMPASS));
+        player.updateInventory();
+    }
+
+    private static boolean hasChestNeighbor(World world, Location first, Location second) {
+        Set<String> pair = new HashSet<>();
+        pair.add(blockKey(first));
+        pair.add(blockKey(second));
+
+        for (Location cell : List.of(first, second)) {
+            for (int[] direction : DIRECTIONS) {
+                Location neighbor = cell.clone().add(direction[0], 0, direction[1]);
+
+                if (pair.contains(blockKey(neighbor))) {
+                    continue;
+                }
+
+                Material type = world.getBlockAt(neighbor).getType();
+
+                if (type == Material.CHEST || type == Material.TRAPPED_CHEST) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static void checkEmpty(Grave grave) {
+        for (String key : grave.chests()) {
+            Location location = parseKey(key);
+
+            if (location == null || location.getWorld() == null) {
+                return;
+            }
+
+            World world = location.getWorld();
+
+            if (!world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+                return;
+            }
+
+            if (location.getBlock().getState() instanceof Chest chest && !chest.getInventory().isEmpty()) {
+                return;
+            }
+        }
+
+        removeGrave(grave, true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent event) {
         String id = CHEST_TO_GRAVE.get(blockKey(event.getBlock().getLocation()));
 
@@ -574,14 +498,63 @@ public final class GraveService implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEntityExplode(EntityExplodeEvent event) {
-        handleExplosion(event.blockList());
+    private static List<ItemStack> collect(Player player) {
+        List<ItemStack> items = new ArrayList<>();
+        ItemStack[] storage = player.getInventory().getStorageContents();
+
+        for (int slot = 0; slot < storage.length; slot++) {
+            if (slot == PermanentItemService.BACKPACK_SLOT || slot == PermanentItemService.RECOVERY_SLOT) {
+                continue;
+            }
+
+            add(items, storage[slot]);
+        }
+
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            add(items, item);
+        }
+
+        add(items, player.getInventory().getItemInOffHand());
+
+        return items;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockExplode(BlockExplodeEvent event) {
-        handleExplosion(event.blockList());
+    private static ChestPair placePair(World world, Location first, Location second) {
+        Block firstBlock = world.getBlockAt(first);
+        Block secondBlock = world.getBlockAt(second);
+
+        firstBlock.setType(Material.CHEST, false);
+        secondBlock.setType(Material.CHEST, false);
+        
+        face(firstBlock);
+        face(secondBlock);
+
+        Inventory primary = ((Chest) firstBlock.getState()).getInventory();
+        Inventory secondary = ((Chest) secondBlock.getState()).getInventory();
+
+        List<String> keys = List.of(blockKey(first), blockKey(second));
+
+        if (primary.getSize() >= 54) {
+            return new ChestPair(keys, primary, null);
+        }
+
+        return new ChestPair(keys, primary, secondary);
+    }
+
+    private static String spawnLabel(World world, Location site, String playerName) {
+        Location at = new Location(world, site.getBlockX() + 0.5D, site.getBlockY() + 2.2D,
+                site.getBlockZ() + 0.5D);
+        String text = LangService.format("grave.label", "&7R.I.P. %player%", "%player%", playerName);
+        TextDisplay display = world.spawn(at, TextDisplay.class, entity -> {
+            entity.setText(ChatColor.translateAlternateColorCodes('&', text));
+            entity.setBillboard(Display.Billboard.CENTER);
+            entity.setLineWidth(160);
+            entity.setSeeThrough(false);
+            entity.setBackgroundColor(Color.fromARGB(160, 10, 10, 18));
+            entity.setAlignment(TextDisplay.TextAlignment.CENTER);
+        });
+
+        return display.getUniqueId().toString();
     }
 
     private static void handleExplosion(List<Block> blocks) {
@@ -600,18 +573,18 @@ public final class GraveService implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPistonExtend(BlockPistonExtendEvent event) {
-        if (protect() && event.getBlocks().stream().anyMatch(GraveService::isGraveChest)) {
-            event.setCancelled(true);
-        }
-    }
+    private static ChestPair placeChestPair(World world, Location base) {
+        for (Location cell : candidateCells(world, base)) {
+            for (int[] direction : DIRECTIONS) {
+                Location other = cell.clone().add(direction[0], 0, direction[1]);
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPistonRetract(BlockPistonRetractEvent event) {
-        if (protect() && event.getBlocks().stream().anyMatch(GraveService::isGraveChest)) {
-            event.setCancelled(true);
+                if (canPlacePair(world, cell, other)) {
+                    return placePair(world, cell, other);
+                }
+            }
         }
+
+        return null;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -629,80 +602,39 @@ public final class GraveService implements Listener {
         }
     }
 
-    private static File file() {
-        return new File(plugin.getDataFolder(), "graves.yml");
+    private static boolean isSafeCell(World world, int x, int y, int z) {
+        if (y <= world.getMinHeight() || y + 2 > world.getMaxHeight()) {
+            return false;
+        }
+
+        Material below = world.getBlockAt(x, y - 1, z).getType();
+
+        if (!below.isSolid() || isLiquid(below)) {
+            return false;
+        }
+
+        return canPlaceChest(world.getBlockAt(x, y, z)) && canPlaceChest(world.getBlockAt(x, y + 1, z));
     }
 
-    private static void load() {
-        GRAVES.clear();
-        CHEST_TO_GRAVE.clear();
-        File file = file();
-
-        if (!file.exists()) {
-            return;
+    private static boolean isOceanFloorCell(World world, int x, int y, int z) {
+        if (y <= world.getMinHeight() || y + 2 > world.getMaxHeight()) {
+            return false;
         }
 
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        Material below = world.getBlockAt(x, y - 1, z).getType();
 
-        for (Map<?, ?> raw : yml.getMapList("graves")) {
-            try {
-                String id = String.valueOf(raw.get("id"));
-                UUID owner = UUID.fromString(String.valueOf(raw.get("owner")));
-                String ownerName = String.valueOf(raw.get("owner-name"));
-                String world = String.valueOf(raw.get("world"));
-                int x = number(raw.get("x"));
-                int y = number(raw.get("y"));
-                int z = number(raw.get("z"));
-                List<String> chests = strings(raw.get("chests"));
-                String display = raw.get("display") == null ? null : String.valueOf(raw.get("display"));
-                long created = raw.get("created") instanceof Number number ? number.longValue() : 0L;
-                Grave grave = new Grave(id, owner, ownerName, world, x, y, z, chests, display, created);
-
-                GRAVES.put(id, grave);
-                mapChests(grave);
-            } catch (RuntimeException exception) {
-                plugin.getLogger().warning("Skipping invalid grave entry: " + exception.getMessage());
-            }
+        if (!below.isSolid() || isLiquid(below)) {
+            return false;
         }
+
+        return isWaterOrAir(world.getBlockAt(x, y, z).getType())
+                && isWaterOrAir(world.getBlockAt(x, y + 1, z).getType());
     }
 
-    private static void save() {
-        if (plugin == null) {
-            return;
-        }
-
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        for (Grave grave : GRAVES.values()) {
-            Map<String, Object> raw = new HashMap<>();
-            raw.put("id", grave.id());
-            raw.put("owner", grave.owner().toString());
-            raw.put("owner-name", grave.ownerName());
-            raw.put("world", grave.world());
-            raw.put("x", grave.x());
-            raw.put("y", grave.y());
-            raw.put("z", grave.z());
-            raw.put("chests", List.copyOf(grave.chests()));
-            raw.put("display", grave.display());
-            raw.put("created", grave.createdAt());
-            list.add(raw);
-        }
-
-        YamlConfiguration yml = new YamlConfiguration();
-        yml.set("graves", list);
-
-        try {
-            yml.save(file());
-        } catch (IOException exception) {
-            plugin.getLogger().warning("Could not save graves.yml: " + exception.getMessage());
-        }
+    private static boolean isWaterOrAir(Material material) {
+        return material.isAir() || material == Material.WATER || material == Material.BUBBLE_COLUMN;
     }
 
-    private static int number(Object value) {
-        return value instanceof Number number ? number.intValue() : Integer.parseInt(String.valueOf(value));
-    }
-
-    @SuppressWarnings("unchecked")
     private static List<String> strings(Object value) {
         if (!(value instanceof List<?> list)) {
             return List.of();
@@ -715,5 +647,139 @@ public final class GraveService implements Listener {
         }
 
         return result;
+    }
+
+    private static boolean canPlacePair(World world, Location first, Location second) {
+        if (first.getBlockX() == second.getBlockX() && first.getBlockZ() == second.getBlockZ()) {
+            return false;
+        }
+
+        int x = second.getBlockX();
+        int y = second.getBlockY();
+        int z = second.getBlockZ();
+
+        if (!isSafeCell(world, x, y, z) && !isOceanFloorCell(world, x, y, z)) {
+            return false;
+        }
+
+        return !hasChestNeighbor(world, first, second);
+    }
+
+    private static List<ItemStack> fill(ChestPair pair, List<ItemStack> items) {
+        Map<Integer, ItemStack> leftover = pair.primary().addItem(items.toArray(new ItemStack[0]));
+        List<ItemStack> remaining = new ArrayList<>(leftover.values());
+
+        if (pair.secondary() != null && !remaining.isEmpty()) {
+            leftover = pair.secondary().addItem(remaining.toArray(new ItemStack[0]));
+            remaining = new ArrayList<>(leftover.values());
+        }
+
+        return remaining;
+    }
+
+    private static boolean canPlaceChest(Block block) {
+        Material type = block.getType();
+
+        if (isLiquid(type) || type.isSolid()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void face(Block block) {
+        if (block.getBlockData() instanceof Directional directional) {
+            directional.setFacing(BlockFace.NORTH);
+            block.setBlockData(directional, false);
+        }
+    }
+
+    public static void start(Plugin owner) {
+        plugin = owner;
+        Bukkit.getPluginManager().registerEvents(new GraveService(), owner);
+        load();
+    }
+
+    private static void add(List<ItemStack> items, ItemStack item) {
+        if (item != null && !item.getType().isAir()) {
+            items.add(item);
+        }
+    }
+
+    private static void mapChests(Grave grave) {
+        for (String key : grave.chests()) {
+            CHEST_TO_GRAVE.put(key, grave.id());
+        }
+    }
+
+    private static void unmapChests(Grave grave) {
+        for (String key : grave.chests()) {
+            CHEST_TO_GRAVE.remove(key);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPistonExtend(BlockPistonExtendEvent event) {
+        if (protect() && event.getBlocks().stream().anyMatch(GraveService::isGraveChest)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPistonRetract(BlockPistonRetractEvent event) {
+        if (protect() && event.getBlocks().stream().anyMatch(GraveService::isGraveChest)) {
+            event.setCancelled(true);
+        }
+    }
+
+    private static String blockKey(Location location) {
+        return location.getWorld().getName() + ":" + location.getBlockX() + ","
+                + location.getBlockY() + "," + location.getBlockZ();
+    }
+
+    public static void shutdown() {
+        save();
+    }
+
+    public static List<Grave> list() {
+        return new ArrayList<>(GRAVES.values());
+    }
+
+    private static boolean isLiquid(Material material) {
+        return material == Material.WATER || material == Material.LAVA || material == Material.BUBBLE_COLUMN;
+    }
+
+    private static boolean isGraveChest(Block block) {
+        return CHEST_TO_GRAVE.containsKey(blockKey(block.getLocation()));
+    }
+
+    private static boolean enabled() {
+        return Main.balance == null || Main.balance.getBoolean("player-items.enabled", true);
+    }
+
+    private static boolean ownerOnly() {
+        return Main.balance == null || Main.balance.getBoolean("player-items.grave.owner-only", true);
+    }
+
+    private static boolean protect() {
+        return Main.balance != null && Main.balance.getBoolean("player-items.grave.protect", false);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        handleExplosion(event.blockList());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        handleExplosion(event.blockList());
+    }
+
+    private static File file() {
+        return new File(plugin.getDataFolder(), "graves.yml");
+    }
+
+    private static int number(Object value) {
+        return value instanceof Number number ? number.intValue() : Integer.parseInt(String.valueOf(value));
     }
 }

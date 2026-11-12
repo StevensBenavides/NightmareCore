@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -64,313 +65,6 @@ public final class EnchantLoreService {
             "abyssal_core", "❖");
 
     private EnchantLoreService() {
-    }
-
-    private static String stat(String key, String fallback) {
-        return LangService.msg("stats." + key, fallback) + ":";
-    }
-
-    private static String label(String key, String fallback) {
-        return LangService.msg("gui." + key, fallback);
-    }
-
-    public static String buildBookName(String id, int level) {
-        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
-
-        if (enchant == null) {
-            return ChatColor.GOLD + LangService.msg("gui.unknown_enchantment", "Unknown Enchantment");
-        }
-
-        ChatColor color = COLORS.getOrDefault(id, ChatColor.GOLD);
-        String symbol = SYMBOLS.getOrDefault(id, "✦");
-        String levelText;
-
-        if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
-            levelText = "";
-        } else {
-            int index = Math.min(Math.max(level, 1), ROMAN.length) - 1;
-            levelText = " " + ROMAN[index];
-        }
-
-        return color + "" + ChatColor.BOLD + symbol + " " + enchant.displayName + levelText;
-    }
-
-    public static List<String> buildCraftableBookLore(String id, int level) {
-        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
-        List<String> lore = new ArrayList<>();
-
-        if (enchant == null) {
-            return lore;
-        }
-
-        if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
-            lore.add(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + label("legendary", "Legendary"));
-        } else {
-            int index = Math.min(Math.max(level, 1), ROMAN.length) - 1;
-
-            lore.add(ChatColor.YELLOW + label("level", "Level") + " " + ChatColor.GOLD + ROMAN[index]
-                    + ChatColor.GRAY + " / " + ChatColor.GOLD + ROMAN[enchant.maxLevel - 1]);
-        }
-
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + label("applicable_on", "Applicable on:"));
-        lore.addAll(buildApplicabilityLines(enchant));
-
-        return lore;
-    }
-
-    public static List<String> buildHelpListLore(String id) {
-        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
-        List<String> lore = new ArrayList<>();
-
-        if (enchant == null) {
-            return lore;
-        }
-
-        lore.addAll(wrap(helpParagraph(id, 1), ChatColor.GRAY, true));
-        lore.addAll(wrap(helpMotto(id), COLORS.getOrDefault(id, ChatColor.GOLD), true));
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + label("levels_label", "Levels:") + " " + ChatColor.WHITE
-                + (id.equals("abyssal_howl") || id.equals("abyssal_core") ? label("legendary", "Legendary") : "I-V"));
-        lore.addAll(wrap(label("applicable_short", "Applicable:") + " " + applicabilitySummary(enchant), ChatColor.GRAY, false));
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.YELLOW + label("click_to_read", "Click to read the lore and stats."));
-
-        return lore;
-    }
-
-    public static List<String> buildHelpDetailLore(String id, int level) {
-        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
-        List<String> lore = new ArrayList<>();
-
-        if (enchant == null) {
-            return lore;
-        }
-
-        lore.addAll(wrap(helpParagraph(id, level), ChatColor.GRAY, true));
-        lore.addAll(wrap(helpMotto(id), COLORS.getOrDefault(id, ChatColor.GOLD), true));
-        lore.add(ChatColor.RESET.toString());
-
-        if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
-            lore.add(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + label("legendary", "Legendary"));
-        } else {
-            int index = Math.min(Math.max(level, 1), ROMAN.length) - 1;
-
-            lore.add(ChatColor.YELLOW + label("level", "Level") + " " + ChatColor.GOLD + ROMAN[index]
-                    + ChatColor.GRAY + " / " + ChatColor.GOLD + ROMAN[enchant.maxLevel - 1]);
-        }
-
-        lore.addAll(buildStatLines(id, level));
-        lore.add(ChatColor.RESET.toString());
-        lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + label("applicable_on", "Applicable on:"));
-        lore.addAll(buildApplicabilityLines(enchant));
-        lore.add(ChatColor.RESET.toString());
-        lore.addAll(wrap(helpEffect(id), ChatColor.GRAY, false));
-        lore.add(ChatColor.RESET.toString());
-
-        String mechanics = helpMechanics(id);
-
-        if (!mechanics.isBlank()) {
-            lore.addAll(wrap(mechanics, ChatColor.WHITE, false));
-            lore.add(ChatColor.RESET.toString());
-        }
-
-        lore.add(FOOTER);
-
-        return lore;
-    }
-
-    private static String helpParagraph(String id, int level) {
-        String text = LangService.lore("enchants." + id + ".lore." + level);
-
-        if (text == null || text.isBlank()) {
-            text = LangService.lore("enchants." + id + ".lore.1");
-        }
-
-        return text == null ? "" : text;
-    }
-
-    private static String helpMotto(String id) {
-        String text = LangService.lore("enchants." + id + ".motto");
-
-        return text == null ? "" : text;
-    }
-
-    private static String helpEffect(String id) {
-        String text = LangService.lore("enchants." + id + ".effect");
-        return text == null ? "" : text;
-
-    }
-
-    private static String helpMechanics(String id) {
-        String text = LangService.lore("enchants." + id + ".mechanics");
-        return text == null ? "" : text;
-
-    }
-
-    public static List<String> wrap(String text, ChatColor color, boolean italic) {
-        List<String> lines = new ArrayList<>();
-
-        if (text == null || text.isBlank()) {
-            return lines;
-        }
-
-        String prefix = color.toString() + (italic ? ChatColor.ITALIC.toString() : "");
-        String[] words = text.replaceAll("\\s+", " ").trim().split(" ");
-        StringBuilder current = new StringBuilder(prefix);
-
-        int width = 0;
-
-        for (String word : words) {
-            int extra = width == 0 ? word.length() : word.length() + 1;
-
-            if (width > 0 && width + extra > WRAP_WIDTH) {
-                lines.add(current.toString());
-                current = new StringBuilder(prefix);
-                width = 0;
-                extra = word.length();
-            }
-
-            if (width > 0) {
-                current.append(' ');
-            }
-
-            current.append(word);
-            width += extra;
-        }
-
-        if (width > 0) {
-            lines.add(current.toString());
-        }
-
-        return lines;
-    }
-
-    public static void rebuildEquipmentLore(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) {
-            return;
-        }
-
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta == null) {
-            return;
-        }
-
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        String storedBase = container.get(ItemKeys.LORE_BASE, PersistentDataType.STRING);
-        List<String> baseLore;
-
-        if (storedBase != null) {
-            baseLore = sanitizeBaseLore(Arrays.asList(storedBase.split("\n", -1)));
-        } else {
-            baseLore = sanitizeBaseLore(meta.getLore());
-        }
-
-        String sanitizedBase = String.join("\n", baseLore);
-
-        if (!sanitizedBase.equals(storedBase)) {
-            container.set(ItemKeys.LORE_BASE, PersistentDataType.STRING, sanitizedBase);
-        }
-
-        List<String> lore = new ArrayList<>(baseLore);
-        List<String> enchantLines = new ArrayList<>();
-
-        for (Map.Entry<String, org.bukkit.NamespacedKey> entry : EnchantKeys.KEYS.entrySet()) {
-            Integer level = container.get(entry.getValue(), PersistentDataType.INTEGER);
-
-            if (level == null || level <= 0) {
-                continue;
-            }
-
-            CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(entry.getKey());
-
-            if (enchant == null) {
-                continue;
-            }
-
-            ChatColor color = COLORS.getOrDefault(entry.getKey(), ChatColor.GOLD);
-            String levelText = entry.getKey().equals("abyssal_howl") || entry.getKey().equals("abyssal_core")
-                    ? ""
-                    : " " + ROMAN[Math.min(Math.max(level, 1), ROMAN.length) - 1];
-
-            enchantLines.add(color + "- " + enchant.displayName + levelText);
-        }
-
-        if (!enchantLines.isEmpty()) {
-            lore.add(ChatColor.RESET.toString());
-            lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + label("custom_enchantments", "Custom Enchantments:"));
-            lore.addAll(enchantLines);
-            lore.add(ChatColor.RESET.toString());
-            lore.add(FOOTER);
-        }
-
-        meta.setLore(lore.isEmpty() ? null : lore);
-        item.setItemMeta(meta);
-    }
-
-    public static String applicabilitySummary(CustomEnchant enchant) {
-        List<String> lines = buildApplicabilityLines(enchant);
-        StringBuilder builder = new StringBuilder();
-
-        for (String line : lines) {
-            String visible = line.replaceAll("§.", "").trim();
-
-            if (visible.isEmpty()) {
-                continue;
-            }
-
-            if (builder.length() > 0) {
-                builder.append(", ");
-            }
-
-            builder.append(visible);
-        }
-
-        return builder.toString();
-    }
-
-    public static List<String> sanitizeBaseLore(List<String> currentLore) {
-        List<String> base = new ArrayList<>();
-
-        if (currentLore == null) {
-            return base;
-        }
-
-        String activeHeader = LangService.msg("gui.custom_enchantments", "Custom Enchantments:")
-                .replaceAll("[§&].", "")
-                .trim();
-
-        for (String line : currentLore) {
-            String visible = line.replaceAll("[§&].", "").trim();
-
-            if (isCustomLoreBoundary(visible, activeHeader)) {
-                break;
-            }
-
-            base.add(line);
-        }
-
-        while (!base.isEmpty() && base.get(base.size() - 1).replaceAll("[§&].", "").isBlank()) {
-            base.remove(base.size() - 1);
-        }
-
-        return base;
-    }
-
-    private static boolean isCustomLoreBoundary(String visible, String activeHeader) {
-        if (visible.isEmpty()) {
-            return false;
-        }
-
-        if (visible.contains("━")) {
-            return true;
-        }
-
-        return visible.equalsIgnoreCase("Custom Enchantments:")
-                || visible.equalsIgnoreCase("Encantamientos:")
-                || visible.equalsIgnoreCase("Nightmare Core")
-                || (!activeHeader.isEmpty() && visible.equalsIgnoreCase(activeHeader));
     }
 
     private static List<String> buildStatLines(String id, int level) {
@@ -544,18 +238,6 @@ public final class EnchantLoreService {
         return lines;
     }
 
-    private static String percent(double value) {
-        return String.format(Locale.ROOT, "%.1f%%", value * 100).replace(".0", "");
-    }
-
-    private static String number(double value) {
-        return String.format(Locale.ROOT, "%.1f", value).replace(".0", "");
-    }
-
-    private static String seconds(double value) {
-        return String.format(Locale.ROOT, "%.1f", value).replace(".0", "");
-    }
-
     private static List<String> buildApplicabilityLines(CustomEnchant enchant) {
         if (enchant.id.equals("abyssal_howl")) {
             return List.of(ChatColor.WHITE + "  " + label("any_weapon", "Any weapon"));
@@ -632,4 +314,325 @@ public final class EnchantLoreService {
         return lines;
     }
 
+    public static void rebuildEquipmentLore(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            return;
+        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        String storedBase = container.get(ItemKeys.LORE_BASE, PersistentDataType.STRING);
+        List<String> baseLore;
+
+        if (storedBase != null) {
+            baseLore = sanitizeBaseLore(Arrays.asList(storedBase.split("\n", -1)));
+        } else {
+            baseLore = sanitizeBaseLore(meta.getLore());
+        }
+
+        String sanitizedBase = String.join("\n", baseLore);
+
+        if (!sanitizedBase.equals(storedBase)) {
+            container.set(ItemKeys.LORE_BASE, PersistentDataType.STRING, sanitizedBase);
+        }
+
+        List<String> lore = new ArrayList<>(baseLore);
+        List<String> enchantLines = new ArrayList<>();
+
+        for (Map.Entry<String, NamespacedKey> entry : EnchantKeys.KEYS.entrySet()) {
+            Integer level = container.get(entry.getValue(), PersistentDataType.INTEGER);
+
+            if (level == null || level <= 0) {
+                continue;
+            }
+
+            CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(entry.getKey());
+
+            if (enchant == null) {
+                continue;
+            }
+
+            ChatColor color = COLORS.getOrDefault(entry.getKey(), ChatColor.GOLD);
+            String levelText = entry.getKey().equals("abyssal_howl") || entry.getKey().equals("abyssal_core")
+                    ? ""
+                    : " " + ROMAN[Math.min(Math.max(level, 1), ROMAN.length) - 1];
+
+            enchantLines.add(color + "- " + enchant.displayName + levelText);
+        }
+
+        if (!enchantLines.isEmpty()) {
+            lore.add(ChatColor.RESET.toString());
+            lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + label("custom_enchantments", "Custom Enchantments:"));
+            lore.addAll(enchantLines);
+            lore.add(ChatColor.RESET.toString());
+            lore.add(FOOTER);
+        }
+
+        meta.setLore(lore.isEmpty() ? null : lore);
+        item.setItemMeta(meta);
+    }
+
+    public static List<String> buildHelpDetailLore(String id, int level) {
+        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
+        List<String> lore = new ArrayList<>();
+
+        if (enchant == null) {
+            return lore;
+        }
+
+        lore.addAll(wrap(helpParagraph(id, level), ChatColor.GRAY, true));
+        lore.addAll(wrap(helpMotto(id), COLORS.getOrDefault(id, ChatColor.GOLD), true));
+        lore.add(ChatColor.RESET.toString());
+
+        if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
+            lore.add(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + label("legendary", "Legendary"));
+        } else {
+            int index = Math.min(Math.max(level, 1), ROMAN.length) - 1;
+
+            lore.add(ChatColor.YELLOW + label("level", "Level") + " " + ChatColor.GOLD + ROMAN[index]
+                    + ChatColor.GRAY + " / " + ChatColor.GOLD + ROMAN[enchant.maxLevel - 1]);
+        }
+
+        lore.addAll(buildStatLines(id, level));
+        lore.add(ChatColor.RESET.toString());
+        lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + label("applicable_on", "Applicable on:"));
+        lore.addAll(buildApplicabilityLines(enchant));
+        lore.add(ChatColor.RESET.toString());
+        lore.addAll(wrap(helpEffect(id), ChatColor.GRAY, false));
+        lore.add(ChatColor.RESET.toString());
+
+        String mechanics = helpMechanics(id);
+
+        if (!mechanics.isBlank()) {
+            lore.addAll(wrap(mechanics, ChatColor.WHITE, false));
+            lore.add(ChatColor.RESET.toString());
+        }
+
+        lore.add(FOOTER);
+
+        return lore;
+    }
+
+    public static List<String> wrap(String text, ChatColor color, boolean italic) {
+        List<String> lines = new ArrayList<>();
+
+        if (text == null || text.isBlank()) {
+            return lines;
+        }
+
+        String prefix = color.toString() + (italic ? ChatColor.ITALIC.toString() : "");
+        String[] words = text.replaceAll("\\s+", " ").trim().split(" ");
+        StringBuilder current = new StringBuilder(prefix);
+
+        int width = 0;
+
+        for (String word : words) {
+            int extra = width == 0 ? word.length() : word.length() + 1;
+
+            if (width > 0 && width + extra > WRAP_WIDTH) {
+                lines.add(current.toString());
+                current = new StringBuilder(prefix);
+                width = 0;
+                extra = word.length();
+            }
+
+            if (width > 0) {
+                current.append(' ');
+            }
+
+            current.append(word);
+            width += extra;
+        }
+
+        if (width > 0) {
+            lines.add(current.toString());
+        }
+
+        return lines;
+    }
+
+    public static List<String> sanitizeBaseLore(List<String> currentLore) {
+        List<String> base = new ArrayList<>();
+
+        if (currentLore == null) {
+            return base;
+        }
+
+        String activeHeader = LangService.msg("gui.custom_enchantments", "Custom Enchantments:")
+                .replaceAll("[§&].", "")
+                .trim();
+
+        for (String line : currentLore) {
+            String visible = line.replaceAll("[§&].", "").trim();
+
+            if (isCustomLoreBoundary(visible, activeHeader)) {
+                break;
+            }
+
+            base.add(line);
+        }
+
+        while (!base.isEmpty() && base.get(base.size() - 1).replaceAll("[§&].", "").isBlank()) {
+            base.remove(base.size() - 1);
+        }
+
+        return base;
+    }
+
+    public static List<String> buildCraftableBookLore(String id, int level) {
+        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
+        List<String> lore = new ArrayList<>();
+
+        if (enchant == null) {
+            return lore;
+        }
+
+        if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
+            lore.add(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + label("legendary", "Legendary"));
+        } else {
+            int index = Math.min(Math.max(level, 1), ROMAN.length) - 1;
+
+            lore.add(ChatColor.YELLOW + label("level", "Level") + " " + ChatColor.GOLD + ROMAN[index]
+                    + ChatColor.GRAY + " / " + ChatColor.GOLD + ROMAN[enchant.maxLevel - 1]);
+        }
+
+        lore.add(ChatColor.RESET.toString());
+        lore.add(ChatColor.GRAY + "" + ChatColor.BOLD + label("applicable_on", "Applicable on:"));
+        lore.addAll(buildApplicabilityLines(enchant));
+
+        return lore;
+    }
+
+    public static String buildBookName(String id, int level) {
+        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
+
+        if (enchant == null) {
+            return ChatColor.GOLD + LangService.msg("gui.unknown_enchantment", "Unknown Enchantment");
+        }
+
+        ChatColor color = COLORS.getOrDefault(id, ChatColor.GOLD);
+        String symbol = SYMBOLS.getOrDefault(id, "✦");
+        String levelText;
+
+        if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
+            levelText = "";
+        } else {
+            int index = Math.min(Math.max(level, 1), ROMAN.length) - 1;
+            levelText = " " + ROMAN[index];
+        }
+
+        return color + "" + ChatColor.BOLD + symbol + " " + enchant.displayName + levelText;
+    }
+
+    public static List<String> buildHelpListLore(String id) {
+        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
+        List<String> lore = new ArrayList<>();
+
+        if (enchant == null) {
+            return lore;
+        }
+
+        lore.addAll(wrap(helpParagraph(id, 1), ChatColor.GRAY, true));
+        lore.addAll(wrap(helpMotto(id), COLORS.getOrDefault(id, ChatColor.GOLD), true));
+        lore.add(ChatColor.RESET.toString());
+        lore.add(ChatColor.GRAY + label("levels_label", "Levels:") + " " + ChatColor.WHITE
+                + (id.equals("abyssal_howl") || id.equals("abyssal_core") ? label("legendary", "Legendary") : "I-V"));
+        lore.addAll(wrap(label("applicable_short", "Applicable:") + " " + applicabilitySummary(enchant), ChatColor.GRAY, false));
+        lore.add(ChatColor.RESET.toString());
+        lore.add(ChatColor.YELLOW + label("click_to_read", "Click to read the lore and stats."));
+
+        return lore;
+    }
+
+    public static String applicabilitySummary(CustomEnchant enchant) {
+        List<String> lines = buildApplicabilityLines(enchant);
+        StringBuilder builder = new StringBuilder();
+
+        for (String line : lines) {
+            String visible = line.replaceAll("§.", "").trim();
+
+            if (visible.isEmpty()) {
+                continue;
+            }
+
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+
+            builder.append(visible);
+        }
+
+        return builder.toString();
+    }
+
+    private static boolean isCustomLoreBoundary(String visible, String activeHeader) {
+        if (visible.isEmpty()) {
+            return false;
+        }
+
+        if (visible.contains("━")) {
+            return true;
+        }
+
+        return visible.equalsIgnoreCase("Custom Enchantments:")
+                || visible.equalsIgnoreCase("Encantamientos:")
+                || visible.equalsIgnoreCase("Nightmare Core")
+                || (!activeHeader.isEmpty() && visible.equalsIgnoreCase(activeHeader));
+    }
+
+    private static String helpParagraph(String id, int level) {
+        String text = LangService.lore("enchants." + id + ".lore." + level);
+
+        if (text == null || text.isBlank()) {
+            text = LangService.lore("enchants." + id + ".lore.1");
+        }
+
+        return text == null ? "" : text;
+    }
+
+    private static String helpMotto(String id) {
+        String text = LangService.lore("enchants." + id + ".motto");
+
+        return text == null ? "" : text;
+    }
+
+    private static String helpEffect(String id) {
+        String text = LangService.lore("enchants." + id + ".effect");
+        return text == null ? "" : text;
+
+    }
+
+    private static String helpMechanics(String id) {
+        String text = LangService.lore("enchants." + id + ".mechanics");
+        return text == null ? "" : text;
+
+    }
+
+    private static String stat(String key, String fallback) {
+        return LangService.msg("stats." + key, fallback) + ":";
+    }
+
+    private static String label(String key, String fallback) {
+        return LangService.msg("gui." + key, fallback);
+    }
+
+    private static String percent(double value) {
+        return String.format(Locale.ROOT, "%.1f%%", value * 100).replace(".0", "");
+    }
+
+    private static String number(double value) {
+        return String.format(Locale.ROOT, "%.1f", value).replace(".0", "");
+    }
+
+    private static String seconds(double value) {
+        return String.format(Locale.ROOT, "%.1f", value).replace(".0", "");
+    }
+
 }
+
+

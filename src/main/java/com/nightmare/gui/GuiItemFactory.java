@@ -12,7 +12,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.nightmare.enchant.CustomEnchant;
 import com.nightmare.enchant.EnchantBookService;
-import com.nightmare.enchant.EnchantRegistry;
 import com.nightmare.enchant.RecipeCatalog;
 import com.nightmare.enchant.RecipeIngredient;
 import com.nightmare.item.ItemModels;
@@ -23,43 +22,6 @@ public final class GuiItemFactory {
     private static final String[] ROMAN = { "I", "II", "III", "IV", "V" };
 
     private GuiItemFactory() {
-    }
-
-    public static ItemStack border() {
-        ItemStack item = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setItemName(" ");
-            meta.setLore(List.of());
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    public static ItemStack item(Material material, String name, List<String> lore) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta == null) {
-            return item;
-        }
-
-        meta.setItemName(ChatColor.translateAlternateColorCodes('&', name));
-
-        List<String> translated = new ArrayList<>();
-
-        if (lore != null) {
-            for (String line : lore) {
-                translated.add(ChatColor.translateAlternateColorCodes('&', line));
-            }
-        }
-
-        meta.setLore(translated);
-        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
-        item.setItemMeta(meta);
-        return item;
     }
 
     public static ItemStack levelButton(CustomEnchant enchant, int level, int selectedLevel, long day) {
@@ -100,6 +62,31 @@ public final class GuiItemFactory {
         return item;
     }
 
+    public static ItemStack item(Material material, String name, List<String> lore) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            return item;
+        }
+
+        meta.setItemName(ChatColor.translateAlternateColorCodes('&', name));
+
+        List<String> translated = new ArrayList<>();
+
+        if (lore != null) {
+            for (String line : lore) {
+                translated.add(ChatColor.translateAlternateColorCodes('&', line));
+            }
+        }
+
+        meta.setLore(translated);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
+        item.setItemMeta(meta);
+        
+        return item;
+    }
+
     public static ItemStack recipeIngredient(RecipeIngredient ingredient) {
         ItemStack item = ingredient.display().clone();
         ItemMeta meta = item.getItemMeta();
@@ -109,12 +96,27 @@ public final class GuiItemFactory {
         }
 
         List<String> lore = new ArrayList<>();
+        
         lore.add(ChatColor.translateAlternateColorCodes('&',
                 ChatColor.GRAY + LangService.msg("gui.amount", "Amount") + ": " + ChatColor.WHITE
                         + ingredient.amount()));
         lore.add(ChatColor.translateAlternateColorCodes('&', ChatColor.DARK_GRAY + ingredient.label()));
         meta.setLore(lore);
         item.setItemMeta(meta);
+
+        return item;
+    }
+
+    public static ItemStack border() {
+        ItemStack item = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+            meta.setItemName(" ");
+            meta.setLore(List.of());
+            item.setItemMeta(meta);
+        }
+
         return item;
     }
 

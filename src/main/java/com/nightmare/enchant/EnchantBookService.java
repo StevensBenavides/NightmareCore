@@ -1,9 +1,6 @@
 package com.nightmare.enchant;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -21,6 +18,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.nightmare.item.ItemKeys;
 import com.nightmare.item.ItemModels;
+import com.nightmare.lang.LangService;
 
 public final class EnchantBookService {
 
@@ -156,50 +154,6 @@ public final class EnchantBookService {
         return item;
     }
 
-    public static ItemStack createAbyssalInk() {
-        ItemStack item = new ItemStack(Material.INK_SAC);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta == null) {
-            return item;
-        }
-
-        meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Ink");
-        meta.setLore(com.nightmare.lang.LangService.loreLines("items.ink_lore"));
-
-        meta.getPersistentDataContainer().set(ItemKeys.ABYSSAL_INK, PersistentDataType.BOOLEAN, true);
-
-        setCustomModel(meta, "abyssal_ink");
-
-        item.setItemMeta(meta);
-
-        return item;
-    }
-
-    public static ItemStack createAbyssalNucleus() {
-        ItemStack item = new ItemStack(Material.NETHER_STAR);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta == null) {
-            return item;
-        }
-
-        meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Nucleus");
-        meta.setLore(com.nightmare.lang.LangService.loreLines("items.nucleus_lore"));
-
-        meta.getPersistentDataContainer().set(ItemKeys.ABYSSAL_CORE, PersistentDataType.BOOLEAN, true);
-
-        setCustomModel(meta, "abyssal_nucleus");
-
-        item.setItemMeta(meta);
-
-        return item;
-    }
-
-    private static void setCustomModel(ItemMeta meta, String id) {
-        ItemModels.applyMeta(meta, id);
-    }
-
     public static int maxLevelForDay(String id, long day) {
         if (id.equals("abyssal_howl") || id.equals("abyssal_core")) {
             return day >= 0 ? 1 : 0;
@@ -224,6 +178,50 @@ public final class EnchantBookService {
         }
 
         return max;
+    }
+
+    public static ItemStack createAbyssalInk() {
+        ItemStack item = new ItemStack(Material.INK_SAC);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            return item;
+        }
+
+        meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Ink");
+        meta.setLore(LangService.loreLines("items.ink_lore"));
+
+        meta.getPersistentDataContainer().set(ItemKeys.ABYSSAL_INK, PersistentDataType.BOOLEAN, true);
+
+        setCustomModel(meta, "abyssal_ink");
+
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    public static ItemStack createAbyssalNucleus() {
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            return item;
+        }
+
+        meta.setItemName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Abyssal Nucleus");
+        meta.setLore(LangService.loreLines("items.nucleus_lore"));
+
+        meta.getPersistentDataContainer().set(ItemKeys.ABYSSAL_CORE, PersistentDataType.BOOLEAN, true);
+
+        setCustomModel(meta, "abyssal_nucleus");
+
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    private static void setCustomModel(ItemMeta meta, String id) {
+        ItemModels.applyMeta(meta, id);
     }
 
 }

@@ -21,7 +21,8 @@ public final class NightmareGuiHolder implements InventoryHolder {
     private Inventory inventory;
 
     public NightmareGuiHolder(GuiType type, String enchantId, int level, int page, String category,
-            MobTier tier, EquipmentSlot slot, boolean legendary, int abyssalStep) {
+            MobTier tier, EquipmentSlot slot, boolean legendary, int abyssalStep
+    ) {
         this.type = type;
         this.enchantId = enchantId;
         this.level = level;

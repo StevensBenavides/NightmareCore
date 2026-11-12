@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import com.nightmare.item.ItemKeys;
+import com.nightmare.lang.LangService;
 
 public final class EnchantCraftService implements Listener {
 
@@ -74,7 +75,7 @@ public final class EnchantCraftService implements Listener {
 
         if (event.getView().getPlayer() instanceof Player player) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    com.nightmare.lang.LangService.format("craft.unlock_day",
+                    LangService.format("craft.unlock_day",
                             "This enchantment unlocks on day %day%.", "%day%", String.valueOf(requiredDay))));
         }
     }

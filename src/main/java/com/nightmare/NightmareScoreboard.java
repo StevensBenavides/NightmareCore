@@ -21,16 +21,6 @@ public final class NightmareScoreboard {
     private final Plugin plugin = Main.getInstance();
     public static final Map<UUID, FastBoard> boards = new HashMap<UUID, FastBoard>();
     
-    public void startScoreboard() {
-
-        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            for (FastBoard board : boards.values()) {
-                updateScoreboard(board);
-            }
-        }, 0, 20L);
-
-    }
-
     private void updateScoreboard(FastBoard board) {
 
         File settings = new File(plugin.getDataFolder(), "settings.yml");   
@@ -82,6 +72,16 @@ public final class NightmareScoreboard {
         }
 
         board.updateLines(newLines);
+
+    }
+
+    public void startScoreboard() {
+
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            for (FastBoard board : boards.values()) {
+                updateScoreboard(board);
+            }
+        }, 0, 20L);
 
     }
 

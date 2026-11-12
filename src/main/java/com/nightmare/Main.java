@@ -4,9 +4,43 @@ import java.io.File;
 import java.io.IOException;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.nightmare.command.NightmareCommand;
+import com.nightmare.core.DifficultyService;
+import com.nightmare.core.InsomniaService;
+import com.nightmare.core.NightmarePackService;
+import com.nightmare.enchant.AbyssalCoreService;
+import com.nightmare.enchant.EnchantAnvilService;
+import com.nightmare.enchant.EnchantBookService;
+import com.nightmare.enchant.EnchantCraftService;
+import com.nightmare.enchant.EnchantService;
+import com.nightmare.gui.GuiListener;
+import com.nightmare.gui.StoryService;
+import com.nightmare.item.ArmorTrimService;
+import com.nightmare.lang.LangService;
+import com.nightmare.mob.MobChunkService;
+import com.nightmare.mob.MobLootService;
+import com.nightmare.mob.MobProfileLoader;
+import com.nightmare.mob.MobSpawnService;
+import com.nightmare.mob.MobTargetingService;
+import com.nightmare.mob.MobTaskService;
+import com.nightmare.mob.NametagService;
+import com.nightmare.mob.PhaseAssaultService;
+import com.nightmare.player.BackpackService;
+import com.nightmare.player.GraveService;
+import com.nightmare.player.PermanentItemService;
+import com.nightmare.relic.AbyssalTendrilsService;
+import com.nightmare.relic.RelicCraftService;
+import com.nightmare.relic.RelicRecipeService;
+import com.nightmare.relic.SoulHeartService;
+import com.nightmare.relic.TendrilsEffects;
+import com.nightmare.relic.WhiteExplosionEffect;
+import com.nightmare.world.GodDropService;
+import com.nightmare.world.StructureService;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -38,51 +72,53 @@ public final class Main extends JavaPlugin {
     enchants = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "enchants.yml"));
     balance = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "balance.yml"));
     enchantLore = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "enchant-lore.yml"));
-    com.nightmare.lang.LangService.init(instance);
-    com.nightmare.mob.MobProfileLoader.load(instance);
-    com.nightmare.enchant.EnchantBookService.registerRecipes(instance);
-    com.nightmare.relic.TendrilsEffects.init(instance);
-    com.nightmare.relic.WhiteExplosionEffect.init(instance);
-    com.nightmare.core.NightmarePackService.register(instance);
-    com.nightmare.relic.RelicRecipeService.register(instance);
+
+    LangService.init(instance);
+    MobProfileLoader.load(instance);
+    EnchantBookService.registerRecipes(instance);
+    TendrilsEffects.init(instance);
+    WhiteExplosionEffect.init(instance);
+    NightmarePackService.register(instance);
+    RelicRecipeService.register(instance);
 
     {
       getServer().getPluginManager().registerEvents(new Events(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.enchant.EnchantService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.enchant.EnchantAnvilService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.enchant.EnchantCraftService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.enchant.EnchantMigrationService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.mob.MobSpawnService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.mob.MobLootService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.mob.MobChunkService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.mob.NametagService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.mob.MobTargetingService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.enchant.AbyssalCoreService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.relic.AbyssalTendrilsService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.relic.SoulHeartService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.relic.RelicCraftService(), instance);
-      com.nightmare.relic.SoulHeartService.start(instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.item.ArmorTrimService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.gui.GuiListener(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.gui.StoryService(), instance);
-      getServer().getPluginManager().registerEvents(new com.nightmare.world.StructureService(), instance);
-      com.nightmare.gui.StoryService.load(instance);
-      com.nightmare.gui.StoryService.start(instance);
-      com.nightmare.world.StructureService.load(instance);
-      com.nightmare.world.StructureService.start(instance);
-      com.nightmare.world.GodDropService.start(instance);
-      com.nightmare.player.BackpackService.start(instance);
-      com.nightmare.player.PermanentItemService.start(instance);
-      com.nightmare.player.GraveService.start(instance);
-      com.nightmare.command.NightmareCommand nightmareCommand = new com.nightmare.command.NightmareCommand();
+      getServer().getPluginManager().registerEvents(new EnchantService(), instance);
+      getServer().getPluginManager().registerEvents(new EnchantAnvilService(), instance);
+      getServer().getPluginManager().registerEvents(new EnchantCraftService(), instance);
+      getServer().getPluginManager().registerEvents(new MobSpawnService(), instance);
+      getServer().getPluginManager().registerEvents(new MobLootService(), instance);
+      getServer().getPluginManager().registerEvents(new MobChunkService(), instance);
+      getServer().getPluginManager().registerEvents(new NametagService(), instance);
+      getServer().getPluginManager().registerEvents(new MobTargetingService(), instance);
+      getServer().getPluginManager().registerEvents(new AbyssalCoreService(), instance);
+      getServer().getPluginManager().registerEvents(new AbyssalTendrilsService(), instance);
+      getServer().getPluginManager().registerEvents(new SoulHeartService(), instance);
+      getServer().getPluginManager().registerEvents(new RelicCraftService(), instance);
+      
+      SoulHeartService.start(instance);
+      
+      getServer().getPluginManager().registerEvents(new ArmorTrimService(), instance);
+      getServer().getPluginManager().registerEvents(new GuiListener(), instance);
+      getServer().getPluginManager().registerEvents(new StoryService(), instance);
+      getServer().getPluginManager().registerEvents(new StructureService(), instance);
+
+      StoryService.load(instance);
+      StoryService.start(instance);
+      StructureService.load(instance);
+      StructureService.start(instance);
+      GodDropService.start(instance);
+      BackpackService.start(instance);
+      PermanentItemService.start(instance);
+      GraveService.start(instance);
+      NightmareCommand nightmareCommand = new NightmareCommand();
 
       getCommand("nightmare").setExecutor(nightmareCommand);
-
       getCommand("nightmare").setTabCompleter(nightmareCommand);
     }
 
     TimeManagement.init(instance);
-        
+
     File settings = new File(getDataFolder(), "settings.yml");
 
     if (!settings.exists()) {
@@ -93,34 +129,17 @@ public final class Main extends JavaPlugin {
         getServer().getPluginManager().disablePlugin(instance);
         e.printStackTrace();
       }
-      
+
     }
 
-    YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);  
+    YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);
 
-    if (config.get("scoreboard.enable") == null) {
-      try {
-        throw new Exception("scoreboard.enable not found in settings.yml.");
-      } catch (Exception e) {
-        getServer().getPluginManager().disablePlugin(instance);
-        e.printStackTrace();
-      }
-
-    } else if (config.getBoolean("scoreboard.enable")) {
+    if (config.getBoolean("scoreboard.enable")) {
       NightmareScoreboard scoreboard = new NightmareScoreboard();
       scoreboard.startScoreboard();
     }
 
-    if (config.get("tablist.enable") == null) {
-
-      try {
-        throw new Exception("tablist.enable not found in settings.yml.");
-      } catch (Exception e) {
-        getServer().getPluginManager().disablePlugin(instance);
-        e.printStackTrace();
-      }
-
-    } else if (config.getBoolean("tablist.enable")) {
+    if (config.getBoolean("tablist.enable")) {
 
       Tablist tablist = new Tablist();
 
@@ -135,75 +154,65 @@ public final class Main extends JavaPlugin {
 
     {
       PlayerEffects.startPlayersEffects(instance);
-      getServer().getScheduler().runTaskTimer(instance, com.nightmare.mob.MobTaskService::tick, 20L, 20L);
-      getServer().getPluginManager().registerEvents(new com.nightmare.core.DifficultyService(), instance);
+      
+      getServer().getScheduler().runTaskTimer(instance, MobTaskService::tick, 20L, 20L);
+      getServer().getPluginManager().registerEvents(new DifficultyService(), instance);
       getServer().getScheduler().runTaskTimer(instance, () -> {
-        for (org.bukkit.World world : getServer().getWorlds()) {
-          com.nightmare.core.DifficultyService.apply(world);
+        for (World world : getServer().getWorlds()) {
+          DifficultyService.apply(world);
         }
       }, 0L, 600L);
-      getServer().getScheduler().runTaskTimer(instance, com.nightmare.enchant.EnchantService::tick, 20L, 20L);
-      com.nightmare.mob.PhaseAssaultService phaseAssault = new com.nightmare.mob.PhaseAssaultService();
+      getServer().getScheduler().runTaskTimer(instance, EnchantService::tick, 20L, 20L);
+
+      PhaseAssaultService phaseAssault = new PhaseAssaultService();
+      
       phaseAssault.start(instance);
-      com.nightmare.core.InsomniaService.start(instance);
+    
+      InsomniaService.start(instance);
     }
 
   }
 
   public void onDisable() {
     getServer().getScheduler().cancelTasks(instance);
-    com.nightmare.mob.MobTaskService.ACTIVE.clear();
-    com.nightmare.mob.MobTaskService.SUMMON_EXPIRY.clear();
-    com.nightmare.mob.NametagService.VISIBLE_UNTIL.clear();
-    com.nightmare.mob.PhaseAssaultService.cleanup();
-    com.nightmare.core.InsomniaService.shutdown();
-    com.nightmare.enchant.EnchantService.PROCESSING_HIT.clear();
-    com.nightmare.enchant.EnchantService.PROCESSING_DAMAGED.clear();
-    com.nightmare.relic.AbyssalTendrilsService.cleanup();
-    com.nightmare.relic.SoulHeartService.cleanup();
-    com.nightmare.relic.TendrilsEffects.dispose();
-    com.nightmare.relic.WhiteExplosionEffect.dispose();
-    com.nightmare.core.NightmarePackService.dispose();
-    com.nightmare.world.StructureService.save();
-    com.nightmare.world.GodDropService.shutdown();
-    com.nightmare.player.BackpackService.shutdown();
-    com.nightmare.player.GraveService.shutdown();
-    com.nightmare.PlayerEffects.RANDOM_EFFECT_COOLDOWN.clear();
+    
+    MobTaskService.ACTIVE.clear();
+    MobTaskService.SUMMON_EXPIRY.clear();
+    NametagService.VISIBLE_UNTIL.clear();
+    PhaseAssaultService.shutdown();
+    InsomniaService.shutdown();
+    EnchantService.PROCESSING_HIT.clear();
+    EnchantService.PROCESSING_DAMAGED.clear();
+    AbyssalTendrilsService.shutdown();
+    SoulHeartService.shutdown();
+    TendrilsEffects.shutdown();
+    WhiteExplosionEffect.shutdown();
+    NightmarePackService.shutdown();
+    StructureService.save();
+    GodDropService.shutdown();
+    BackpackService.shutdown();
+    GraveService.shutdown();
+    PlayerEffects.RANDOM_EFFECT_COOLDOWN.clear();
+
     DisplayStopMessage();
   }
 
-  public static Plugin getInstance() {
-    return instance;
-  }
-
-  public static YamlConfiguration getSettings() {
-    return settings;
-  }
-
-  public static YamlConfiguration getMessages() {
-    return messages;
-  }
-
   public static void setSettings() throws IOException {
-
     File file = new File(instance.getDataFolder(), "settings.yml");
 
     if (!file.exists())
       throw new IOException("settings.yml does not exist.");
 
     settings = YamlConfiguration.loadConfiguration(file);
-
   }
 
   public static void setMessages() throws IOException {
-    
     File file = new File(instance.getDataFolder(), "messages.yml");
 
     if (!file.exists())
       throw new IOException("messages.yml does not exist.");
 
     messages = YamlConfiguration.loadConfiguration(file);  
-
   }
 
   private void DisplayStartMessage() {
@@ -218,6 +227,18 @@ public final class Main extends JavaPlugin {
     Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', "&c&lNighmare Core &7| &cOFF"));
     Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', "&fCreated by &bStevens Benavides"));
     Bukkit.getConsoleSender().sendMessage("");
+  }
+
+  public static Plugin getInstance() {
+    return instance;
+  }
+
+  public static YamlConfiguration getSettings() {
+    return settings;
+  }
+
+  public static YamlConfiguration getMessages() {
+    return messages;
   }
 
 }

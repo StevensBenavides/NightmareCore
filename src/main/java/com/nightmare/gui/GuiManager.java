@@ -11,7 +11,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.nightmare.enchant.CustomEnchant;
-import com.nightmare.enchant.EnchantBookService;
 import com.nightmare.enchant.EnchantLoreService;
 import com.nightmare.item.ItemModels;
 import com.nightmare.enchant.EnchantRegistry;
@@ -36,70 +35,7 @@ public final class GuiManager {
     private GuiManager() {
     }
 
-    public static void openMain(Player player) {
-        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.MAIN, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 27, "§8" + LangService.msg("gui.title_main", "Nightmare Guide"));
-
-        inventory.setItem(12, GuiItemFactory.item(Material.ENCHANTED_BOOK, "§6§l" + LangService.msg("gui.enchants_button", "✦ Enchantments"),
-                List.of("§e" + LangService.msg("gui.browse_enchants", "Click to browse enchantments, levels and recipes."))));
-        inventory.setItem(14, GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("gui.relics_button", "✦ Relics"),
-                List.of("§e" + LangService.msg("gui.browse_relics", "Click to view the relic and recipe."))));
-
-        player.openInventory(inventory);
-    }
-
-    public static void openEnchantList(Player player) {
-        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.ENCHANTS, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_enchants", "Enchantments"));
-
-        for (int index = 0; index < EnchantRegistry.ALL.size(); index++) {
-            CustomEnchant enchant = EnchantRegistry.ALL.get(index);
-
-            ItemStack icon = ItemModels.apply(GuiItemFactory.item(Material.ENCHANTED_BOOK,
-                    EnchantLoreService.buildBookName(enchant.id, 1),
-                    EnchantLoreService.buildHelpListLore(enchant.id)), enchant.id);
-
-            inventory.setItem(CONTENT_SLOTS[index], icon);
-        }
-
-        applyNavigation(inventory, false, false);
-
-        player.openInventory(inventory);
-    }
-
-    public static void openEnchantDetail(Player player, String id, int level) {
-        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
-
-        if (enchant == null) {
-            return;
-        }
-
-        int safeLevel = Math.min(Math.max(level, 1), enchant.maxLevel);
-
-        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.ENCHANT_DETAIL, id, safeLevel, 0,
-                null, null, null, false, 0);
-
-        Inventory inventory = create(holder, 54, "§8" + enchant.displayName + " " + roman(safeLevel));
-
-        long day = player.getWorld().getFullTime() / 24000L;
-
-        inventory.setItem(4, ItemModels.apply(GuiItemFactory.item(Material.ENCHANTED_BOOK,
-                EnchantLoreService.buildBookName(id, safeLevel),
-                EnchantLoreService.buildHelpDetailLore(id, safeLevel)), id));
-
-        for (int buttonLevel = 1; buttonLevel <= 5; buttonLevel++) {
-            inventory.setItem(18 + buttonLevel, GuiItemFactory.levelButton(enchant, buttonLevel, safeLevel, day));
-        }
-
-        inventory.setItem(31, GuiItemFactory.item(Material.CRAFTING_TABLE, "§e" + LangService.msg("gui.view_recipe", "View Recipe"),
-                List.of("§7" + LangService.msg("gui.see_grid_1", "See the crafting grid"),
-                        "§7" + LangService.msg("gui.see_grid_2", "for this enchantment level."))));
-
-        applyNavigation(inventory, false, false);
-
-        player.openInventory(inventory);
-    }
-
+    @SuppressWarnings("null")
     public static void openRecipe(Player player, String id, int level, int step) {
         CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
 
@@ -151,28 +87,36 @@ public final class GuiManager {
         player.openInventory(inventory);
     }
 
-    public static void openStory(Player player, int chapter) {
-        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.STORY, null, 0, chapter, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_story", "Nightmare Origin"));
+    public static void openEnchantDetail(Player player, String id, int level) {
+        CustomEnchant enchant = EnchantRegistry.ENCHANTS.get(id);
 
-        StoryService.render(player, inventory, chapter, 0);
-        player.openInventory(inventory);
-    }
-
-    public static void openRelics(Player player) {
-        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.RELICS, null, 0, 0, null, null, null, false, 0);
-        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_relics", "Relics"));
-
-        for (int slot = 0; slot < inventory.getSize(); slot++) {
-            inventory.setItem(slot, GuiItemFactory.border());
+        if (enchant == null) {
+            return;
         }
 
-        inventory.setItem(20, ItemModels.apply(GuiItemFactory.item(Material.HEART_OF_THE_SEA, "§f§l" + LangService.msg("relics.soul_heart.name", "❖ Soul Heart"),
-                LangService.loreLines("gui.relic_soul_heart")), "soul_heart"));
-        inventory.setItem(24, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"),
-                LangService.loreLines("gui.relic_tendrils")), "abyssal_tendrils"));
+        int safeLevel = Math.min(Math.max(level, 1), enchant.maxLevel);
+
+        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.ENCHANT_DETAIL, id, safeLevel, 0,
+                null, null, null, false, 0);
+
+        Inventory inventory = create(holder, 54, "§8" + enchant.displayName + " " + roman(safeLevel));
+
+        long day = player.getWorld().getFullTime() / 24000L;
+
+        inventory.setItem(4, ItemModels.apply(GuiItemFactory.item(Material.ENCHANTED_BOOK,
+                EnchantLoreService.buildBookName(id, safeLevel),
+                EnchantLoreService.buildHelpDetailLore(id, safeLevel)), id));
+
+        for (int buttonLevel = 1; buttonLevel <= 5; buttonLevel++) {
+            inventory.setItem(18 + buttonLevel, GuiItemFactory.levelButton(enchant, buttonLevel, safeLevel, day));
+        }
+
+        inventory.setItem(31, GuiItemFactory.item(Material.CRAFTING_TABLE, "§e" + LangService.msg("gui.view_recipe", "View Recipe"),
+                List.of("§7" + LangService.msg("gui.see_grid_1", "See the crafting grid"),
+                        "§7" + LangService.msg("gui.see_grid_2", "for this enchantment level."))));
 
         applyNavigation(inventory, false, false);
+
         player.openInventory(inventory);
     }
 
@@ -196,6 +140,7 @@ public final class GuiManager {
         inventory.setItem(24, recipe.result());
         inventory.setItem(40, GuiItemFactory.item(Material.PAPER,
                 "§7" + (recipe.shapeless() ? LangService.msg("gui.shapeless", "Shapeless") : LangService.msg("gui.shaped", "Shaped")), summaryLore(recipe.summary())));
+        
         applyNavigation(inventory, false, false);
         player.openInventory(inventory);
     }
@@ -225,6 +170,81 @@ public final class GuiManager {
         player.openInventory(inventory);
     }
 
+    private static void applyNavigation(Inventory inventory, boolean previousPage, boolean nextPage) {
+        inventory.setItem(BACK_SLOT, GuiItemFactory.item(Material.ARROW, "§a" + LangService.msg("gui.back", "Back"),
+                List.of("§7" + LangService.msg("gui.back_to", "Return to the previous menu."))));
+        inventory.setItem(CLOSE_SLOT, GuiItemFactory.item(Material.BARRIER, "§c" + LangService.msg("gui.close", "Close"),
+                List.of("§7" + LangService.msg("gui.close_menu", "Close this menu."))));
+
+        if (previousPage) {
+            inventory.setItem(PREV_SLOT, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.previous_page", "Previous Page"),
+                    List.of("§7" + LangService.msg("gui.go_previous", "Go to the previous page."))));
+        }
+
+        if (nextPage) {
+            inventory.setItem(NEXT_SLOT, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.next_page", "Next Page"),
+                    List.of("§7" + LangService.msg("gui.go_next", "Go to the next page."))));
+        }
+    }
+
+    public static void openEnchantList(Player player) {
+        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.ENCHANTS, null, 0, 0, null, null, null, false, 0);
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_enchants", "Enchantments"));
+
+        for (int index = 0; index < EnchantRegistry.ALL.size(); index++) {
+            CustomEnchant enchant = EnchantRegistry.ALL.get(index);
+
+            ItemStack icon = ItemModels.apply(GuiItemFactory.item(Material.ENCHANTED_BOOK,
+                    EnchantLoreService.buildBookName(enchant.id, 1),
+                    EnchantLoreService.buildHelpListLore(enchant.id)), enchant.id);
+
+            inventory.setItem(CONTENT_SLOTS[index], icon);
+        }
+
+        applyNavigation(inventory, false, false);
+
+        player.openInventory(inventory);
+    }
+
+    public static void openRelics(Player player) {
+        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.RELICS, null, 0, 0, null, null, null, false, 0);
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_relics", "Relics"));
+
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            inventory.setItem(slot, GuiItemFactory.border());
+        }
+
+        inventory.setItem(20, ItemModels.apply(GuiItemFactory.item(Material.HEART_OF_THE_SEA, "§f§l" + LangService.msg("relics.soul_heart.name", "❖ Soul Heart"),
+                LangService.loreLines("gui.relic_soul_heart")), "soul_heart"));
+        inventory.setItem(24, ItemModels.apply(GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("relics.abyssal_tendrils.name", "❖ Abyssal Tendrils"),
+                LangService.loreLines("gui.relic_tendrils")), "abyssal_tendrils"));
+
+        applyNavigation(inventory, false, false);
+        player.openInventory(inventory);
+    }
+
+    public static void openMain(Player player) {
+        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.MAIN, null, 0, 0, null, null, null, false, 0);
+        Inventory inventory = create(holder, 27, "§8" + LangService.msg("gui.title_main", "Nightmare Guide"));
+
+        inventory.setItem(12, GuiItemFactory.item(Material.ENCHANTED_BOOK, "§6§l" + LangService.msg("gui.enchants_button", "✦ Enchantments"),
+                List.of("§e" + LangService.msg("gui.browse_enchants", "Click to browse enchantments, levels and recipes."))));
+        inventory.setItem(14, GuiItemFactory.item(Material.ENDER_EYE, "§5§l" + LangService.msg("gui.relics_button", "✦ Relics"),
+                List.of("§e" + LangService.msg("gui.browse_relics", "Click to view the relic and recipe."))));
+
+        player.openInventory(inventory);
+    }
+
+    private static String roman(int level) {
+        return switch (level) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            default -> "V";
+        };
+    }
+
     private static Inventory create(NightmareGuiHolder holder, int size, String title) {
         Inventory inventory = Bukkit.createInventory(holder, size, title);
         holder.setInventory(inventory);
@@ -246,31 +266,12 @@ public final class GuiManager {
         return lore;
     }
 
-    private static void applyNavigation(Inventory inventory, boolean previousPage, boolean nextPage) {
-        inventory.setItem(BACK_SLOT, GuiItemFactory.item(Material.ARROW, "§a" + LangService.msg("gui.back", "Back"),
-                List.of("§7" + LangService.msg("gui.back_to", "Return to the previous menu."))));
-        inventory.setItem(CLOSE_SLOT, GuiItemFactory.item(Material.BARRIER, "§c" + LangService.msg("gui.close", "Close"),
-                List.of("§7" + LangService.msg("gui.close_menu", "Close this menu."))));
+    public static void openStory(Player player, int chapter) {
+        NightmareGuiHolder holder = new NightmareGuiHolder(GuiType.STORY, null, 0, chapter, null, null, null, false, 0);
+        Inventory inventory = create(holder, 54, "§8" + LangService.msg("gui.title_story", "Nightmare Origin"));
 
-        if (previousPage) {
-            inventory.setItem(PREV_SLOT, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.previous_page", "Previous Page"),
-                    List.of("§7" + LangService.msg("gui.go_previous", "Go to the previous page."))));
-        }
-
-        if (nextPage) {
-            inventory.setItem(NEXT_SLOT, GuiItemFactory.item(Material.ARROW, "§e" + LangService.msg("gui.next_page", "Next Page"),
-                    List.of("§7" + LangService.msg("gui.go_next", "Go to the next page."))));
-        }
-    }
-
-    private static String roman(int level) {
-        return switch (level) {
-            case 1 -> "I";
-            case 2 -> "II";
-            case 3 -> "III";
-            case 4 -> "IV";
-            default -> "V";
-        };
+        StoryService.render(player, inventory, chapter, 0);
+        player.openInventory(inventory);
     }
 
 }

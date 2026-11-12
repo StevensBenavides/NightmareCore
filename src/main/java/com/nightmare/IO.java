@@ -10,94 +10,19 @@ import java.util.HashMap;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import com.nightmare.tier.MobTier;
+
 public final class IO {
 
     public static final HashMap<String, String> HashMapOfMessages = new HashMap<String, String>();
     public static final HashMap<String, String> HashMapOfSettings = new HashMap<String, String>();
 
-    public static void InitConfigFiles(Plugin plugin) {
-
-        try {
-            IO.GenerateDataFolder(plugin);
-
-            File settings = new File(plugin.getDataFolder(), "settings.yml");
-            File messages = new File(plugin.getDataFolder(), "messages.yml");
-
-            if (!settings.exists()) {
-                IO.GenerateSettings(plugin);
-            }
-
-            if (!messages.exists()) {
-                IO.GenerateMessages(plugin);
-            }
-
-            IO.SubmitSettings(plugin);
-            IO.SubmitMessages(plugin);
-
-        } catch (IOException e) {
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
-            e.printStackTrace();
-        }
-
-    }
-
-    public static void LoadConfigFiles(Plugin plugin) {
-        Main.settings = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "settings.yml"));
-        Main.messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "messages.yml"));
-
-        for (com.nightmare.tier.MobTier tier : com.nightmare.tier.MobTier.values()) {
-            String key = "config.mobs." + tier.name().toLowerCase() + "_tier";
-
-            if (!Main.settings.isSet(key)) {
-                Main.settings.set(key, "&c&lNightmare %mob% &4☠ Tier " + tier.name());
-            }
-        }
-    }
-
-    public static void GenerateDataFolder(Plugin plugin) throws IOException {
-        
-        if (!plugin.getDataFolder().exists())
-            plugin.getDataFolder().mkdir();
-
-    }
-
-    public static void GenerateMessages(Plugin plugin) throws IOException {
-
-        if (!plugin.getDataFolder().exists())
-            throw new IOException("No existing data folder.");
-
-        File messages = new File(plugin.getDataFolder(), "messages.yml");
-        
-        messages.createNewFile();
-
-        if (!messages.exists())
-            throw new IOException("messages.yml does not exist.");
-
-        Path messagesPath = Paths.get(messages.getAbsolutePath());
-
-        String dataMessages= """
-        # messages.yml
-
-        #This is the Nightmare core messaging configuration file.
-        #If you want to configure something you must do it with its corresponding values.
-
-        permission: "&cYou not have permission to do that."
-        reload:
-            messages: "&amessages.yml has been reloaded."
-            settings: "&asettings.yml has been reloaded."
-
-        """;
-
-        Files.writeString(messagesPath, dataMessages);
-
-    }   
-
     public static void GenerateSettings(Plugin plugin) throws IOException {
-        
+
         if (!plugin.getDataFolder().exists())
             throw new IOException("No existing data folder.");
 
-        File settings = new File(plugin.getDataFolder(), "settings.yml");    
+        File settings = new File(plugin.getDataFolder(), "settings.yml");
 
         settings.createNewFile();
 
@@ -106,7 +31,7 @@ public final class IO {
 
         Path settingsPath = Paths.get(settings.getAbsolutePath());
 
-        String dataSettings= """                                        
+        String dataSettings= """
         # settings.yml
 
         # This is the main configuration file for the nightmare core.
@@ -124,11 +49,11 @@ public final class IO {
         # Scoreboard
         # Placeholders of the scoreboard:
 
-            # Special Placeholder 
+            # Special Placeholder
 
             # Nightmare's placeholders:
 
-            # %player% = player name 
+            # %player% = player name
             # %day% = world day
             # %online% = online players
             # %location% = player location
@@ -152,7 +77,7 @@ public final class IO {
         join_and_leave:
             enable: true
             join: "Welcome &c%player_name% &fto the &4Nightmare World&r."
-            leave: "&c%player_name% &fleft the &4Nightmare World&r."    
+            leave: "&c%player_name% &fleft the &4Nightmare World&r."
 
         # Tablist
 
@@ -162,10 +87,10 @@ public final class IO {
             footer: "Welcome &c%player_name% &fto the &4Nightmare World ☠&r."
 
         # Motd
-        
+
         motd:
             enable: true
-            lines: 
+            lines:
                 - "&4☠ &x&f&b&0&a&0&a&lN&x&f&b&1&2&1&2&li&x&f&b&1&a&1&a&lg&x&f&c&2&2&2&2&lh&x&f&c&2&a&2&a&lt&x&f&c&3&2&3&2&lm&x&f&c&3&a&3&a&la&x&f&c&4&1&4&1&lr&x&f&c&4&9&4&9&le &x&f&c&5&1&5&1&lC&x&f&d&5&9&5&9&lo&x&f&d&6&1&6&1&lr&x&f&d&6&9&6&9&le &4☠&r"
                 - "&c&lWelcome to the eternal &4&lnightmare ☠&r."
 
@@ -223,64 +148,60 @@ public final class IO {
 
     }
 
-    public static void SubmitMessages(Plugin plugin) throws IOException {
+    public static void GenerateMessages(Plugin plugin) throws IOException {
+
+        if (!plugin.getDataFolder().exists())
+            throw new IOException("No existing data folder.");
 
         File messages = new File(plugin.getDataFolder(), "messages.yml");
+
+        messages.createNewFile();
 
         if (!messages.exists())
             throw new IOException("messages.yml does not exist.");
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(messages);    
+        Path messagesPath = Paths.get(messages.getAbsolutePath());
 
-        if (config.getString("permission") == null)
-            throw new IOException("perm not found in messages.yml.");
+        String dataMessages= """
+        # messages.yml
 
-        HashMapOfMessages.put("permission", config.getString("permission").toString());    
+        #This is the Nightmare core messaging configuration file.
+        #If you want to configure something you must do it with its corresponding values.
 
-        if (config.getString("reload.messages") == null)
-            throw new IOException("reload.messages not found in messages.yml.");
+        permission: "&cYou not have permission to do that."
+        reload:
+            messages: "&amessages.yml has been reloaded."
+            settings: "&asettings.yml has been reloaded."
 
-        HashMapOfMessages.put("reload-messages", config.getString("reload.messages").toString());    
-        
-        if (config.getString("reload.settings") == null)
-            throw new IOException("reload.settings not found in messages.yml.");
+        """;
 
-        HashMapOfMessages.put("reload-settings", config.getString("reload.settings"));
-
-    }
-
-    public static void SubmitSettings(Plugin plugin) throws IOException {
-
-        File settings = new File(plugin.getDataFolder(), "settings.yml");
-
-        if (!settings.exists())
-            throw new IOException("settings.yml does not exist.");
-
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);    
-
-        if (config.getString("prefix") == null)
-            throw new IOException("prefix not found in settings.yml.");
-
-        HashMapOfSettings.put("prefix", config.getString("prefix"));
+        Files.writeString(messagesPath, dataMessages);
 
     }
 
-    public static void reloadSettings(Plugin plugin) throws IOException {
+    public static void InitConfigFiles(Plugin plugin) {
 
-        File settings = new File(plugin.getDataFolder(), "settings.yml");
+        try {
+            IO.GenerateDataFolder(plugin);
 
-        if (!settings.exists())
-            throw new IOException("settings.yml does not exist.");
+            File settings = new File(plugin.getDataFolder(), "settings.yml");
+            File messages = new File(plugin.getDataFolder(), "messages.yml");
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);
+            if (!settings.exists()) {
+                IO.GenerateSettings(plugin);
+            }
 
-        if (config.getString("prefix") == null)
-            throw new IOException("prefix not found in settings.yml.");
+            if (!messages.exists()) {
+                IO.GenerateMessages(plugin);
+            }
 
-        HashMapOfSettings.clear();
-        HashMapOfSettings.put("prefix", config.getString("prefix").toString());
+            IO.SubmitSettings(plugin);
+            IO.SubmitMessages(plugin);
 
-        Main.setSettings();
+        } catch (IOException e) {
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            e.printStackTrace();
+        }
 
     }
 
@@ -310,5 +231,84 @@ public final class IO {
         Main.setMessages();
 
     }
-    
+
+    public static void SubmitMessages(Plugin plugin) throws IOException {
+
+        File messages = new File(plugin.getDataFolder(), "messages.yml");
+
+        if (!messages.exists())
+            throw new IOException("messages.yml does not exist.");
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(messages);
+
+        if (config.getString("permission") == null)
+            throw new IOException("perm not found in messages.yml.");
+
+        HashMapOfMessages.put("permission", config.getString("permission").toString());
+
+        if (config.getString("reload.messages") == null)
+            throw new IOException("reload.messages not found in messages.yml.");
+
+        HashMapOfMessages.put("reload-messages", config.getString("reload.messages").toString());
+
+        if (config.getString("reload.settings") == null)
+            throw new IOException("reload.settings not found in messages.yml.");
+
+        HashMapOfMessages.put("reload-settings", config.getString("reload.settings"));
+
+    }
+
+    public static void reloadSettings(Plugin plugin) throws IOException {
+
+        File settings = new File(plugin.getDataFolder(), "settings.yml");
+
+        if (!settings.exists())
+            throw new IOException("settings.yml does not exist.");
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);
+
+        if (config.getString("prefix") == null)
+            throw new IOException("prefix not found in settings.yml.");
+
+        HashMapOfSettings.clear();
+        HashMapOfSettings.put("prefix", config.getString("prefix").toString());
+
+        Main.setSettings();
+
+    }
+
+    public static void LoadConfigFiles(Plugin plugin) {
+        Main.settings = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "settings.yml"));
+        Main.messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "messages.yml"));
+
+        for (MobTier tier : MobTier.values()) {
+            String key = "config.mobs." + tier.name().toLowerCase() + "_tier";
+
+            if (!Main.settings.isSet(key)) {
+                Main.settings.set(key, "&c&lNightmare %mob% &4☠ Tier " + tier.name());
+            }
+        }
+    }
+
+    public static void SubmitSettings(Plugin plugin) throws IOException {
+
+        File settings = new File(plugin.getDataFolder(), "settings.yml");
+
+        if (!settings.exists())
+            throw new IOException("settings.yml does not exist.");
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(settings);
+
+        if (config.getString("prefix") == null)
+            throw new IOException("prefix not found in settings.yml.");
+
+        HashMapOfSettings.put("prefix", config.getString("prefix"));
+
+    }
+
+    public static void GenerateDataFolder(Plugin plugin) throws IOException {
+        if (!plugin.getDataFolder().exists())
+            plugin.getDataFolder().mkdir();
+    }
+
 }
